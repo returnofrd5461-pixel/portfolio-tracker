@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>포트폴리오 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg:   #ffffff; --bg2: #f7f7f5; --bg3: #eeedea;
@@ -28,10 +29,29 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 /* ── header ── */
 .hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .hdr h1{font-size:20px;font-weight:600}
-.hdr-meta{font-size:13px;color:var(--txt3);font-family:var(--mono)}
+.hdr-meta{font-size:13px;color:var(--txt3);font-family:var(--mono);display:flex;align-items:center;gap:10px}
 .total-krw{font-size:15px;color:var(--txt2)}
 .total-krw strong{font-family:var(--mono);font-size:18px;color:var(--txt);font-weight:600}
 .total-delta{font-size:13px;font-family:var(--mono);margin-left:8px}
+.png-btn{
+  font-size:12px;padding:6px 12px;border-radius:6px;border:0.5px solid var(--bdr);
+  background:var(--bg2);color:var(--txt);cursor:pointer;font-family:var(--sans);
+  transition:background .15s;
+}
+.png-btn:hover{background:var(--bg3)}
+.png-btn:disabled{opacity:.5;cursor:wait}
+
+/* ── tabs ── */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:0.5px solid var(--bdr);overflow-x:auto}
+.tab{
+  padding:10px 16px;background:transparent;border:none;cursor:pointer;
+  font-size:14px;color:var(--txt2);font-family:var(--sans);
+  border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;
+}
+.tab:hover{color:var(--txt)}
+.tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
 /* ── market sections (top: macro/assets/indicators) ── */
 .market-section{
@@ -80,6 +100,8 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .ind-bar{height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden;margin-top:6px}
 @media(prefers-color-scheme:dark){.ind-bar{background:rgba(255,255,255,0.10)}}
 .ind-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.ind-chg{font-size:11px;font-family:var(--mono);margin-top:4px}
+.ind-chg.chg-pos{color:var(--pos)}.ind-chg.chg-neg{color:var(--neg)}.ind-chg.chg-neu{color:var(--txt3)}
 
 /* ── section label ── */
 .sec-label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px;margin-top:6px}
@@ -129,9 +151,10 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .acct-card .amount{font-size:18px;font-weight:700;font-family:var(--mono);line-height:1.15}
 .acct-card .pct-row{display:flex;align-items:center;gap:8px;margin-top:1px}
 .acct-card .pct-val{font-size:14px;color:var(--txt2);white-space:nowrap;font-weight:500}
-.acct-pnl{font-size:11px;color:var(--txt3);font-family:var(--mono);line-height:1.5;margin-top:2px}
-.acct-pnl .acct-pnl-strong{font-weight:600;font-size:12px}
-.acct-pnl .pos{color:var(--pos)}.acct-pnl .neg{color:var(--neg)}
+.acct-pnl{font-size:13px;color:var(--txt2);font-family:var(--mono);line-height:1.5;margin-top:4px;padding-top:6px;border-top:0.5px dashed var(--bdr)}
+.acct-pnl .acct-pnl-strong{font-weight:700;font-size:13px}
+.acct-pnl .pos,.acct-pnl-strong.pos{color:var(--pos)}
+.acct-pnl .neg,.acct-pnl-strong.neg{color:var(--neg)}
 .pbar{height:5px;flex:1;background:var(--bg2);border-radius:3px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:3px}
 
@@ -384,8 +407,7 @@ function _msItem(emoji, name, priceStr, chgPct) {
   </div>`;
 }
 function _fmtMktPrice(p) {
-  if(p>=10000) return fmt(Math.round(p));
-  if(p>=1000)  return p.toFixed(0);
+  if(p>=1000)  return fmt(Math.round(p));
   if(p>=10)    return p.toFixed(2);
   return p.toFixed(3);
 }
@@ -420,6 +442,22 @@ function renderAssetsRow(d) {
     </div>`;
 }
 
+// {value, change_pct} 구조 또는 flat 숫자 모두 지원
+function _ciVal(x) {
+  if(x == null) return null;
+  return typeof x === 'object' ? x.value : x;
+}
+function _ciChg(x) {
+  if(x == null || typeof x !== 'object') return null;
+  return x.change_pct;
+}
+function _chgBadge(chg) {
+  if(chg == null) return '';
+  const cls = chg>0?'chg-pos':chg<0?'chg-neg':'chg-neu';
+  const s = chg>=0?'+':'';
+  return `<div class="ind-chg ${cls}">${s}${chg.toFixed(2)}%</div>`;
+}
+
 function renderIndicatorsRow(d) {
   const m = d.markets || {};
   const ci = d.crypto_indicators || {};
@@ -441,36 +479,41 @@ function renderIndicatorsRow(d) {
   cards.push(fgCard(fg.crypto, '크립토 F&G'));
   cards.push(fgCard(fg.sp500,  'S&P F&G'));
 
-  if(ci.btc_dominance!=null) {
-    const v = ci.btc_dominance;
+  const btcd = _ciVal(ci.btc_dominance);
+  if(btcd != null) {
     cards.push(`<div class="ind-card">
       <div class="ind-label">BTC 도미넌스</div>
-      <div class="ind-value">${v.toFixed(1)}%</div>
-      <div class="ind-sub">${v>55?'BTC 강세장':'알트 시즌'}</div>
+      <div class="ind-value">${btcd.toFixed(1)}%</div>
+      <div class="ind-sub">${btcd>55?'BTC 강세장':'알트 시즌'}</div>
+      ${_chgBadge(_ciChg(ci.btc_dominance))}
     </div>`);
   }
-  if(ci.usdt_dominance!=null) {
-    const v = ci.usdt_dominance;
+  const usdtd = _ciVal(ci.usdt_dominance);
+  if(usdtd != null) {
     cards.push(`<div class="ind-card">
       <div class="ind-label">USDT 도미넌스</div>
-      <div class="ind-value">${v.toFixed(1)}%</div>
-      <div class="ind-sub">${v>5?'시장 회피↑':'정상 수준'}</div>
+      <div class="ind-value">${usdtd.toFixed(1)}%</div>
+      <div class="ind-sub">${usdtd>5?'시장 회피↑':'정상 수준'}</div>
+      ${_chgBadge(_ciChg(ci.usdt_dominance))}
     </div>`);
   }
-  if(ci.eth_btc_ratio!=null) {
-    const v = ci.eth_btc_ratio;
+  const ethbtc = _ciVal(ci.eth_btc_ratio);
+  if(ethbtc != null) {
     cards.push(`<div class="ind-card">
       <div class="ind-label">ETH/BTC</div>
-      <div class="ind-value">${v.toFixed(4)}</div>
-      <div class="ind-sub">${v>0.06?'ETH 강세':'BTC 강세'}</div>
+      <div class="ind-value">${ethbtc.toFixed(4)}</div>
+      <div class="ind-sub">${ethbtc>0.06?'ETH 강세':'BTC 강세'}</div>
+      ${_chgBadge(_ciChg(ci.eth_btc_ratio))}
     </div>`);
   }
-  if(ci.total3_market_cap!=null) {
-    const t3B = (ci.total3_market_cap/1e9).toFixed(0);
+  const t3 = _ciVal(ci.total3_market_cap);
+  if(t3 != null) {
+    const t3B = (t3/1e9).toFixed(0);
     cards.push(`<div class="ind-card">
       <div class="ind-label">TOTAL3 시총</div>
       <div class="ind-value">${t3B}B$</div>
       <div class="ind-sub">BTC+ETH 제외</div>
+      ${_chgBadge(_ciChg(ci.total3_market_cap))}
     </div>`);
   }
 
@@ -603,7 +646,7 @@ function renderAccountGrid(d) {
     if(a.principal_krw && a.principal_krw > 0) {
       const sgn = a.pnl_krw >= 0 ? '+' : '';
       const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
-      pnlLine = `<div class="acct-pnl">원금 ${fmt(a.principal_krw)} · 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
+      pnlLine = `<div class="acct-pnl">총 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
     }
     return `
       <div class="acct-card">
@@ -1044,22 +1087,82 @@ function render(d) {
           &nbsp;·&nbsp; USD/KRW ${fmt(d.usdkrw)}
         </div>
       </div>
-      <div class="hdr-meta">마지막 갱신 ${fmtUpdatedAt(d.updated_at)}</div>
+      <div class="hdr-meta">
+        <span>마지막 갱신 ${fmtUpdatedAt(d.updated_at)}</span>
+        <button class="png-btn" id="pngBtn" onclick="downloadPng()">📷 PNG 저장</button>
+      </div>
     </div>
-    <div class="sec-label">시장 컨텍스트</div>
-    ${renderMacroRow(d)}
-    ${renderAssetsRow(d)}
-    ${renderIndicatorsRow(d)}
-    <div class="sec-label">자산 비율</div>
-    ${renderSummaryRow(d)}
-    <div class="sec-label">계좌별 현황</div>
-    ${renderAccountGrid(d)}
-    <div class="sec-label">종목 상세</div>
-    ${renderHoldings(d)}
-    <div class="sec-label">보조 지표</div>
-    ${renderMetrics(d)}`;
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">📊 자산 현황</button>
+      <button class="tab" data-tab="journal">📝 매매일지</button>
+      <button class="tab" data-tab="review">📈 회고</button>
+      <button class="tab" data-tab="calendar">📅 캘린더</button>
+    </div>
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="sec-label">시장 컨텍스트</div>
+      ${renderMacroRow(d)}
+      ${renderAssetsRow(d)}
+      ${renderIndicatorsRow(d)}
+      <div class="sec-label">자산 비율</div>
+      ${renderSummaryRow(d)}
+      <div class="sec-label">계좌별 현황</div>
+      ${renderAccountGrid(d)}
+      <div class="sec-label">종목 상세</div>
+      ${renderHoldings(d)}
+      <div class="sec-label">보조 지표</div>
+      ${renderMetrics(d)}
+    </div>
+    <div id="tab-journal" class="tab-content">
+      <div class="state-msg">매매일지 (Phase B에서 구현)</div>
+    </div>
+    <div id="tab-review" class="tab-content">
+      <div class="state-msg">거래 회고 (Phase B에서 구현)</div>
+    </div>
+    <div id="tab-calendar" class="tab-content">
+      <div class="state-msg">매크로 캘린더 (Phase B에서 구현)</div>
+    </div>`;
 
   document.getElementById('app').innerHTML = html;
+
+  // 탭 전환
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ── PNG 다운로드 ──────────────────────────────────────────────────────────────
+async function downloadPng() {
+  const btn = document.getElementById('pngBtn');
+  if(!window.html2canvas) {
+    alert('html2canvas 로드 실패');
+    return;
+  }
+  const target = document.getElementById('tab-dashboard');
+  if(!target) return;
+  const oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ 생성 중...';
+  try {
+    const bg = getComputedStyle(document.body).backgroundColor;
+    const canvas = await html2canvas(target, {
+      scale: 3, useCORS: true, backgroundColor: bg, logging: false,
+      windowWidth: target.scrollWidth, windowHeight: target.scrollHeight,
+    });
+    const link = document.createElement('a');
+    link.download = `portfolio_${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) {
+    alert('PNG 생성 실패: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
 }
 
 fetch('data.json')

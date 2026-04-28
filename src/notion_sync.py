@@ -71,6 +71,23 @@ def upsert_holding(ticker: str, props: dict) -> None:
         )
 
 
+def ensure_snapshot_crypto_columns() -> None:
+    """Snapshots DB에 크립토 지표 number 컬럼 4종 보장 (있으면 무시)."""
+    if not SNAPSHOT_DB:
+        return
+    new_props = {
+        "BTC도미넌스":   {"number": {"format": "number"}},
+        "USDT도미넌스":  {"number": {"format": "number"}},
+        "ETHBTC비율":    {"number": {"format": "number"}},
+        "TOTAL3시총":    {"number": {"format": "number"}},
+    }
+    try:
+        notion.databases.update(database_id=SNAPSHOT_DB, properties=new_props)
+        print("  Snapshots DB 크립토 컬럼 4종 보장 완료")
+    except Exception as e:
+        print(f"  [경고] Snapshots 크립토 컬럼 보장 실패: {e}")
+
+
 def add_snapshot(snapshot: dict) -> None:
     """Daily Snapshots DB — '날짜' date로 오늘 행 upsert."""
     today = datetime.date.today().isoformat()
@@ -101,6 +118,17 @@ def add_snapshot(snapshot: dict) -> None:
         page_props["BTC가격"] = _number(snapshot["btc_price"])
     if snapshot.get("eth_price"):
         page_props["ETH가격"] = _number(snapshot["eth_price"])
+
+    # 크립토 지표 4종 (어제 대비 변화율 계산용)
+    ci = snapshot.get("crypto_indicators", {}) or {}
+    if ci.get("btc_dominance") is not None:
+        page_props["BTC도미넌스"]  = _number(ci["btc_dominance"])
+    if ci.get("usdt_dominance") is not None:
+        page_props["USDT도미넌스"] = _number(ci["usdt_dominance"])
+    if ci.get("eth_btc_ratio") is not None:
+        page_props["ETHBTC비율"]   = _number(ci["eth_btc_ratio"])
+    if ci.get("total3_market_cap") is not None:
+        page_props["TOTAL3시총"]   = _number(ci["total3_market_cap"])
 
     if existing["results"]:
         notion.pages.update(
@@ -227,6 +255,12 @@ def get_yesterday_snapshot() -> dict | None:
             "cash_krw": _num("현금"),
             "risky_pct": _num("위험자산%"),
             "safe_pct": _num("안전자산%"),
+            "crypto_indicators": {
+                "btc_dominance":     _num("BTC도미넌스") or None,
+                "usdt_dominance":    _num("USDT도미넌스") or None,
+                "eth_btc_ratio":     _num("ETHBTC비율") or None,
+                "total3_market_cap": _num("TOTAL3시총") or None,
+            },
         }
     except Exception as e:
         print(f"  [경고] 어제 스냅샷 조회 실패: {e}")

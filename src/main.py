@@ -11,7 +11,7 @@ from okx_api import get_balance as okx_fetch
 from kis_api import fetch_all_balances as kis_fetch
 from market_data import get_prices, get_market_data
 from notion_sync import (
-    sync_holdings, add_snapshot,
+    sync_holdings, add_snapshot, ensure_snapshot_crypto_columns,
     pull_manual_holdings, get_yesterday_snapshot,
     get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
 )
@@ -106,6 +106,25 @@ DEFAULT_SPLIT_BUYING = {
 
 def _holding_color(ticker: str, asset_class: str) -> str:
     return HOLDING_COLOR.get(ticker, CLS_COLORS.get(asset_class, "#888888"))
+
+
+def _build_crypto_indicators(today: dict, yesterday: dict) -> dict:
+    """크립토 지표 4종을 {value, change_pct} 구조로 변환."""
+    fields = ("btc_dominance", "usdt_dominance", "eth_btc_ratio", "total3_market_cap")
+    result: dict = {}
+    for f in fields:
+        cur = today.get(f)
+        if cur is None:
+            continue
+        yest = yesterday.get(f) if yesterday else None
+        chg = None
+        try:
+            if yest is not None and float(yest) != 0:
+                chg = round((float(cur) - float(yest)) / float(yest) * 100, 2)
+        except (ValueError, TypeError):
+            chg = None
+        result[f] = {"value": cur, "change_pct": chg}
+    return result
 
 
 def write_data_json(
@@ -478,7 +497,10 @@ def write_data_json(
         "split_buying": split_buying,
         "capital_gains": capital_gains,
         "markets": markets,
-        "crypto_indicators": market_data.get("crypto_indicators", {}),
+        "crypto_indicators": _build_crypto_indicators(
+            market_data.get("crypto_indicators", {}),
+            extras.get("yesterday_crypto", {}),
+        ),
         "rebalancing": rebalancing,
         "sparkline_history": extras.get("sparkline_history", []),
         "nvda_mdd": nvda_mdd,
@@ -699,6 +721,7 @@ def run_pipeline() -> None:
         "daily_change_pct": 0.0,
         "btc_price": btc_holding["current_price"] if btc_holding else None,
         "eth_price": eth_holding["current_price"] if eth_holding else None,
+        "crypto_indicators": {},  # filled after market_data step
     }
 
     # ── 6. 마켓 데이터 (지수 + BTC 도미넌스 + 공포탐욕) ──────────────
@@ -711,6 +734,8 @@ def run_pipeline() -> None:
         fg = market_data.get("fear_greed", {})
         print(f"  매크로: {macro_keys} | 자산: {asset_keys}")
         print(f"  크립토 F&G: {fg.get('crypto', {}).get('value')} | S&P F&G: {fg.get('sp500', {}).get('value')}")
+        # snapshot에 크립토 지표 raw값 저장 (어제 대비 변화 계산용)
+        snapshot["crypto_indicators"] = market_data.get("crypto_indicators", {}) or {}
     except Exception as e:
         errors.append(f"마켓데이터: {e}")
         print(f"  [오류] {e}")
@@ -760,6 +785,7 @@ def run_pipeline() -> None:
     extras = {
         "notion_manual": notion_manual,
         "yesterday": yesterday_snapshot,
+        "yesterday_crypto": (yesterday_snapshot or {}).get("crypto_indicators", {}) or {},
         "capital_gains": capital_gains,
         "sparkline_history": sparkline_history,
         "market_data": market_data,
@@ -782,6 +808,7 @@ def run_pipeline() -> None:
     # ── 노션 업데이트 ─────────────────────────────────────────────
     print("\n[notion] 노션 동기화...")
     try:
+        ensure_snapshot_crypto_columns()
         sync_holdings(all_holdings)
         add_snapshot(snapshot)
     except Exception as e:
