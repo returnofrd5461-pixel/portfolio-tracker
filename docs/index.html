@@ -35,17 +35,19 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 
 /* ── market strip ── */
 .market-strip{
-  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;
-  padding:8px 10px;background:var(--bg2);border-radius:var(--r-md);
+  display:flex;flex-direction:column;gap:6px;margin-bottom:18px;
+  padding:10px 12px;background:var(--bg2);border-radius:var(--r-md);
   border:0.5px solid var(--bdr);
 }
-.mkt-item{display:flex;flex-direction:column;min-width:80px;padding:2px 8px;border-right:0.5px solid var(--bdr)}
+.mkt-row{display:flex;flex-wrap:wrap;align-items:center;gap:0}
+.mkt-row-lbl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);min-width:40px;flex-shrink:0;padding:2px 4px 2px 0}
+.mkt-row-items{display:flex;flex-wrap:wrap;flex:1}
+.mkt-item{display:flex;flex-direction:column;min-width:78px;padding:2px 8px;border-right:0.5px solid var(--bdr)}
 .mkt-item:last-child{border-right:none}
 .mkt-name{font-size:10px;color:var(--txt3);margin-bottom:1px}
 .mkt-price{font-size:12px;font-weight:600;font-family:var(--mono)}
 .mkt-chg{font-size:10px;font-family:var(--mono)}
-.fg-item{display:flex;flex-direction:column;min-width:100px;padding:2px 8px}
-.fg-bar-wrap{height:4px;width:80px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden}
+.fg-bar-wrap{height:4px;width:70px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden}
 .fg-bar-fill{height:100%;border-radius:2px;transition:width .3s}
 
 /* ── section label ── */
@@ -194,14 +196,17 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 
 /* ── rebalancing ── */
 .rebal-section{margin-bottom:20px}
-.rebal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.rebal-card{border-radius:var(--r-md);padding:10px 12px;border:0.5px solid}
-.rebal-card.alert{border-color:#EF9F2760;background:#FAEEDA}
-@media(prefers-color-scheme:dark){.rebal-card.alert{background:#2e2010;border-color:#EF9F2740}}
-.rebal-card.ok{border-color:var(--bdr);background:var(--bg2)}
-.rebal-card .rc-label{font-size:11px;font-weight:600;margin-bottom:3px}
-.rebal-card .rc-dev{font-size:14px;font-weight:600;font-family:var(--mono);margin-bottom:2px}
-.rebal-card .rc-action{font-size:10px;color:var(--txt2);line-height:1.4}
+.rebal-grid{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+@media(max-width:700px){.rebal-grid{grid-template-columns:1fr}}
+.rebal-card{border-radius:var(--r-md);padding:12px 14px;border:0.5px solid var(--bdr);background:var(--bg2)}
+.rebal-card .rc-label{font-size:11px;font-weight:600;margin-bottom:8px}
+.rb-table{width:100%;font-size:11px;border-collapse:collapse}
+.rb-table th{color:var(--txt3);font-weight:500;padding:0 0 4px;text-align:right}
+.rb-table th:first-child{text-align:left}
+.rb-table td{padding:3px 0;border-top:0.5px solid var(--bdr);text-align:right}
+.rb-table td:first-child{text-align:left;color:var(--txt2)}
+.rb-acct-title{font-size:10px;font-weight:600;color:var(--txt2);margin:8px 0 3px}
+.rb-acct-title:first-child{margin-top:0}
 .rebal-ok-msg{font-size:13px;color:var(--pos);padding:12px;text-align:center;background:var(--bg2);border-radius:var(--r-md);border:0.5px solid var(--bdr)}
 
 /* ── modal ── */
@@ -298,6 +303,47 @@ function closeModal(e) {
 }
 
 // ── market strip ─────────────────────────────────────────────────────────────
+function _mktItem(name, priceStr, chgPct) {
+  const c = chgPct>0?'chg-pos':chgPct<0?'chg-neg':'chg-neu';
+  return `<div class="mkt-item"><div class="mkt-name">${name}</div><div class="mkt-price">${priceStr}</div><div class="mkt-chg ${c}">${sign(chgPct)}${chgPct.toFixed(2)}%</div></div>`;
+}
+function _fmtMktPrice(p) {
+  if(p>=10000) return fmt(Math.round(p));
+  if(p>=1000)  return p.toFixed(0);
+  if(p>=10)    return p.toFixed(2);
+  return p.toFixed(3);
+}
+
+function renderMarketStrip(d) {
+  const m = d.markets;
+  if(!m) return '';
+
+  const fxChg = m.usdkrw_change_pct||0;
+  let row1 = _mktItem('USD/KRW', fmt(d.usdkrw), fxChg);
+  for(const item of Object.values(m.macro||{})) {
+    row1 += _mktItem(item.name, _fmtMktPrice(item.price), item.change_pct);
+  }
+
+  let row2 = '';
+  for(const item of Object.values(m.assets||{})) {
+    row2 += _mktItem(item.name, _fmtMktPrice(item.price), item.change_pct);
+  }
+  const fg = m.fear_greed||{};
+  function fgMini(obj, label) {
+    if(!obj||obj.value==null) return '';
+    const v = typeof obj.value==='number' ? obj.value : parseFloat(obj.value);
+    const fc = v>=60?'#EF9F27':v>=40?'#D4A520':v>=25?'#378ADD':'#D85A30';
+    return `<div class="mkt-item"><div class="mkt-name">${label}</div><div class="mkt-price" style="color:${fc}">${Math.round(v)}</div><div class="fg-bar-wrap"><div class="fg-bar-fill" style="width:${v}%;background:${fc}"></div></div><div class="mkt-chg" style="color:${fc}">${obj.label||''}</div></div>`;
+  }
+  row2 += fgMini(fg.crypto, '크립토 F&G') + fgMini(fg.sp500, 'S&P F&G');
+
+  return `
+    <div class="market-strip">
+      <div class="mkt-row"><span class="mkt-row-lbl">매크로</span><div class="mkt-row-items">${row1}</div></div>
+      <div class="mkt-row"><span class="mkt-row-lbl">자산</span><div class="mkt-row-items">${row2}</div></div>
+    </div>`;
+}
+
 const CLS_META = {
   us_stock:{label:'주식',  bg:'#EEEDFE',fg:'#26215C',lbl:'#3C3489'},
   crypto:  {label:'크립토',bg:'#FAECE7',fg:'#4A1B0C',lbl:'#712B13'},
@@ -415,11 +461,15 @@ function renderAccountGrid(d) {
   const total = d.total_krw;
   const cards = d.accounts.map(a => {
     const p = pctN(a.krw, total);
+    const usdLine = a.usd_amount!=null
+      ? `<div class="sub" style="font-family:var(--mono);margin-top:1px">$${a.usd_amount.toLocaleString('en-US')}</div>`
+      : '';
     return `
       <div class="acct-card">
         <div class="bar" style="background:${a.color}"></div>
         <div><div class="name">${a.name}</div><div class="sub">${a.subtitle}</div></div>
         <div class="amount">${fmt(a.krw)}</div>
+        ${usdLine}
         <div class="pct-row">
           <span class="pct-val">${p.toFixed(1)}%</span>
           <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${clamp(p,0,100)}%"></div></div>
@@ -582,6 +632,7 @@ function renderSatelliteTable(h, total, d) {
     extras += renderTossPnl(tn);
     extras += renderNvdaMdd(d.nvda_mdd || h.nvda_mdd);
   }
+  // bank card has no extras
 
   return `
     <div class="h-table">
@@ -610,64 +661,59 @@ function renderHoldings(d) {
 }
 
 // ── rebalancing signals ───────────────────────────────────────────────────────
-const TARGETS = {us_stock:25, crypto:35, bond:20, gold:10, oil:5, cash:5};
-const RISKY_TARGET=70, SAFE_TARGET=30, RISKY_THRESHOLD=3, CLS_THRESHOLD=5;
-
 function renderRebalancingSignals(d) {
-  const total = d.total_krw;
-  const act = d.asset_class_totals;
-  const risk = (act.us_stock||0)+(act.crypto||0)+(act.oil||0);
-  const alerts = [];
+  const rb = d.rebalancing;
+  if(!rb) return '';
 
-  const riskPct = total>0 ? risk/total*100 : 0;
-  const riskDev = riskPct - RISKY_TARGET;
-  if(Math.abs(riskDev) > RISKY_THRESHOLD) {
-    const dir = riskDev>0 ? '초과' : '부족';
-    alerts.push({
-      label: '위험자산 비중',
-      dev: riskDev,
-      action: `현재 ${riskPct.toFixed(1)}% (목표 ${RISKY_TARGET}%), ${Math.abs(riskDev).toFixed(1)}pp ${dir} — 다음 리밸런싱 시 반영`
-    });
-  }
-
-  for(const [key,target] of Object.entries(TARGETS)) {
-    const v = act[key]||0;
-    const cur = total>0 ? v/total*100 : 0;
-    const dev = cur - target;
-    if(Math.abs(dev) > CLS_THRESHOLD) {
-      const dir = dev>0 ? '▲ 초과' : '▼ 부족';
-      const m = CLS_META[key];
-      alerts.push({
-        label: `${m?.label||key} 비중`,
-        dev,
-        action: `현재 ${cur.toFixed(1)}% → 목표 ${target}% (${Math.abs(dev).toFixed(1)}pp ${dir})`
-      });
-    }
-  }
-
-  if(alerts.length === 0) {
-    return `
-      <div class="rebal-section">
-        <div class="sec-label">리밸런싱 시그널</div>
-        <div class="rebal-ok-msg">✓ 모든 자산군 목표 비중 범위 내 — 리밸런싱 불필요</div>
-      </div>`;
-  }
-
-  const cards = alerts.map(a => {
-    const devStr = (a.dev>=0?'+':'')+a.dev.toFixed(1)+'pp';
-    const devCls = a.dev>0?'chg-pos':'chg-neg';
-    return `
-      <div class="rebal-card alert">
-        <div class="rc-label">${a.label}</div>
-        <div class="rc-dev ${devCls}">${devStr}</div>
-        <div class="rc-action">${a.action}</div>
-      </div>`;
+  // Card A: global asset allocation
+  const globalRows = (rb.global||[]).map(row => {
+    const dev = row.diff;
+    const devCls = Math.abs(dev)>5 ? (dev>0?'chg-pos':'chg-neg') : 'chg-neu';
+    return `<tr>
+      <td>${row.name}</td>
+      <td>${row.target.toFixed(0)}%</td>
+      <td>${row.actual.toFixed(1)}%</td>
+      <td class="${devCls}">${dev>=0?'+':''}${dev.toFixed(1)}pp</td>
+    </tr>`;
   }).join('');
+  const cardA = `
+    <div class="rebal-card">
+      <div class="rc-label">글로벌 자산배분</div>
+      <table class="rb-table">
+        <thead><tr><th>자산군</th><th>목표</th><th>실제</th><th>편차</th></tr></thead>
+        <tbody>${globalRows}</tbody>
+      </table>
+    </div>`;
+
+  // Card B: per-account breakdown (KIS 3 accounts)
+  const acctBlocks = (rb.per_account||[]).map(acct => {
+    const rows = (acct.rows||[]).map(row => {
+      const dev = row.diff;
+      const devCls = row.target>0 && Math.abs(dev)>3 ? (dev>0?'chg-pos':'chg-neg') : 'chg-neu';
+      return `<tr>
+        <td style="font-family:var(--mono)">${row.ticker}</td>
+        <td>${row.target>0?row.target.toFixed(0)+'%':'—'}</td>
+        <td>${row.actual.toFixed(1)}%</td>
+        <td class="${devCls}">${row.target>0?(dev>=0?'+':'')+dev.toFixed(1)+'pp':'—'}</td>
+      </tr>`;
+    }).join('');
+    return `
+      <div class="rb-acct-title">${acct.account_name}</div>
+      <table class="rb-table">
+        <thead><tr><th>티커</th><th>목표</th><th>실제</th><th>편차</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }).join('');
+  const cardB = `
+    <div class="rebal-card">
+      <div class="rc-label">계좌별 섹터 비중 (KIS)</div>
+      ${acctBlocks}
+    </div>`;
 
   return `
     <div class="rebal-section">
-      <div class="sec-label">리밸런싱 시그널 (${alerts.length}개 이탈)</div>
-      <div class="rebal-grid">${cards}</div>
+      <div class="sec-label">리밸런싱 현황</div>
+      <div class="rebal-grid">${cardA}${cardB}</div>
     </div>`;
 }
 
@@ -691,37 +737,56 @@ function renderCapitalGainsGauge(cg) {
     </div>`;
 }
 
-// ── fear greed + BTC dom ──────────────────────────────────────────────────────
+// ── fear greed cards ──────────────────────────────────────────────────────────
 function renderFearGreed(m) {
-  if(!m||(!m.fear_greed&&m.btc_dominance==null)) return '';
+  if(!m||!m.fear_greed) return '';
+  const fg = m.fear_greed;
   let html = '';
 
-  if(m.fear_greed) {
-    const fg=m.fear_greed, v=fg.value;
-    const fc=v>=60?'#EF9F27':v>=40?'#D4A520':v>=25?'#378ADD':'#D85A30';
-    const stage=v>=80?'Extreme Greed':v>=60?'Greed':v>=40?'Neutral':v>=25?'Fear':'Extreme Fear';
-    html += `
+  function fgCard(obj, label) {
+    if(!obj||obj.value==null) return '';
+    const v = typeof obj.value==='number' ? obj.value : parseFloat(obj.value);
+    const fc = v>=60?'#EF9F27':v>=40?'#D4A520':v>=25?'#378ADD':'#D85A30';
+    const stage = v>=80?'Extreme Greed':v>=60?'Greed':v>=40?'Neutral':v>=25?'Fear':'Extreme Fear';
+    return `
       <div class="fg-card">
-        <div class="fc-label">공포·탐욕 지수</div>
-        <div class="fc-val" style="color:${fc}">${v}</div>
-        <div class="fc-sub">${stage}</div>
+        <div class="fc-label">${label}</div>
+        <div class="fc-val" style="color:${fc}">${Math.round(v)}</div>
+        <div class="fc-sub">${obj.label||stage}</div>
         <div class="fg-gauge-bar"><div class="fg-gauge-fill" style="width:${v}%;background:${fc}"></div></div>
       </div>`;
   }
 
-  if(m.btc_dominance!=null) {
-    const bd=m.btc_dominance;
-    const bc=bd>55?'#EF9F27':bd>45?'#D4A520':'#378ADD';
-    html += `
-      <div class="fg-card">
-        <div class="fc-label">BTC 도미넌스</div>
-        <div class="fc-val" style="color:${bc}">${bd.toFixed(1)}%</div>
-        <div class="fc-sub">${bd>55?'BTC 강세장':'알트 시즌 근접'}</div>
-        <div class="fg-gauge-bar"><div class="fg-gauge-fill" style="width:${clamp(bd,0,100)}%;background:${bc}"></div></div>
-      </div>`;
-  }
+  html += fgCard(fg.crypto, '크립토 공포·탐욕');
+  html += fgCard(fg.sp500,  'S&P 500 공포·탐욕');
 
   return html ? `<div class="fg-section">${html}</div>` : '';
+}
+
+// ── crypto indicators ────────────────────────────────────────────────────────
+function renderCryptoIndicators(d) {
+  const ci = d.crypto_indicators;
+  if(!ci||Object.keys(ci).length===0) return '';
+  const items = [];
+  if(ci.btc_dominance!=null)    items.push({label:'BTC 도미넌스',  val:ci.btc_dominance.toFixed(1)+'%',  sub:ci.btc_dominance>55?'BTC 강세장':'알트 시즌 근접'});
+  if(ci.usdt_dominance!=null)   items.push({label:'USDT 도미넌스', val:ci.usdt_dominance.toFixed(1)+'%', sub:ci.usdt_dominance>5?'시장 회피↑':'정상 수준'});
+  if(ci.eth_btc_ratio!=null)    items.push({label:'ETH/BTC 비율',  val:ci.eth_btc_ratio.toFixed(4),      sub:ci.eth_btc_ratio>0.06?'ETH 강세':'BTC 강세'});
+  if(ci.total3_market_cap!=null){
+    const t3B = (ci.total3_market_cap/1e9).toFixed(0);
+    items.push({label:'TOTAL3 시총', val:t3B+'B$', sub:'BTC+ETH 제외'});
+  }
+  if(items.length===0) return '';
+  const cards = items.map(i => `
+    <div class="m-item">
+      <div class="m-label">${i.label}</div>
+      <div class="m-val">${i.val}</div>
+      <div class="m-sub">${i.sub}</div>
+    </div>`).join('');
+  return `
+    <div style="margin-top:14px">
+      <div class="sec-label" style="margin-bottom:8px">크립토 시장 지표</div>
+      <div class="metrics-grid">${cards}</div>
+    </div>`;
 }
 
 // ── metrics ───────────────────────────────────────────────────────────────────
@@ -777,6 +842,7 @@ function renderMetrics(d) {
       </div>
       ${renderCapitalGainsGauge(d.capital_gains)}
       ${renderFearGreed(d.markets)}
+      ${renderCryptoIndicators(d)}
       <div class="sec-label" style="margin-bottom:8px;margin-top:14px">세제 한도 활용</div>
       <div class="tax-row">${taxHTML}</div>
     </div>`;

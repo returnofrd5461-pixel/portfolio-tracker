@@ -62,6 +62,29 @@ CLS_COLORS = {
     "us_stock": "#7F77DD", "crypto": "#EF9F27",
     "bond": "#378ADD", "commodity": "#EF9F27", "cash": "#1D9E75",
 }
+_CLS_NAMES = {
+    "us_stock": "미국주식", "crypto": "크립토", "bond": "채권",
+    "gold": "금", "oil": "원유", "cash": "현금",
+}
+_OIL_TICKERS = {"USO", "UNG", "130680"}
+_GOLD_TICKERS = {"IAU", "GLD", "SLV", "411060"}
+
+GLOBAL_REBAL_TARGETS = {
+    "us_stock": 30.0, "crypto": 35.0, "bond": 15.0,
+    "gold": 10.0, "oil": 5.0, "cash": 5.0,
+}
+ACCOUNT_REBAL_TARGETS = {
+    "kis_jonghap": {"QQQM": 27.0, "AGIX": 30.0, "IAU": 21.0, "IEF": 22.0},
+    "kis_isa": {},
+    "kis_yeon": {},
+}
+
+
+def _rebal_class(ticker: str, base_class: str) -> str:
+    if base_class == "commodity":
+        return "oil" if ticker in _OIL_TICKERS else "gold"
+    return base_class
+
 
 # 분할매수 기본값 (data.json에 없을 경우 초기화)
 DEFAULT_SPLIT_BUYING = {
@@ -129,8 +152,11 @@ def write_data_json(
             krw = upbit_krw
         elif api_key == "OKX":
             krw = okx_krw
-        accounts.append({"id": meta["id"], "name": meta["name"], "subtitle": meta["sub"],
-                         "krw": round(krw), "color": meta["color"]})
+        entry: dict = {"id": meta["id"], "name": meta["name"], "subtitle": meta["sub"],
+                       "krw": round(krw), "color": meta["color"]}
+        if api_key in ("KIS_JONGHAP", "OKX") and usdkrw:
+            entry["usd_amount"] = round(krw / usdkrw)
+        accounts.append(entry)
 
     for acc_id, meta in MANUAL_ACCOUNT_META.items():
         accounts.append({"id": acc_id, "name": meta["name"], "subtitle": meta["sub"],
@@ -262,6 +288,8 @@ def write_data_json(
         acct_total = upbit_krw if api_key == "UPBIT" else okx_krw
         items = []
         for h in items_raw:
+            if api_key == "UPBIT" and h["eval_krw"] < 5000:
+                continue
             items.append({
                 "ticker": h["ticker"], "name": h["name"],
                 "cat": h.get("asset_class", ""),
@@ -285,6 +313,26 @@ def write_data_json(
             toss_sat["toss_nvda"] = toss_nvda
         satellite_holdings.append(toss_sat)
 
+    # bank satellite card (비상금 + 사업자금)
+    bank_items = []
+    for acc_id in ("emergency", "biz"):
+        meta_b = MANUAL_ACCOUNT_META[acc_id]
+        krw_b = manual_krw.get(acc_id, 0)
+        if krw_b > 0:
+            bank_items.append({
+                "ticker": acc_id, "name": meta_b["name"],
+                "cat": "cash", "krw": round(krw_b), "color": meta_b["color"],
+            })
+    if bank_items:
+        satellite_holdings.append({
+            "account_id": "bank",
+            "account_name": "은행계좌",
+            "account_sub": "비상금 · 사업자금",
+            "account_color": "#1D9E75",
+            "total_krw": round(sum(i["krw"] for i in bank_items)),
+            "items": bank_items,
+        })
+
     # ── Liquidity metrics ─────────────────────────────────────────────
     upbit_okx_toss = (upbit_krw + okx_krw + manual_krw.get("toss", 0)
                       + acct_totals.get("KIS_JONGHAP", 0))
@@ -300,11 +348,46 @@ def write_data_json(
     markets: dict = {}
     if market_data:
         markets = {
-            "indices": market_data.get("indices", {}),
-            "btc_dominance": market_data.get("btc_dominance"),
-            "fear_greed": market_data.get("fear_greed"),
+            "macro":             market_data.get("macro", {}),
+            "assets":            market_data.get("assets", {}),
+            "fear_greed":        market_data.get("fear_greed", {}),
             "usdkrw_change_pct": market_data.get("usdkrw_change_pct"),
         }
+
+    # ── 리밸런싱 ─────────────────────────────────────────────────────
+    global_rebal = []
+    for cls in ["us_stock", "crypto", "bond", "gold", "oil", "cash"]:
+        val = cls_raw.get(cls, 0)
+        actual = round(val / total_krw * 100, 1) if total_krw else 0
+        target = GLOBAL_REBAL_TARGETS.get(cls, 0)
+        global_rebal.append({
+            "cls": cls, "name": _CLS_NAMES.get(cls, cls),
+            "target": target, "actual": actual,
+            "diff": round(actual - target, 1),
+        })
+
+    per_acct_rebal = []
+    for api_key in ["KIS_JONGHAP", "KIS_ISA", "KIS_YEON"]:
+        meta_r = ACCOUNT_META[api_key]
+        items_raw_r = kis_account_map.get(api_key, [])
+        acct_total_r = acct_totals.get(api_key, 0)
+        acct_targets = ACCOUNT_REBAL_TARGETS.get(meta_r["id"], {})
+        rows = []
+        for h in items_raw_r:
+            actual_pct = round(h["eval_krw"] / acct_total_r * 100, 1) if acct_total_r else 0
+            rcls = _rebal_class(h["ticker"], h.get("asset_class", ""))
+            tgt = acct_targets.get(h["ticker"], 0)
+            rows.append({
+                "ticker": h["ticker"], "name": h["name"], "cls": rcls,
+                "target": tgt, "actual": actual_pct,
+                "diff": round(actual_pct - tgt, 1),
+            })
+        per_acct_rebal.append({
+            "account_id": meta_r["id"], "account_name": meta_r["name"],
+            "rows": rows,
+        })
+
+    rebalancing = {"global": global_rebal, "per_account": per_acct_rebal}
 
     payload = {
         "updated_at": datetime.datetime.now(
@@ -340,6 +423,8 @@ def write_data_json(
         "split_buying": split_buying,
         "capital_gains": capital_gains,
         "markets": markets,
+        "crypto_indicators": market_data.get("crypto_indicators", {}),
+        "rebalancing": rebalancing,
         "sparkline_history": extras.get("sparkline_history", []),
         "nvda_mdd": nvda_mdd,
         "toss_nvda": toss_nvda,
@@ -532,8 +617,11 @@ def run_pipeline() -> None:
     market_data = {}
     try:
         market_data = get_market_data(usdkrw)
-        idx_keys = list(market_data.get("indices", {}).keys())
-        print(f"  지수: {idx_keys} | BTC도미넌스: {market_data.get('btc_dominance')}% | F&G: {market_data.get('fear_greed', {}).get('value')}")
+        macro_keys = list(market_data.get("macro", {}).keys())
+        asset_keys = list(market_data.get("assets", {}).keys())
+        fg = market_data.get("fear_greed", {})
+        print(f"  매크로: {macro_keys} | 자산: {asset_keys}")
+        print(f"  크립토 F&G: {fg.get('crypto', {}).get('value')} | S&P F&G: {fg.get('sp500', {}).get('value')}")
     except Exception as e:
         errors.append(f"마켓데이터: {e}")
         print(f"  [오류] {e}")
