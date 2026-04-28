@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python src/upbit_api.py)",
+      "Bash(python src/main.py)",
+      "Bash(python -c \"import okx_api; import json, requests; resp = requests.get\\('https://www.okx.com/api/v5/account/balance', headers=okx_api._headers\\('GET', '/api/v5/account/balance'\\)\\); print\\(json.dumps\\(resp.json\\(\\)['data'][0]['details'][0], indent=2\\)\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(pip install *)"
+    ]
+  }
+}

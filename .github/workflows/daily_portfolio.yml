@@ -1,0 +1,46 @@
+name: Daily Portfolio Tracker
+
+on:
+  schedule:
+    - cron: "0 22 * * *"   # UTC 22:00 = KST 07:00
+  workflow_dispatch:        # 수동 실행 허용
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run portfolio pipeline
+        env:
+          KIS_APP_KEY_JONGHAP: ${{ secrets.KIS_APP_KEY_JONGHAP }}
+          KIS_APP_SECRET_JONGHAP: ${{ secrets.KIS_APP_SECRET_JONGHAP }}
+          KIS_ACCOUNT_JONGHAP: ${{ secrets.KIS_ACCOUNT_JONGHAP }}
+          KIS_APP_KEY_ISA: ${{ secrets.KIS_APP_KEY_ISA }}
+          KIS_APP_SECRET_ISA: ${{ secrets.KIS_APP_SECRET_ISA }}
+          KIS_ACCOUNT_ISA: ${{ secrets.KIS_ACCOUNT_ISA }}
+          KIS_APP_KEY_YEON: ${{ secrets.KIS_APP_KEY_YEON }}
+          KIS_APP_SECRET_YEON: ${{ secrets.KIS_APP_SECRET_YEON }}
+          KIS_ACCOUNT_YEON: ${{ secrets.KIS_ACCOUNT_YEON }}
+          UPBIT_ACCESS_KEY: ${{ secrets.UPBIT_ACCESS_KEY }}
+          UPBIT_SECRET_KEY: ${{ secrets.UPBIT_SECRET_KEY }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_HOLDINGS_DB: ${{ secrets.NOTION_HOLDINGS_DB }}
+          NOTION_SNAPSHOT_DB: ${{ secrets.NOTION_SNAPSHOT_DB }}
+          NOTION_TRANSACTIONS_DB: ${{ secrets.NOTION_TRANSACTIONS_DB }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python src/main.py
