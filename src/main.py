@@ -15,8 +15,10 @@ from notion_sync import (
     pull_manual_holdings, get_yesterday_snapshot,
     get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
     ensure_transactions_columns, sync_transactions, pull_transactions,
+    update_transaction_review,
 )
 from transactions_api import fetch_all_transactions
+from review_engine import compute_review, build_review_summary, classify_outcome
 from alerts import send_daily_report, send_manual_input_reminder
 
 
@@ -509,6 +511,8 @@ def write_data_json(
         "toss_nvda": toss_nvda,
         "transactions": extras.get("transactions", []),
         "journal_summary": extras.get("journal_summary", {}),
+        "reviews": extras.get("reviews", []),
+        "review_summary": extras.get("review_summary", {}),
     }
 
     data_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -842,6 +846,31 @@ def run_pipeline() -> None:
 
     journal_summary = _build_journal_summary(transactions)
 
+    # ── 회고 엔진: 30일 + 거래에 대해 결과(%) 계산 ──────────────────
+    print("\n[review] 회고 엔진 — 30일 후 결과 계산...")
+    reviews: list[dict] = []
+    review_summary: dict = {"total": 0}
+    try:
+        reviews = compute_review(transactions, window_days=30)
+        # 노션 DB에 결과 백필
+        for r in reviews:
+            page_id = r.get("page_id")
+            if page_id:
+                update_transaction_review(page_id, r["result_pct"])
+        # 분류 부여 (UI용)
+        for r in reviews:
+            emoji, label = classify_outcome(r.get("side", "buy"), r.get("result_pct", 0))
+            r["outcome_emoji"] = emoji
+            r["outcome_label"] = label
+        review_summary = build_review_summary(reviews)
+        print(f"  {len(reviews)}건 회고 — 좋은 {review_summary.get('good',0)} / "
+              f"무난 {review_summary.get('neutral',0)} / "
+              f"아쉬운 {review_summary.get('bad',0)}")
+    except Exception as e:
+        errors.append(f"회고: {e}")
+        print(f"  [오류] {e}")
+        traceback.print_exc()
+
     extras = {
         "notion_manual": notion_manual,
         "yesterday": yesterday_snapshot,
@@ -856,6 +885,8 @@ def run_pipeline() -> None:
         "kis_cash": kis_cash,
         "transactions": transactions,
         "journal_summary": journal_summary,
+        "reviews": reviews,
+        "review_summary": review_summary,
     }
 
     # ── docs/data.json 생성 ──────────────────────────────────────
