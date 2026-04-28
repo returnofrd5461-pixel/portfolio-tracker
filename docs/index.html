@@ -379,6 +379,47 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .r-insight-card{padding:10px;background:var(--bg);border-radius:6px;font-size:12px}
 .r-insight-card .ri-tag{font-size:10px;color:var(--txt3);margin-bottom:4px}
 
+/* ── calendar tab ── */
+.cal-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.cal-item{
+  display:grid;grid-template-columns:60px 1fr 110px 80px;gap:10px;align-items:center;
+  padding:10px 14px;border:0.5px solid var(--bdr);border-radius:var(--r-md);background:var(--bg);
+}
+@media(max-width:600px){.cal-item{grid-template-columns:60px 1fr 80px}}
+.cal-item.imminent{border-color:var(--neg);background:rgba(216,90,48,0.06)}
+.cal-item.high{border-left:3px solid #D85A30}
+.cal-item.mid{border-left:3px solid #EF9F27}
+.cal-item.low{border-left:3px solid #378ADD}
+.cal-dday{font-size:18px;font-weight:700;font-family:var(--mono);text-align:center;color:var(--txt2)}
+.cal-dday.urgent{color:var(--neg)}
+.cal-title{font-size:14px;font-weight:600}
+.cal-meta{font-size:11px;color:var(--txt3);margin-top:2px}
+.cal-date{font-size:12px;font-family:var(--mono);color:var(--txt2);text-align:right}
+.cal-type-badge{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--bg2);color:var(--txt2);text-align:center;font-weight:500}
+.cal-type-badge.fomc{background:#FCEBEB;color:#791F1F}
+.cal-type-badge.kbok{background:#FAEEDA;color:#633806}
+.cal-type-badge.earnings{background:#EAF3DE;color:#27500A}
+@media(prefers-color-scheme:dark){
+  .cal-type-badge.fomc{background:#3a1a1a;color:#e07070}
+  .cal-type-badge.kbok{background:#2a1f10;color:#e0a060}
+  .cal-type-badge.earnings{background:#1a2e12;color:#80c050}
+}
+
+/* ── xray tab ── */
+.xr-section{margin-bottom:18px}
+.xr-section-title{font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:8px}
+.xr-table{width:100%;font-size:12px;border-collapse:collapse;border:0.5px solid var(--bdr);border-radius:var(--r-md);overflow:hidden}
+.xr-table th{text-align:left;padding:10px;background:var(--bg2);color:var(--txt2);font-weight:500;font-size:11px;border-bottom:0.5px solid var(--bdr)}
+.xr-table th.r,.xr-table td.r{text-align:right}
+.xr-table td{padding:9px 10px;border-top:0.5px solid var(--bdr);font-family:var(--mono);font-size:12px}
+.xr-table td:first-child{font-family:var(--sans);font-weight:600}
+.xr-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:3px}
+.xr-bar-fill{height:100%;background:#534AB7}
+.xr-pills{display:flex;gap:6px;flex-wrap:wrap}
+.xr-pill{padding:6px 12px;border-radius:14px;background:var(--bg2);border:0.5px solid var(--bdr);font-size:12px}
+.xr-pill .xp-label{color:var(--txt2);margin-right:6px}
+.xr-pill .xp-val{font-family:var(--mono);font-weight:600}
+
 /* ── tax simulator ── */
 .j-sim{margin-top:18px;padding:14px 16px;border:0.5px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2)}
 .j-sim-title{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px}
@@ -1457,6 +1498,123 @@ function renderReviewInsight(d) {
     </div>`;
 }
 
+// ── calendar tab ──────────────────────────────────────────────────────────────
+function renderCalendarItem(e) {
+  const dDay = e.d_day;
+  const passed = dDay < 0;
+  const urgent = dDay >= 0 && dDay <= 3;
+  const dDayStr = passed ? `D+${-dDay}` : dDay === 0 ? '오늘' : `D-${dDay}`;
+  const importance = e.importance || 'mid';
+  const type = e.type || 'misc';
+  const typeLbl = {fomc:'FOMC', kbok:'금통위', earnings:'실적', misc:'기타'}[type] || type;
+  return `
+    <div class="cal-item ${importance} ${urgent?'imminent':''}">
+      <div class="cal-dday ${urgent?'urgent':''}">${dDayStr}</div>
+      <div>
+        <div class="cal-title">${e.title}</div>
+        <div class="cal-meta">${e.time || ''}${e.ticker?' · '+e.ticker:''}</div>
+      </div>
+      <div class="cal-date">${e.date}</div>
+      <div class="cal-type-badge ${type}">${typeLbl}</div>
+    </div>`;
+}
+
+function renderCalendarTab(d) {
+  const events = d.calendar_events || [];
+  if(events.length === 0) {
+    return `<div class="state-msg">캘린더 이벤트가 없습니다</div>`;
+  }
+  const future = events.filter(e => e.d_day >= 0);
+  const past = events.filter(e => e.d_day < 0);
+  const imminent = future.filter(e => e.d_day <= 7);
+
+  const sec = (title, items) => items.length ? `
+    <div class="sec-label" style="margin-top:14px">${title}</div>
+    <div class="cal-list">${items.map(renderCalendarItem).join('')}</div>` : '';
+
+  return `
+    ${sec(`🚨 임박 (7일 이내) — ${imminent.length}건`, imminent)}
+    ${sec(`📅 예정 — ${future.length - imminent.length}건`, future.filter(e => e.d_day > 7))}
+    ${sec(`📜 최근 (지난 7일) — ${past.length}건`, past)}
+    <div style="margin-top:18px;padding:10px 14px;background:var(--bg2);border-radius:6px;font-size:11px;color:var(--txt3)">
+      📌 FOMC/금통위 일정은 정기 갱신 필요. 실적 발표일은 yfinance 기준이라 변동 가능.
+    </div>`;
+}
+
+// ── xray tab ─────────────────────────────────────────────────────────────────
+function renderXraySectors(sectors) {
+  if(!sectors || sectors.length === 0) return '';
+  const pills = sectors.map(s =>
+    `<div class="xr-pill"><span class="xp-label">${s.sector}</span><span class="xp-val">${s.pct.toFixed(1)}%</span></div>`
+  ).join('');
+  return `
+    <div class="xr-section">
+      <div class="xr-section-title">섹터 노출</div>
+      <div class="xr-pills">${pills}</div>
+    </div>`;
+}
+
+function renderXrayRegions(regions) {
+  if(!regions || regions.length === 0) return '';
+  const pills = regions.map(r =>
+    `<div class="xr-pill"><span class="xp-label">${r.region}</span><span class="xp-val">${r.pct.toFixed(1)}% (${fmtM(r.krw)})</span></div>`
+  ).join('');
+  return `
+    <div class="xr-section">
+      <div class="xr-section-title">지역 노출</div>
+      <div class="xr-pills">${pills}</div>
+    </div>`;
+}
+
+function renderXrayLookThrough(lt) {
+  if(!lt || lt.length === 0) return '';
+  const max = lt[0].pct || 1;
+  const rows = lt.map(r => {
+    const fillPct = (r.pct / max * 100).toFixed(0);
+    const direct = r.direct || 0;
+    const indirect = r.indirect || 0;
+    return `<tr>
+      <td>${r.symbol}</td>
+      <td class="r">${fmt(direct)}</td>
+      <td class="r">${fmt(indirect)}</td>
+      <td class="r"><strong>${fmt(r.krw)}</strong></td>
+      <td class="r">${r.pct.toFixed(2)}%
+        <div class="xr-bar"><div class="xr-bar-fill" style="width:${fillPct}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+  return `
+    <div class="xr-section">
+      <div class="xr-section-title">실질 종목 노출 Top ${lt.length} (ETF 분해 후)</div>
+      <table class="xr-table">
+        <thead><tr>
+          <th>종목</th>
+          <th class="r">직접</th>
+          <th class="r">ETF 간접</th>
+          <th class="r">합계 (KRW)</th>
+          <th class="r">비중</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderXrayTab(d) {
+  const x = d.xray || {};
+  const lt = x.look_through || [];
+  if(lt.length === 0) {
+    return `<div class="state-msg">X-Ray 데이터가 없습니다 (보유 종목 없음)</div>`;
+  }
+  return `
+    ${renderXraySectors(x.sectors || [])}
+    ${renderXrayRegions(x.regions || [])}
+    ${renderXrayLookThrough(lt)}
+    <div style="margin-top:14px;padding:10px 14px;background:var(--bg2);border-radius:6px;font-size:11px;color:var(--txt3)">
+      📌 ETF 구성 종목은 공식 disclosure 기반 top 10. 잔여분은 ETF 자체로 카운트.
+      AGIX/QQQM/426030/456600 정기 갱신 필요 (현재 ~2026-04 기준).
+    </div>`;
+}
+
 function renderReviewTab(d) {
   const reviews = d.reviews || [];
   if(reviews.length === 0) {
@@ -1541,10 +1699,10 @@ function render(d) {
       ${renderReviewTab(d)}
     </div>
     <div id="tab-calendar" class="tab-content">
-      <div class="state-msg">매크로 캘린더 (Step 3에서 구현)</div>
+      ${renderCalendarTab(d)}
     </div>
     <div id="tab-xray" class="tab-content">
-      <div class="state-msg">포트폴리오 X-Ray (Step 3에서 구현)</div>
+      ${renderXrayTab(d)}
     </div>`;
 
   document.getElementById('app').innerHTML = html;

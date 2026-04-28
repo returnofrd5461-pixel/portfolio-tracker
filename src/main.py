@@ -19,6 +19,8 @@ from notion_sync import (
 )
 from transactions_api import fetch_all_transactions
 from review_engine import compute_review, build_review_summary, classify_outcome
+from calendar_api import get_calendar_events
+from xray_engine import compute_xray
 from alerts import send_daily_report, send_manual_input_reminder
 
 
@@ -513,6 +515,8 @@ def write_data_json(
         "journal_summary": extras.get("journal_summary", {}),
         "reviews": extras.get("reviews", []),
         "review_summary": extras.get("review_summary", {}),
+        "calendar_events": extras.get("calendar_events", []),
+        "xray": extras.get("xray", {}),
     }
 
     data_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -871,6 +875,26 @@ def run_pipeline() -> None:
         print(f"  [오류] {e}")
         traceback.print_exc()
 
+    # ── 매크로 캘린더 ──────────────────────────────────────────────
+    print("\n[calendar] 매크로 이벤트 조회...")
+    calendar_events: list[dict] = []
+    try:
+        calendar_events = get_calendar_events()
+        print(f"  이벤트 {len(calendar_events)}개 (FOMC/금통위/실적)")
+    except Exception as e:
+        errors.append(f"캘린더: {e}")
+        print(f"  [오류] {e}")
+
+    # ── 포트폴리오 X-Ray (ETF look-through) ─────────────────────────
+    print("\n[xray] ETF look-through 분석...")
+    xray: dict = {}
+    try:
+        xray = compute_xray(all_holdings, total_krw=total_krw)
+        print(f"  실질 종목 {len(xray.get('look_through', []))}개 노출 추출")
+    except Exception as e:
+        errors.append(f"xray: {e}")
+        print(f"  [오류] {e}")
+
     extras = {
         "notion_manual": notion_manual,
         "yesterday": yesterday_snapshot,
@@ -887,6 +911,8 @@ def run_pipeline() -> None:
         "journal_summary": journal_summary,
         "reviews": reviews,
         "review_summary": review_summary,
+        "calendar_events": calendar_events,
+        "xray": xray,
     }
 
     # ── docs/data.json 생성 ──────────────────────────────────────
