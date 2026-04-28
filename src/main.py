@@ -103,12 +103,14 @@ def write_data_json(
             pass
 
     # 수동 잔고: 노션 우선, 없으면 기존 data.json 값
+    # notion_manual 구조: {"toss": {"eval": ..., "principal": ...}, "emergency": {"eval": ...}, ...}
     notion_manual = extras.get("notion_manual", {})
     manual_krw: dict[str, float] = {}
     for acc_id in MANUAL_ACCOUNT_META:
-        notion_val = notion_manual.get(acc_id, 0)
-        if notion_val > 0:
-            manual_krw[acc_id] = notion_val
+        acc_data = notion_manual.get(acc_id, {})
+        notion_eval = acc_data.get("eval", 0) if isinstance(acc_data, dict) else 0
+        if notion_eval > 0:
+            manual_krw[acc_id] = notion_eval
         else:
             manual_krw[acc_id] = next(
                 (a["krw"] for a in existing.get("accounts", []) if a["id"] == acc_id), 0
@@ -136,6 +138,10 @@ def write_data_json(
 
     total_krw = sum(a["krw"] for a in accounts)
 
+    # 업비트 KRW 현금 (코인 외 원화 잔고) — all_holdings에는 없어서 별도 계산
+    upbit_crypto_sum = sum(h["eval_krw"] for h in all_holdings if h["account"] == "UPBIT")
+    upbit_cash_krw = max(0.0, upbit_krw - upbit_crypto_sum)
+
     # Asset class totals
     cls_raw = {
         "us_stock": round(class_totals.get("us_stock", 0) + manual_krw.get("toss", 0)),
@@ -143,7 +149,7 @@ def write_data_json(
         "bond":     round(class_totals.get("bond", 0)),
         "gold":     round(class_totals.get("commodity", 0)),
         "oil":      0,
-        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0)),
+        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0) + upbit_cash_krw),
     }
 
     # ── 일일 변동 계산 ────────────────────────────────────────────────
@@ -195,6 +201,17 @@ def write_data_json(
             "mdd_pct": round(mdd_pct, 1),
             "threshold_15": -15,
             "threshold_25": -25,
+        }
+
+    # ── 토스 NVDA 손익 ───────────────────────────────────────────────
+    toss_data = notion_manual.get("toss", {})
+    toss_nvda: dict = {}
+    if isinstance(toss_data, dict) and toss_data.get("principal", 0) > 0:
+        toss_nvda = {
+            "principal_krw": toss_data["principal"],
+            "current_krw":   toss_data.get("eval", 0),
+            "pnl_krw":       toss_data.get("pnl", 0),
+            "pnl_pct":       toss_data.get("pnl_pct", 0.0),
         }
 
     # ── 양도세 면세 한도 ─────────────────────────────────────────────
@@ -264,6 +281,8 @@ def write_data_json(
         toss_sat["total_krw"] = manual_krw.get("toss", toss_sat["total_krw"])
         if nvda_mdd:
             toss_sat["nvda_mdd"] = nvda_mdd
+        if toss_nvda:
+            toss_sat["toss_nvda"] = toss_nvda
         satellite_holdings.append(toss_sat)
 
     # ── Liquidity metrics ─────────────────────────────────────────────
@@ -323,6 +342,7 @@ def write_data_json(
         "markets": markets,
         "sparkline_history": extras.get("sparkline_history", []),
         "nvda_mdd": nvda_mdd,
+        "toss_nvda": toss_nvda,
     }
 
     data_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -344,11 +364,16 @@ def run_pipeline() -> None:
     all_holdings = []
 
     # ── 0. 노션 수동 잔고 (양방향 동기화) ───────────────────────────
-    notion_manual = {"toss": 0, "emergency": 0, "biz": 0}
+    notion_manual: dict = {"toss": {"eval": 0}, "emergency": {"eval": 0}, "biz": {"eval": 0}}
     print("\n[0/9] 노션 수동 잔고 조회 (토스/비상금/사업자금)...")
     try:
         notion_manual = pull_manual_holdings()
-        print(f"  토스: {notion_manual['toss']:,.0f} | 비상금: {notion_manual['emergency']:,.0f} | 사업: {notion_manual['biz']:,.0f}")
+        toss_eval = notion_manual.get("toss", {}).get("eval", 0)
+        toss_pnl  = notion_manual.get("toss", {}).get("pnl_pct")
+        em_eval   = notion_manual.get("emergency", {}).get("eval", 0)
+        biz_eval  = notion_manual.get("biz", {}).get("eval", 0)
+        pnl_str   = f" (수익률 {toss_pnl:+.1f}%)" if toss_pnl is not None else ""
+        print(f"  토스: {toss_eval:,.0f}{pnl_str} | 비상금: {em_eval:,.0f} | 사업: {biz_eval:,.0f}")
     except Exception as e:
         errors.append(f"노션수동잔고: {e}")
         print(f"  [오류] {e}")

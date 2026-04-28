@@ -1,13 +1,13 @@
 {
-  "updated_at": "2026-04-28T19:13:28+09:00",
-  "usdkrw": 1475,
-  "total_krw": 137805068,
+  "updated_at": "2026-04-28T20:09:47+09:00",
+  "usdkrw": 1474,
+  "total_krw": 137971583,
   "accounts": [
     {
       "id": "kis_jonghap",
       "name": "한투 종합 (직투ETF)",
       "subtitle": "미국 직투 · 양도세 22%",
-      "krw": 10238121,
+      "krw": 10248476,
       "color": "#534AB7"
     },
     {
@@ -28,21 +28,21 @@
       "id": "upbit",
       "name": "업비트",
       "subtitle": "크립토 (BTC + ETH)",
-      "krw": 50877766,
+      "krw": 50834172,
       "color": "#EF9F27"
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 689556,
+      "krw": 689310,
       "color": "#D4853A"
     },
     {
       "id": "toss",
       "name": "토스증권 직투",
       "subtitle": "NVDA 관련 · 양도세 22%",
-      "krw": 20000000,
+      "krw": 20200000,
       "color": "#D4537E"
     },
     {
@@ -61,12 +61,12 @@
     }
   ],
   "asset_class_totals": {
-    "us_stock": 51821168,
-    "crypto": 34072968,
-    "bond": 2241749,
-    "gold": 2174829,
+    "us_stock": 52032405,
+    "crypto": 34029128,
+    "bond": 2245197,
+    "gold": 2170499,
     "oil": 0,
-    "cash": 30000000
+    "cash": 47494354
   },
   "core_holdings": [
     {
@@ -74,14 +74,14 @@
       "account_name": "한투 종합 (직투ETF)",
       "account_sub": "미국 직투 · 양도세 22%",
       "account_color": "#534AB7",
-      "total_krw": 10238121,
+      "total_krw": 10248476,
       "items": [
         {
           "ticker": "AGIX",
           "name": "KRANESHARES ARTIFICIAL INTELLIGENCE AND TECHNOLOGY",
           "cat": "us stock",
-          "pct": 29.5,
-          "krw": 3015670,
+          "pct": 29.6,
+          "krw": 3035261,
           "color": "#534AB7"
         },
         {
@@ -89,7 +89,7 @@
           "name": "ISHARES GOLD TRUST",
           "cat": "commodity",
           "pct": 21.2,
-          "krw": 2174829,
+          "krw": 2170499,
           "color": "#EF9F27"
         },
         {
@@ -97,15 +97,15 @@
           "name": "ISHARES 7-10Y TREASURY BOND",
           "cat": "bond",
           "pct": 21.9,
-          "krw": 2241749,
+          "krw": 2245197,
           "color": "#378ADD"
         },
         {
           "ticker": "QQQM",
           "name": "INVESCO NASDAQ 100",
           "cat": "us stock",
-          "pct": 27.4,
-          "krw": 2805873,
+          "pct": 27.3,
+          "krw": 2797519,
           "color": "#7F77DD"
         }
       ]
@@ -215,20 +215,20 @@
       "account_name": "업비트",
       "account_sub": "크립토 (BTC + ETH)",
       "account_color": "#EF9F27",
-      "total_krw": 50877766,
+      "total_krw": 50834172,
       "items": [
         {
           "ticker": "BTC",
           "name": "BTC",
           "cat": "crypto",
-          "krw": 23722865,
+          "krw": 23696369,
           "color": "#EF9F27"
         },
         {
           "ticker": "ETH",
           "name": "ETH",
           "cat": "crypto",
-          "krw": 9660532,
+          "krw": 9643434,
           "color": "#7F77DD"
         },
         {
@@ -252,20 +252,20 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 689556,
+      "total_krw": 689310,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cat": "crypto",
-          "krw": 687603,
+          "krw": 687358,
           "color": "#EF9F27"
         },
         {
           "ticker": "BTC",
           "name": "BTC",
           "cat": "crypto",
-          "krw": 1953,
+          "krw": 1952,
           "color": "#EF9F27"
         },
         {
@@ -282,7 +282,7 @@
       "account_name": "토스증권 직투 (NVDA 관련)",
       "account_sub": "개별주 액티브 베팅 · 양도세 22% (250만 공제 공유)",
       "account_color": "#D4537E",
-      "total_krw": 20000000,
+      "total_krw": 20200000,
       "items": [
         {
           "ticker": "NVDA+",
@@ -295,12 +295,12 @@
     }
   ],
   "metrics": {
-    "usd_exposure_krw": 30238121,
+    "usd_exposure_krw": 30448476,
     "usd_exposure_note": "한투 종합 직투 + 토스",
     "liquidity": {
       "instant": 30000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 81805443,
+      "week": 81971958,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 19960985,
       "mid_note": "ISA 만기 권장",
@@ -368,19 +368,20 @@
       "value": 33,
       "label": "Fear"
     },
-    "usdkrw_change_pct": 0.0
+    "usdkrw_change_pct": -0.05
   },
   "sparkline_history": [
     {
       "date": "2026-04-28",
-      "total": 87808758.443978,
-      "crypto": 34076286.88917,
-      "stock": 31821411.159153,
-      "gold": 2174744.297913,
+      "total": 87755092.733434,
+      "crypto": 34033175.010266,
+      "stock": 31812767.021656,
+      "gold": 2169325.530334,
       "oil": 0,
-      "bond": 2241961.984377,
+      "bond": 2245471.057813,
       "cash": 17494354.113365
     }
   ],
-  "nvda_mdd": {}
+  "nvda_mdd": {},
+  "toss_nvda": {}
 }

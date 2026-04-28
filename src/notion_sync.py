@@ -137,8 +137,17 @@ _ACCOUNT_NOTION_LABEL = {
 
 
 def pull_manual_holdings() -> dict:
-    """Holdings DB에서 수동 입력 계좌(toss/emergency/biz) 평가금액 합계 반환."""
-    result = {"toss": 0, "emergency": 0, "biz": 0}
+    """Holdings DB에서 수동 입력 계좌 평가금액 + 원금 읽어 반환.
+
+    반환 구조:
+      {
+        "toss":      {"eval": 22000000, "principal": 20000000, "pnl": 2000000, "pnl_pct": 10.0},
+        "emergency": {"eval": 20000000},
+        "biz":       {"eval": 10000000},
+      }
+    원금(KRW) 컬럼이 없거나 0이면 pnl 필드 미포함.
+    """
+    result: dict = {"toss": {"eval": 0}, "emergency": {"eval": 0}, "biz": {"eval": 0}}
     for account_id in result:
         label = _ACCOUNT_NOTION_LABEL.get(account_id, account_id)
         try:
@@ -146,14 +155,23 @@ def pull_manual_holdings() -> dict:
                 database_id=HOLDINGS_DB,
                 filter={"property": "계좌", "select": {"equals": label}},
             )
-            total = sum(
+            total_eval = sum(
                 (row["properties"].get("평가금액(KRW)", {}).get("number") or 0)
                 for row in rows["results"]
             )
-            if total > 0:
-                result[account_id] = round(total)
+            total_principal = sum(
+                (row["properties"].get("원금(KRW)", {}).get("number") or 0)
+                for row in rows["results"]
+            )
+            if total_eval > 0:
+                result[account_id]["eval"] = round(total_eval)
+            if total_principal > 0:
+                pnl = total_eval - total_principal
+                result[account_id]["principal"] = round(total_principal)
+                result[account_id]["pnl"] = round(pnl)
+                result[account_id]["pnl_pct"] = round(pnl / total_principal * 100, 2) if total_principal else 0.0
         except Exception:
-            pass  # 해당 선택지가 없으면 0 반환 (기존 data.json 값 사용)
+            pass  # 해당 선택지가 없으면 eval=0 반환 (기존 data.json 값 사용)
     return result
 
 
