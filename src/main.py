@@ -14,7 +14,9 @@ from notion_sync import (
     sync_holdings, add_snapshot, ensure_snapshot_crypto_columns,
     pull_manual_holdings, get_yesterday_snapshot,
     get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
+    ensure_transactions_columns, sync_transactions, pull_transactions,
 )
+from transactions_api import fetch_all_transactions
 from alerts import send_daily_report, send_manual_input_reminder
 
 
@@ -505,6 +507,8 @@ def write_data_json(
         "sparkline_history": extras.get("sparkline_history", []),
         "nvda_mdd": nvda_mdd,
         "toss_nvda": toss_nvda,
+        "transactions": extras.get("transactions", []),
+        "journal_summary": extras.get("journal_summary", {}),
     }
 
     data_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -515,6 +519,45 @@ def _cls_delta(today: float, yesterday: float) -> dict:
     diff = round(today - yesterday)
     pct = round((today - yesterday) / yesterday * 100, 2) if yesterday else 0
     return {"today": round(today), "yesterday": round(yesterday), "diff": diff, "pct": pct}
+
+
+def _build_journal_summary(transactions: list[dict]) -> dict:
+    """매매일지 탭 상단 4개 위젯용 요약 (이번 달 횟수 / 누적 매매차익 / 평균 주기 / 최다 종목)."""
+    if not transactions:
+        return {"month_count": 0, "ytd_capital_gains_krw": 0,
+                "avg_interval_days": None, "top_ticker": None}
+    today = datetime.date.today()
+    month_start = today.replace(day=1).isoformat()
+    year_start = f"{today.year}-01-01"
+
+    month_count = sum(1 for t in transactions if t.get("date", "") >= month_start)
+
+    # YTD 매도 매매차익 (KRW 환산 amount * 0.0 → 정확하지 않음, capital_gains 는 별도 컬럼)
+    # 여기선 노션 컬럼이 없으므로 매도 거래의 KRW 금액 합으로 대체 (대략적 매출)
+    ytd_sells = [t for t in transactions if t.get("side") == "sell" and t.get("date", "") >= year_start]
+    ytd_sell_krw = sum(t.get("amount_krw", 0) or 0 for t in ytd_sells)
+
+    # 평균 매매 주기: 최근 30일 거래 수 → 30/N
+    last30 = (today - datetime.timedelta(days=30)).isoformat()
+    last30_count = sum(1 for t in transactions if t.get("date", "") >= last30)
+    avg_interval = round(30 / last30_count, 1) if last30_count else None
+
+    # 최다 매매 종목
+    ticker_count: dict = {}
+    for t in transactions:
+        tk = t.get("ticker") or t.get("name", "")
+        if tk:
+            ticker_count[tk] = ticker_count.get(tk, 0) + 1
+    top_ticker = max(ticker_count.items(), key=lambda x: x[1])[0] if ticker_count else None
+    top_count = ticker_count.get(top_ticker, 0)
+
+    return {
+        "month_count":        month_count,
+        "ytd_sell_amount_krw": round(ytd_sell_krw),
+        "avg_interval_days":  avg_interval,
+        "top_ticker":         top_ticker,
+        "top_ticker_count":   top_count,
+    }
 
 
 def run_pipeline() -> None:
@@ -782,6 +825,23 @@ def run_pipeline() -> None:
         pass
     nvda_current_krw = (prices.get("NVDA") or 0) * usdkrw
 
+    # ── 거래내역 fetch + 노션 동기화 ─────────────────────────────────
+    print("\n[txn] 거래내역 fetch (업비트/OKX/한투)...")
+    transactions = []
+    try:
+        ensure_transactions_columns()
+        fetched = fetch_all_transactions(usdkrw=usdkrw, days=30)
+        sync_transactions(fetched)
+        # 노션에서 다시 pull → 메모 + 회고 결과 포함된 90일 거래 데이터
+        transactions = pull_transactions(days=90)
+        print(f"  최근 90일 거래 (메모 포함): {len(transactions)}건")
+    except Exception as e:
+        errors.append(f"거래내역: {e}")
+        print(f"  [오류] {e}")
+        traceback.print_exc()
+
+    journal_summary = _build_journal_summary(transactions)
+
     extras = {
         "notion_manual": notion_manual,
         "yesterday": yesterday_snapshot,
@@ -794,6 +854,8 @@ def run_pipeline() -> None:
         "risky_pct": risky_pct,
         "safe_pct": safe_pct,
         "kis_cash": kis_cash,
+        "transactions": transactions,
+        "journal_summary": journal_summary,
     }
 
     # ── docs/data.json 생성 ──────────────────────────────────────

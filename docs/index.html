@@ -308,6 +308,48 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 /* ── loading/error ── */
 .state-msg{padding:40px;text-align:center;color:var(--txt3);font-size:14px}
 .chg-pos{color:var(--pos)}.chg-neg{color:var(--neg)}.chg-neu{color:var(--txt3)}
+
+/* ── journal tab ── */
+.j-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:800px){.j-summary{grid-template-columns:repeat(2,1fr)}}
+.j-card{padding:12px 14px;border:0.5px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2)}
+.j-card .jc-label{font-size:11px;color:var(--txt3);margin-bottom:4px}
+.j-card .jc-val{font-size:20px;font-weight:600;font-family:var(--mono);line-height:1.15}
+.j-card .jc-sub{font-size:11px;color:var(--txt2);margin-top:3px}
+
+.j-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 12px;border:0.5px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2)}
+.j-filter-grp{display:flex;gap:4px;align-items:center}
+.j-filter-grp .jf-lbl{font-size:11px;color:var(--txt3);margin-right:4px}
+.j-pill{
+  font-size:12px;padding:5px 10px;border-radius:14px;border:0.5px solid var(--bdr);
+  background:var(--bg);color:var(--txt2);cursor:pointer;font-family:var(--sans);
+  transition:all .15s;
+}
+.j-pill:hover{background:var(--bg3)}
+.j-pill.active{background:var(--txt);color:var(--bg);border-color:var(--txt);font-weight:600}
+
+.j-table-wrap{border:0.5px solid var(--bdr);border-radius:var(--r-md);overflow-x:auto}
+.j-table{width:100%;font-size:12px;border-collapse:collapse;min-width:760px}
+.j-table th{text-align:left;padding:10px 10px;background:var(--bg2);color:var(--txt2);font-weight:500;font-size:11px;border-bottom:0.5px solid var(--bdr);white-space:nowrap}
+.j-table th.r,.j-table td.r{text-align:right}
+.j-table td{padding:10px 10px;border-top:0.5px solid var(--bdr);vertical-align:middle}
+.j-table tbody tr:hover{background:var(--bg2)}
+.j-side-buy{color:var(--pos);font-weight:600}
+.j-side-sell{color:var(--neg);font-weight:600}
+.j-mono{font-family:var(--mono);font-size:11px}
+.j-memo{color:var(--txt2);font-size:11px;font-style:italic;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.j-memo-empty{color:var(--txt3);font-size:11px}
+.j-empty{padding:32px;text-align:center;color:var(--txt3);font-size:13px}
+
+/* ── tax simulator ── */
+.j-sim{margin-top:18px;padding:14px 16px;border:0.5px solid var(--bdr);border-radius:var(--r-md);background:var(--bg2)}
+.j-sim-title{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:10px}
+.j-sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:600px){.j-sim-grid{grid-template-columns:1fr}}
+.j-sim-input{padding:6px 10px;font-size:13px;border:0.5px solid var(--bdr);border-radius:6px;background:var(--bg);color:var(--txt);font-family:var(--mono);width:100%}
+.j-sim-result{padding:10px 12px;background:var(--bg);border-radius:6px;font-size:12px}
+.j-sim-result-row{display:flex;justify-content:space-between;padding:3px 0}
+.j-sim-result-row.tot{font-weight:600;border-top:0.5px solid var(--bdr);margin-top:4px;padding-top:6px}
 </style>
 </head>
 <body>
@@ -1071,6 +1113,212 @@ function renderMetrics(d) {
     </div>`;
 }
 
+// ── journal tab ───────────────────────────────────────────────────────────────
+const EXCH_LABEL = {
+  'upbit':'업비트','okx':'OKX',
+  'kis_jonghap':'한투 종합','kis_isa':'ISA','kis_yeon':'연저',
+  '업비트':'업비트','OKX':'OKX','한투 종합':'한투 종합','한투 ISA':'ISA','한투 연저':'연저',
+};
+
+function renderJournalSummary(d) {
+  const s = d.journal_summary || {};
+  const monthCount = s.month_count || 0;
+  const ytdSell    = s.ytd_sell_amount_krw || 0;
+  const interval   = s.avg_interval_days;
+  const topT       = s.top_ticker || '—';
+  const topC       = s.top_ticker_count || 0;
+  return `
+    <div class="j-summary">
+      <div class="j-card">
+        <div class="jc-label">이번 달 매매</div>
+        <div class="jc-val">${monthCount}회</div>
+        <div class="jc-sub">${monthCount===0?'아직 거래 없음':'활동 중'}</div>
+      </div>
+      <div class="j-card">
+        <div class="jc-label">YTD 매도 합계</div>
+        <div class="jc-val">${fmtM(ytdSell)}</div>
+        <div class="jc-sub">매도 거래 KRW 환산</div>
+      </div>
+      <div class="j-card">
+        <div class="jc-label">평균 매매 주기</div>
+        <div class="jc-val">${interval==null?'—':interval+'일'}</div>
+        <div class="jc-sub">최근 30일 기준</div>
+      </div>
+      <div class="j-card">
+        <div class="jc-label">최다 매매 종목</div>
+        <div class="jc-val" style="font-size:18px">${topT}</div>
+        <div class="jc-sub">${topC}회 거래</div>
+      </div>
+    </div>`;
+}
+
+function renderJournalFilters() {
+  const exchOpts = [
+    ['all','전체'],['upbit','업비트'],['okx','OKX'],
+    ['kis_jonghap','한투 종합'],['kis_isa','ISA'],['kis_yeon','연저'],
+  ];
+  const sideOpts = [['all','전체'],['buy','매수'],['sell','매도']];
+  const periodOpts = [['7','7일'],['30','30일'],['90','90일'],['all','전체']];
+
+  const pillsExch = exchOpts.map(([v,l]) =>
+    `<button class="j-pill ${v==='all'?'active':''}" data-jf="exch" data-val="${v}">${l}</button>`).join('');
+  const pillsSide = sideOpts.map(([v,l]) =>
+    `<button class="j-pill ${v==='all'?'active':''}" data-jf="side" data-val="${v}">${l}</button>`).join('');
+  const pillsPeriod = periodOpts.map(([v,l]) =>
+    `<button class="j-pill ${v==='30'?'active':''}" data-jf="period" data-val="${v}">${l}</button>`).join('');
+
+  return `
+    <div class="j-filters">
+      <div class="j-filter-grp"><span class="jf-lbl">거래소</span>${pillsExch}</div>
+      <div class="j-filter-grp"><span class="jf-lbl">매매</span>${pillsSide}</div>
+      <div class="j-filter-grp"><span class="jf-lbl">기간</span>${pillsPeriod}</div>
+    </div>`;
+}
+
+function renderTransactionsTable(txns) {
+  if(!txns || txns.length===0) {
+    return `<div class="j-table-wrap"><div class="j-empty">조건에 맞는 거래가 없습니다</div></div>`;
+  }
+  const rows = txns.map(t => {
+    const side = t.side || 'buy';
+    const sideKr = side==='buy' ? '매수' : '매도';
+    const sideCls = side==='buy' ? 'j-side-buy' : 'j-side-sell';
+    const exch = EXCH_LABEL[t.exchange] || t.exchange || t.account || '';
+    const amount = t.amount_krw || (t.amount * (t.currency==='USD'?1380:1)) || 0;
+    const memo = t.memo
+      ? `<span class="j-memo" title="${t.memo.replace(/"/g,'&quot;')}">${t.memo}</span>`
+      : `<span class="j-memo-empty">— 노션에서 입력 —</span>`;
+    const qty = t.qty>=1 ? t.qty.toFixed(2) : t.qty.toFixed(4);
+    const price = t.currency==='USD' ? '$'+t.price.toFixed(2) : fmt(t.price);
+    return `<tr>
+      <td class="j-mono">${t.date||''}</td>
+      <td>${exch}</td>
+      <td><strong>${t.ticker||t.name}</strong></td>
+      <td class="${sideCls}">${sideKr}</td>
+      <td class="r j-mono">${qty}</td>
+      <td class="r j-mono">${price}</td>
+      <td class="r j-mono">${fmt(amount)}</td>
+      <td>${memo}</td>
+    </tr>`;
+  }).join('');
+  return `
+    <div class="j-table-wrap">
+      <table class="j-table">
+        <thead><tr>
+          <th>날짜</th><th>거래소</th><th>종목</th><th>매매</th>
+          <th class="r">수량</th><th class="r">단가</th><th class="r">금액(KRW)</th><th>사유 메모</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+window._journalFilters = {exch:'all', side:'all', period:'30'};
+
+function applyJournalFilters() {
+  const d = window._portfolioData;
+  if(!d) return;
+  const f = window._journalFilters;
+  const all = d.transactions || [];
+  const exchKey = (e) => {
+    if(e==='업비트') return 'upbit';
+    if(e==='OKX') return 'okx';
+    if(e==='한투 종합') return 'kis_jonghap';
+    if(e==='한투 ISA') return 'kis_isa';
+    if(e==='한투 연저') return 'kis_yeon';
+    return e;
+  };
+  const cutoffDate = f.period==='all' ? '0000-01-01'
+    : new Date(Date.now()-parseInt(f.period)*86400000).toISOString().slice(0,10);
+  const filtered = all.filter(t => {
+    if(f.side!=='all' && t.side!==f.side) return false;
+    if(f.exch!=='all' && exchKey(t.exchange)!==f.exch) return false;
+    if((t.date||'') < cutoffDate) return false;
+    return true;
+  });
+  const tbl = document.getElementById('journal-table');
+  if(tbl) tbl.innerHTML = renderTransactionsTable(filtered);
+}
+
+function renderTaxSimulator(d) {
+  const cg = d.capital_gains || {};
+  const limit = cg.limit || 2500000;
+  const used = cg.ytd_gain || 0;
+  const remaining = Math.max(0, limit - used);
+  return `
+    <div class="j-sim">
+      <div class="j-sim-title">💰 양도세 시뮬레이터 (해외주식 직투)</div>
+      <div class="j-sim-grid">
+        <div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:4px">예상 매매차익 (KRW)</div>
+          <input type="number" class="j-sim-input" id="sim-gain" placeholder="예: 5000000"
+                 oninput="calcTaxSim()">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:4px">현재 YTD 사용액</div>
+          <div class="j-sim-input" style="background:var(--bg2);font-family:var(--mono)">${fmt(used)} / ${fmt(limit)} (잔여 ${fmt(remaining)})</div>
+        </div>
+      </div>
+      <div class="j-sim-result" id="sim-result">
+        <div class="j-sim-result-row"><span>매매차익</span><span class="j-mono">— 입력 대기</span></div>
+      </div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:6px">
+        * 시뮬레이션 전용 — 250만원 면세 후 22% 세율, 한투 + 토스 합산 한도
+      </div>
+    </div>`;
+}
+
+function calcTaxSim() {
+  const cg = (window._portfolioData||{}).capital_gains || {};
+  const used = cg.ytd_gain || 0;
+  const limit = cg.limit || 2500000;
+  const inputEl = document.getElementById('sim-gain');
+  const out = document.getElementById('sim-result');
+  if(!inputEl || !out) return;
+  const gain = parseFloat(inputEl.value) || 0;
+  if(gain<=0) {
+    out.innerHTML = `<div class="j-sim-result-row"><span>매매차익</span><span class="j-mono">— 입력 대기</span></div>`;
+    return;
+  }
+  const newTotal = used + gain;
+  const taxableBefore = Math.max(0, used - limit);
+  const taxableAfter = Math.max(0, newTotal - limit);
+  const taxableDelta = taxableAfter - taxableBefore;
+  const tax = Math.round(taxableDelta * 0.22);
+  const usedAfter = newTotal;
+  const usedPct = Math.min(100, usedAfter/limit*100);
+  out.innerHTML = `
+    <div class="j-sim-result-row"><span>예상 매매차익</span><span class="j-mono">${fmt(gain)}원</span></div>
+    <div class="j-sim-result-row"><span>면세 한도 ${usedPct.toFixed(0)}% 사용 (${fmt(usedAfter)}/${fmt(limit)})</span><span class="j-mono">${fmt(Math.max(0,limit-usedAfter))} 잔여</span></div>
+    <div class="j-sim-result-row"><span>과세 대상 (한도 초과분)</span><span class="j-mono">${fmt(taxableDelta)}원</span></div>
+    <div class="j-sim-result-row tot"><span>예상 양도세 (22%)</span><span class="j-mono ${tax>0?'chg-neg':''}">${fmt(tax)}원</span></div>`;
+}
+
+function renderJournalTab(d) {
+  const txns = d.transactions || [];
+  return `
+    ${renderJournalSummary(d)}
+    ${renderJournalFilters()}
+    <div id="journal-table">${renderTransactionsTable(txns.slice(0, 200))}</div>
+    ${renderTaxSimulator(d)}`;
+}
+
+function attachJournalHandlers() {
+  document.querySelectorAll('.j-pill').forEach(b => {
+    b.addEventListener('click', () => {
+      const grp = b.dataset.jf;
+      const val = b.dataset.val;
+      // 같은 그룹 active 토글
+      document.querySelectorAll(`.j-pill[data-jf="${grp}"]`).forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      window._journalFilters[grp] = val;
+      applyJournalFilters();
+    });
+  });
+  // 초기 필터 적용 (기본 30일)
+  applyJournalFilters();
+}
+
 // ── main render ───────────────────────────────────────────────────────────────
 function render(d) {
   window._portfolioData = d;
@@ -1097,6 +1345,7 @@ function render(d) {
       <button class="tab" data-tab="journal">📝 매매일지</button>
       <button class="tab" data-tab="review">📈 회고</button>
       <button class="tab" data-tab="calendar">📅 캘린더</button>
+      <button class="tab" data-tab="xray">🔍 X-Ray</button>
     </div>
     <div id="tab-dashboard" class="tab-content active">
       <div class="sec-label">시장 컨텍스트</div>
@@ -1113,13 +1362,16 @@ function render(d) {
       ${renderMetrics(d)}
     </div>
     <div id="tab-journal" class="tab-content">
-      <div class="state-msg">매매일지 (Phase B에서 구현)</div>
+      ${renderJournalTab(d)}
     </div>
     <div id="tab-review" class="tab-content">
-      <div class="state-msg">거래 회고 (Phase B에서 구현)</div>
+      <div class="state-msg">거래 회고 (Step 2에서 구현)</div>
     </div>
     <div id="tab-calendar" class="tab-content">
-      <div class="state-msg">매크로 캘린더 (Phase B에서 구현)</div>
+      <div class="state-msg">매크로 캘린더 (Step 3에서 구현)</div>
+    </div>
+    <div id="tab-xray" class="tab-content">
+      <div class="state-msg">포트폴리오 X-Ray (Step 3에서 구현)</div>
     </div>`;
 
   document.getElementById('app').innerHTML = html;
@@ -1133,6 +1385,9 @@ function render(d) {
       document.getElementById('tab-' + t.dataset.tab).classList.add('active');
     });
   });
+
+  // 매매일지 필터 핸들러 (탭 전환 무관 — 초기 1회 바인딩)
+  attachJournalHandlers();
 }
 
 // ── PNG 다운로드 ──────────────────────────────────────────────────────────────

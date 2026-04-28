@@ -343,6 +343,178 @@ def get_nvda_avg_price() -> float:
     return 0.0
 
 
+# ── Transactions DB ──────────────────────────────────────────────────────────
+
+
+_EXCHANGE_LABEL = {
+    "upbit": "업비트", "okx": "OKX",
+    "kis_jonghap": "한투 종합", "kis_isa": "한투 ISA", "kis_yeon": "한투 연저",
+}
+
+
+def ensure_transactions_columns() -> None:
+    """Transactions DB 필수 컬럼 보장 (이미 있으면 노션이 무시)."""
+    if not TRANSACTIONS_DB:
+        return
+    new_props = {
+        "거래일":       {"date": {}},
+        "거래유형":     {"select": {"options": [
+            {"name": "매수", "color": "green"},
+            {"name": "매도", "color": "red"},
+        ]}},
+        "거래소":       {"select": {}},
+        "계좌":         {"select": {}},
+        "티커":         {"rich_text": {}},
+        "수량":         {"number": {"format": "number"}},
+        "단가":         {"number": {"format": "number"}},
+        "금액":         {"number": {"format": "number"}},
+        "금액(KRW)":    {"number": {"format": "won"}},
+        "수수료":       {"number": {"format": "number"}},
+        "UID":          {"rich_text": {}},
+        "메모":         {"rich_text": {}},
+        "30일결과%":    {"number": {"format": "percent"}},
+    }
+    try:
+        notion.databases.update(database_id=TRANSACTIONS_DB, properties=new_props)
+        print("  Transactions DB 컬럼 보장 완료")
+    except Exception as e:
+        print(f"  [경고] Transactions 컬럼 보장 실패: {e}")
+
+
+def _existing_transaction_uids() -> set[str]:
+    """Transactions DB에서 기존 UID 집합을 한 번에 가져옴 (중복 방지용)."""
+    if not TRANSACTIONS_DB:
+        return set()
+    uids: set[str] = set()
+    cursor = None
+    try:
+        while True:
+            kwargs: dict = {"database_id": TRANSACTIONS_DB, "page_size": 100}
+            if cursor:
+                kwargs["start_cursor"] = cursor
+            res = notion.databases.query(**kwargs)
+            for row in res.get("results", []):
+                rt = row["properties"].get("UID", {}).get("rich_text", []) or []
+                if rt:
+                    uids.add(rt[0]["plain_text"])
+            if not res.get("has_more"):
+                break
+            cursor = res.get("next_cursor")
+    except Exception as e:
+        print(f"  [경고] 기존 거래 UID 조회 실패: {e}")
+    return uids
+
+
+def sync_transactions(transactions: list[dict]) -> int:
+    """신규 거래만 노션 Transactions DB에 추가 (UID 기반 dedup). 추가 건수 반환."""
+    if not TRANSACTIONS_DB or not transactions:
+        return 0
+    existing = _existing_transaction_uids()
+    added = 0
+    for t in transactions:
+        uid = t.get("uid")
+        if not uid or uid in existing:
+            continue
+        try:
+            page_props = {
+                "종목":     _title(t.get("name", t.get("ticker", ""))),
+                "티커":     _text(t.get("ticker", "")),
+                "거래일":   _date(t.get("date") or datetime.date.today().isoformat()),
+                "거래유형": _select("매수" if t.get("side") == "buy" else "매도"),
+                "거래소":   _select(_EXCHANGE_LABEL.get(t.get("exchange", ""), t.get("exchange", ""))),
+                "계좌":     _select(t.get("account", "")),
+                "수량":     _number(t.get("qty", 0)),
+                "단가":     _number(t.get("price", 0)),
+                "금액":     _number(t.get("amount", 0)),
+                "금액(KRW)":_number(t.get("amount_krw", 0)),
+                "수수료":   _number(t.get("fee", 0)),
+                "UID":      _text(uid),
+            }
+            notion.pages.create(parent={"database_id": TRANSACTIONS_DB}, properties=page_props)
+            added += 1
+        except Exception as e:
+            print(f"    [경고] 거래 추가 실패 {uid}: {e}")
+    if added:
+        print(f"  Transactions DB: {added}건 신규 추가 ({len(transactions)-added}건 기존)")
+    return added
+
+
+def pull_transactions(days: int = 90) -> list[dict]:
+    """Transactions DB에서 최근 N일 거래 리스트 반환 (메모 포함, 매매일지 탭용)."""
+    if not TRANSACTIONS_DB:
+        return []
+    since = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    out: list[dict] = []
+    cursor = None
+    try:
+        while True:
+            kwargs: dict = {
+                "database_id": TRANSACTIONS_DB,
+                "page_size": 100,
+                "filter": {"property": "거래일", "date": {"on_or_after": since}},
+                "sorts": [{"property": "거래일", "direction": "descending"}],
+            }
+            if cursor:
+                kwargs["start_cursor"] = cursor
+            res = notion.databases.query(**kwargs)
+            for row in res.get("results", []):
+                p = row["properties"]
+
+                def _rt(key):
+                    arr = p.get(key, {}).get("rich_text", []) or []
+                    return arr[0]["plain_text"] if arr else ""
+
+                def _tit(key):
+                    arr = p.get(key, {}).get("title", []) or []
+                    return arr[0]["plain_text"] if arr else ""
+
+                def _sel(key):
+                    s = p.get(key, {}).get("select")
+                    return s.get("name") if s else ""
+
+                def _num(key):
+                    return p.get(key, {}).get("number") or 0
+
+                def _dt(key):
+                    d = p.get(key, {}).get("date")
+                    return d.get("start") if d else ""
+
+                out.append({
+                    "page_id":  row["id"],
+                    "uid":      _rt("UID"),
+                    "date":     _dt("거래일"),
+                    "side":     "buy" if _sel("거래유형") == "매수" else "sell",
+                    "exchange": _sel("거래소"),
+                    "account":  _sel("계좌"),
+                    "name":     _tit("종목"),
+                    "ticker":   _rt("티커"),
+                    "qty":      _num("수량"),
+                    "price":    _num("단가"),
+                    "amount":   _num("금액"),
+                    "amount_krw": _num("금액(KRW)"),
+                    "fee":      _num("수수료"),
+                    "memo":     _rt("메모"),
+                    "result_30d": p.get("30일결과%", {}).get("number"),
+                })
+            if not res.get("has_more"):
+                break
+            cursor = res.get("next_cursor")
+    except Exception as e:
+        print(f"  [경고] 거래내역 조회 실패: {e}")
+    return out
+
+
+def update_transaction_review(page_id: str, result_pct: float) -> None:
+    """30일 후 결과(%)를 Transactions DB에 기록 (review_engine용)."""
+    try:
+        notion.pages.update(
+            page_id=page_id,
+            properties={"30일결과%": _number(result_pct / 100)},  # percent format
+        )
+    except Exception as e:
+        print(f"  [경고] 회고 업데이트 실패 {page_id}: {e}")
+
+
 if __name__ == "__main__":
     test_snapshot = {
         "total_krw": 88_000_000,
