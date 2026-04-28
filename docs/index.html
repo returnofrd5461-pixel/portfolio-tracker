@@ -161,7 +161,10 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .acct-pnl .acct-pnl-strong{font-weight:700;font-size:13px}
 .acct-pnl .pos,.acct-pnl-strong.pos{color:var(--pos)}
 .acct-pnl .neg,.acct-pnl-strong.neg{color:var(--neg)}
-.acct-mini-cls{font-size:11px;color:var(--txt3);line-height:1.6;margin-top:6px;padding-top:6px;border-top:0.5px dashed var(--bdr);word-break:keep-all}
+.acct-card .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
+.acct-card .top-row .left{flex:1;min-width:0}
+.acct-card .top-row .right{flex:0 0 auto;text-align:right;font-size:10px;line-height:1.55;color:var(--txt3);max-width:160px;font-family:var(--mono);word-break:keep-all}
+@media(max-width:600px){.acct-card .top-row .right{font-size:9px;max-width:none}}
 .pbar{height:5px;flex:1;background:var(--bg2);border-radius:3px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:3px}
 
@@ -828,12 +831,12 @@ function _acctClassBreakdown(d, accountId) {
 function _renderAcctMiniCls(d, accountId) {
   const rows = _acctClassBreakdown(d, accountId);
   if(rows.length === 0) return '';
+  // 우측 상단용 컴팩트 포맷: emoji + pct만 (라벨은 이모지로 식별)
   const parts = rows.map(r => {
     const emoji = CLS_EMOJI[r.cls] || '';
-    const label = (CLS_META[r.cls] && CLS_META[r.cls].label) || r.cls;
-    return `${emoji} ${label} ${r.pct.toFixed(1)}%`;
+    return `${emoji} ${r.pct.toFixed(1)}%`;
   });
-  return `<div class="acct-mini-cls">${parts.join(' · ')}</div>`;
+  return parts.join(' · ');
 }
 
 function renderAccountGrid(d) {
@@ -849,11 +852,14 @@ function renderAccountGrid(d) {
       const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
       pnlLine = `<div class="acct-pnl">총 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
     }
-    const miniCls = _renderAcctMiniCls(d, a.id);
+    const miniRight = _renderAcctMiniCls(d, a.id);
     return `
       <div class="acct-card">
         <div class="bar" style="background:${a.color}"></div>
-        <div><div class="name">${a.name}</div><div class="sub">${a.subtitle}</div></div>
+        <div class="top-row">
+          <div class="left"><div class="name">${a.name}</div><div class="sub">${a.subtitle}</div></div>
+          <div class="right">${miniRight}</div>
+        </div>
         <div class="amount">${fmt(a.krw)}</div>
         ${usdLine}
         <div class="pct-row">
@@ -861,7 +867,6 @@ function renderAccountGrid(d) {
           <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${clamp(p,0,100)}%"></div></div>
         </div>
         ${pnlLine}
-        ${miniCls}
       </div>`;
   }).join('');
   return `<div class="account-grid">${cards}</div>`;
@@ -943,11 +948,21 @@ function renderAcctRebal(accountId, d) {
   const acct = (d.rebalancing.per_account||[]).find(a => a.account_id === accountId);
   if(!acct||!acct.class_rows||acct.class_rows.length===0) return '';
 
+  // 계좌 내 현금 비중 ("현재" 줄에만 표시)
+  const breakdown = _acctClassBreakdown(d, accountId);
+  const cashEntry = breakdown.find(r => r.cls === 'cash');
+  const cashPct = cashEntry ? cashEntry.pct : 0;
+
   function fmtRow(rows, useActual) {
-    return rows.map((r,i) => {
+    let items = rows;
+    if(useActual && cashPct > 0) {
+      items = [...rows, {cls: 'cash', name: '현금', target: 0, actual: +cashPct.toFixed(1), diff: 0}];
+    }
+    return items.map((r,i) => {
       const val = useActual ? r.actual : r.target;
-      const alert = useActual && Math.abs(r.diff)>5 ? ' alert' : '';
-      const sep = i<rows.length-1 ? '<span class="arb-sep">·</span>' : '';
+      // cash는 룰에 없는 잔여이므로 alert 적용 안 함
+      const alert = useActual && r.cls !== 'cash' && Math.abs(r.diff)>5 ? ' alert' : '';
+      const sep = i<items.length-1 ? '<span class="arb-sep">·</span>' : '';
       const emoji = CLS_EMOJI[r.cls] || '';
       return `<span class="arb-item${alert}">${emoji} ${r.name} ${val}%</span>${sep}`;
     }).join('');
