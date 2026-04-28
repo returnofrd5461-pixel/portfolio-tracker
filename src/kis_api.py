@@ -75,8 +75,40 @@ def _base_headers(name: str, tr_id: str) -> dict:
     }
 
 
+def _to_float(v) -> float:
+    try:
+        return float(v or 0)
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def _print_nonzero(label: str, d: dict) -> None:
+    print(f"  [{label}]")
+    if not d:
+        print("    (응답 없음)")
+        return
+    for k, v in sorted(d.items()):
+        f = _to_float(v)
+        if f != 0:
+            print(f"    {k}: {f:,.4f}")
+        elif v not in (None, "", "0", "0.00", "0.0000"):
+            # 문자열 또는 비정상 값은 그대로 표시
+            if not isinstance(v, (int, float)) or v != 0:
+                print(f"    {k}: {v}")
+
+
+def _pick_max(label: str, candidates: list[tuple[str, object]]) -> tuple[float, str]:
+    """후보 [(필드명, 값), ...] 중 최댓값과 그 필드명 반환."""
+    best, best_field = 0.0, None
+    for field, v in candidates:
+        f = _to_float(v)
+        if f > best:
+            best, best_field = f, field
+    return best, best_field
+
+
 def _get_overseas_psamount(name: str) -> dict:
-    """해외주식 매수가능금액조회 (TTTS3007R) — KRW + USD 예수금 반환."""
+    """해외주식 매수가능금액조회 (TTTS3007R) — output dict 반환."""
     acc = ACCOUNTS[name]
     cano, acnt_prdt_cd = _parse_account(acc["account"])
     params = {
@@ -95,7 +127,35 @@ def _get_overseas_psamount(name: str) -> dict:
         )
         resp.raise_for_status()
         return resp.json().get("output", {}) or {}
-    except Exception:
+    except Exception as e:
+        print(f"  [psamount 호출 실패 ({name}): {e}]")
+        return {}
+
+
+def _get_domestic_psbl(name: str) -> dict:
+    """국내주식 매수가능조회 (TTTC8908R) — output dict 반환."""
+    acc = ACCOUNTS[name]
+    cano, acnt_prdt_cd = _parse_account(acc["account"])
+    params = {
+        "CANO": cano,
+        "ACNT_PRDT_CD": acnt_prdt_cd,
+        "PDNO": "005930",  # 더미: 삼성전자
+        "ORD_UNPR": "0",
+        "ORD_DVSN": "01",
+        "CMA_EVLU_AMT_ICLD_YN": "N",
+        "OVRS_ICLD_YN": "N",
+    }
+    try:
+        resp = requests.get(
+            f"{BASE_URL}/uapi/domestic-stock/v1/trading/inquire-psbl-order",
+            headers=_base_headers(name, "TTTC8908R"),
+            params=params,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json().get("output", {}) or {}
+    except Exception as e:
+        print(f"  [psbl-order 호출 실패 ({name}): {e}]")
         return {}
 
 
@@ -123,43 +183,41 @@ def get_overseas_balance(name: str, usdkrw: float = 1380.0) -> tuple[list[dict],
     if isinstance(out2, list):
         out2 = out2[0] if out2 else {}
 
-    # output2에서 KRW/USD 예수금 후보 필드 탐색
-    krw_cash = float(out2.get("dnca_tot_amt") or 0)
-    usd_cash = 0.0
-    for f in ("frcr_dncl_amt1", "frcr_dncl_amt", "frcr_buy_able_amt"):
-        v = out2.get(f)
-        if v:
-            try:
-                usd_cash = float(v)
-                if usd_cash > 0:
-                    break
-            except (ValueError, TypeError):
-                pass
+    # 항상 매수가능금액 조회 병행
+    psa = _get_overseas_psamount(name)
 
-    # output2에 없으면 inquire-psamount 보조 호출
-    if krw_cash == 0 and usd_cash == 0:
-        psa = _get_overseas_psamount(name)
-        try:
-            krw_cash = float(psa.get("frcr_ord_psbl_amt1") or psa.get("ord_psbl_frcr_amt") or 0)
-        except (ValueError, TypeError):
-            pass
-        try:
-            usd_cash = float(psa.get("ovrs_ord_psbl_amt") or 0)
-        except (ValueError, TypeError):
-            pass
+    # 디버그: 두 응답의 비-제로 필드 모두 출력
+    _print_nonzero(f"{name} inquire-balance output2", out2)
+    _print_nonzero(f"{name} inquire-psamount output", psa)
 
-    total_cash_krw = krw_cash + usd_cash * usdkrw
+    # KRW 예수금: 해외계좌는 보통 0이거나 dnca_tot_amt에만 소액 존재
+    krw_cash, krw_field = _pick_max(name, [
+        ("balance.dnca_tot_amt",  out2.get("dnca_tot_amt")),
+        ("balance.tot_dncl_amt",  out2.get("tot_dncl_amt")),
+    ])
 
-    # 디버그: output2 비-제로 필드 출력
-    print(f"  [DEBUG {name} output2 비-제로 필드]")
-    for k, v in sorted(out2.items()):
-        try:
-            fv = float(v or 0)
-            if fv != 0:
-                print(f"    {k}: {fv:,.2f}")
-        except (ValueError, TypeError):
-            pass
-    print(f"  [{name}] KRW예수금 {krw_cash:,.0f} | USD예수금 {usd_cash:,.2f} (≈{usd_cash*usdkrw:,.0f}원) → 합산 {total_cash_krw:,.0f}원")
+    # USD 예수금/매수가능액 — psa.tr_crcy_cd가 USD면 frcr_ord_psbl_amt1 = USD cash
+    psa_is_usd = str(psa.get("tr_crcy_cd", "")).upper() == "USD"
+    usd_candidates = [
+        ("balance.frcr_dncl_amt1", out2.get("frcr_dncl_amt1")),
+        ("balance.frcr_dncl_amt",  out2.get("frcr_dncl_amt")),
+    ]
+    if psa_is_usd:
+        usd_candidates.extend([
+            ("psa.frcr_ord_psbl_amt1", psa.get("frcr_ord_psbl_amt1")),
+            ("psa.ovrs_ord_psbl_amt",  psa.get("ovrs_ord_psbl_amt")),
+            ("psa.tr_frcr_amt1",       psa.get("tr_frcr_amt1")),
+        ])
+    usd_cash, usd_field = _pick_max(name, usd_candidates)
+
+    # KIS 자체 환율 (있으면 우선 사용)
+    psa_exrt = _to_float(psa.get("exrt"))
+    fx_used = psa_exrt if psa_exrt > 0 else usdkrw
+
+    total_cash_krw = krw_cash + usd_cash * fx_used
+    print(f"  [{name}] 한투 종합 예수금: {total_cash_krw:,.0f}원 = "
+          f"KRW {krw_cash:,.0f}(필드: {krw_field}) + "
+          f"USD {usd_cash:,.2f}(필드: {usd_field}) × {fx_used:.2f}")
 
     holdings = [
         {
@@ -205,8 +263,27 @@ def get_domestic_balance(name: str) -> tuple[list[dict], float]:
     out2 = data.get("output2", {})
     if isinstance(out2, list):
         out2 = out2[0] if out2 else {}
-    cash_krw = float(out2.get("dnca_tot_amt") or 0)
-    print(f"  [{name}] KRW예수금 {cash_krw:,.0f}원")
+
+    # 항상 매수가능조회 병행
+    psbl = _get_domestic_psbl(name)
+
+    # 디버그
+    _print_nonzero(f"{name} inquire-balance output2", out2)
+    _print_nonzero(f"{name} inquire-psbl-order output", psbl)
+
+    # KRW 후보 — 잔고 + 매수가능 양쪽 시도
+    cash_krw, cash_field = _pick_max(name, [
+        ("balance.dnca_tot_amt",       out2.get("dnca_tot_amt")),
+        ("balance.nxdy_excc_amt",      out2.get("nxdy_excc_amt")),
+        ("balance.prvs_rcdl_excc_amt", out2.get("prvs_rcdl_excc_amt")),
+        ("psbl.ord_psbl_cash",         psbl.get("ord_psbl_cash")),
+        ("psbl.max_buy_amt",           psbl.get("max_buy_amt")),
+        ("psbl.nrcvb_buy_amt",         psbl.get("nrcvb_buy_amt")),
+        ("psbl.ruse_psbl_amt",         psbl.get("ruse_psbl_amt")),
+    ])
+
+    print(f"  [{name}] 예수금 {cash_krw:,.0f}원 (필드: {cash_field})")
+
     holdings = [
         {
             "account": name,
