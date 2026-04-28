@@ -22,21 +22,29 @@ from alerts import send_daily_report, send_manual_input_reminder
 CRYPTO_TICKERS = {"BTC", "ETH", "XRP", "SOL", "DOGE", "ADA", "AVAX", "MATIC",
                   "LINK", "DOT", "USDT", "USDC", "BNB", "GAS"}
 SAFE_TICKERS = {"IEF", "SGOV", "SHY", "BIL", "VMFXX"}
-COMMODITY_TICKERS = {"IAU", "GLD", "SLV", "USO", "UNG"}
+GOLD_TICKERS  = {"IAU", "GLD", "SLV"}
+OIL_TICKERS   = {"USO", "UNG"}
+KOREAN_ETF_CLASS = {
+    "426030": "us_stock",  # TIME 미국나스닥100액티브
+    "456600": "us_stock",  # TIMEFOLIO 글로벌AI인공지능액티브
+    "411060": "gold",      # ACE KRX금현물
+    "308620": "bond",      # KODEX 미국채10년선물(H)
+    "130680": "oil",       # TIGER 원유선물Enhanced(H)
+    "0091C0": "bond",      # KODEX 미국10년국채액티브(H)
+}
 
 
 def classify(ticker: str) -> str:
-    if ticker in CRYPTO_TICKERS:
-        return "crypto"
-    if ticker in SAFE_TICKERS:
-        return "bond"
-    if ticker in COMMODITY_TICKERS:
-        return "commodity"
+    if ticker in CRYPTO_TICKERS:      return "crypto"
+    if ticker in KOREAN_ETF_CLASS:    return KOREAN_ETF_CLASS[ticker]
+    if ticker in SAFE_TICKERS:        return "bond"
+    if ticker in GOLD_TICKERS:        return "gold"
+    if ticker in OIL_TICKERS:         return "oil"
     return "us_stock"
 
 
 def is_risky(asset_class: str) -> bool:
-    return asset_class in ("crypto", "us_stock", "commodity")
+    return asset_class in ("crypto", "us_stock", "oil")
 
 
 HOLDING_COLOR = {
@@ -60,30 +68,22 @@ MANUAL_ACCOUNT_META = {
 }
 CLS_COLORS = {
     "us_stock": "#7F77DD", "crypto": "#EF9F27",
-    "bond": "#378ADD", "commodity": "#EF9F27", "cash": "#1D9E75",
+    "bond": "#378ADD", "gold": "#EF9F27", "oil": "#D85A30", "cash": "#1D9E75",
 }
 _CLS_NAMES = {
-    "us_stock": "미국주식", "crypto": "크립토", "bond": "채권",
+    "us_stock": "주식", "crypto": "크립토", "bond": "채권",
     "gold": "금", "oil": "원유", "cash": "현금",
 }
-_OIL_TICKERS = {"USO", "UNG", "130680"}
-_GOLD_TICKERS = {"IAU", "GLD", "SLV", "411060"}
 
 GLOBAL_REBAL_TARGETS = {
     "us_stock": 30.0, "crypto": 35.0, "bond": 15.0,
     "gold": 10.0, "oil": 5.0, "cash": 5.0,
 }
 ACCOUNT_REBAL_TARGETS = {
-    "kis_jonghap": {"QQQM": 27.0, "AGIX": 30.0, "IAU": 21.0, "IEF": 22.0},
-    "kis_isa": {},
-    "kis_yeon": {},
+    "kis_jonghap": {"us_stock": 50.0, "bond": 23.0, "gold": 22.0, "oil": 5.0},
+    "kis_isa":     {"us_stock": 55.0, "bond": 20.0, "gold": 20.0, "oil": 5.0},
+    "kis_yeon":    {"us_stock": 65.0, "bond": 15.0, "gold": 15.0, "oil": 5.0},
 }
-
-
-def _rebal_class(ticker: str, base_class: str) -> str:
-    if base_class == "commodity":
-        return "oil" if ticker in _OIL_TICKERS else "gold"
-    return base_class
 
 
 # 분할매수 기본값 (data.json에 없을 경우 초기화)
@@ -144,6 +144,12 @@ def write_data_json(
     for h in all_holdings:
         acct_totals[h["account"]] = acct_totals.get(h["account"], 0) + h["eval_krw"]
 
+    # Add KIS cash to account totals
+    kis_cash = extras.get("kis_cash", {})
+    for api_key, cash in kis_cash.items():
+        if cash > 0:
+            acct_totals[api_key] = acct_totals.get(api_key, 0) + cash
+
     # Build accounts list
     accounts = []
     for api_key, meta in ACCOUNT_META.items():
@@ -169,13 +175,14 @@ def write_data_json(
     upbit_cash_krw = max(0.0, upbit_krw - upbit_crypto_sum)
 
     # Asset class totals
+    kis_cash_total = sum(kis_cash.values())
     cls_raw = {
         "us_stock": round(class_totals.get("us_stock", 0) + manual_krw.get("toss", 0)),
         "crypto":   round(class_totals.get("crypto", 0)),
         "bond":     round(class_totals.get("bond", 0)),
-        "gold":     round(class_totals.get("commodity", 0)),
-        "oil":      0,
-        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0) + upbit_cash_krw),
+        "gold":     round(class_totals.get("gold", 0)),
+        "oil":      round(class_totals.get("oil", 0)),
+        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0) + upbit_cash_krw + kis_cash_total),
     }
 
     # ── 일일 변동 계산 ────────────────────────────────────────────────
@@ -268,6 +275,9 @@ def write_data_json(
                 "ticker": h["ticker"], "name": h["name"],
                 "cat": h.get("asset_class", "").replace("_", " "),
                 "pct": p, "krw": round(h["eval_krw"]),
+                "principal_krw": h.get("principal_krw", 0),
+                "pnl_krw": h.get("pnl_krw", 0),
+                "pnl_pct": round(h.get("pnl_pct", 0), 2),
                 "color": _holding_color(h["ticker"], h.get("asset_class", "")),
             })
         core_holdings.append({
@@ -294,6 +304,9 @@ def write_data_json(
                 "ticker": h["ticker"], "name": h["name"],
                 "cat": h.get("asset_class", ""),
                 "krw": round(h["eval_krw"]),
+                "principal_krw": h.get("principal_krw", 0),
+                "pnl_krw": h.get("pnl_krw", 0),
+                "pnl_pct": round(h.get("pnl_pct", 0), 2),
                 "color": _holding_color(h["ticker"], h.get("asset_class", "")),
             })
         satellite_holdings.append({
@@ -371,20 +384,23 @@ def write_data_json(
         meta_r = ACCOUNT_META[api_key]
         items_raw_r = kis_account_map.get(api_key, [])
         acct_total_r = acct_totals.get(api_key, 0)
-        acct_targets = ACCOUNT_REBAL_TARGETS.get(meta_r["id"], {})
-        rows = []
+        acct_class_targets = ACCOUNT_REBAL_TARGETS.get(meta_r["id"], {})
+        # Aggregate actual by asset class within this account
+        cls_krw_r: dict = {}
         for h in items_raw_r:
-            actual_pct = round(h["eval_krw"] / acct_total_r * 100, 1) if acct_total_r else 0
-            rcls = _rebal_class(h["ticker"], h.get("asset_class", ""))
-            tgt = acct_targets.get(h["ticker"], 0)
-            rows.append({
-                "ticker": h["ticker"], "name": h["name"], "cls": rcls,
-                "target": tgt, "actual": actual_pct,
-                "diff": round(actual_pct - tgt, 1),
+            rcls = h.get("asset_class", "us_stock")
+            cls_krw_r[rcls] = cls_krw_r.get(rcls, 0) + h["eval_krw"]
+        class_rows = []
+        for cls, target in acct_class_targets.items():
+            actual_pct = round(cls_krw_r.get(cls, 0) / acct_total_r * 100, 1) if acct_total_r else 0
+            class_rows.append({
+                "cls": cls, "name": _CLS_NAMES.get(cls, cls),
+                "target": target, "actual": actual_pct,
+                "diff": round(actual_pct - target, 1),
             })
         per_acct_rebal.append({
             "account_id": meta_r["id"], "account_name": meta_r["name"],
-            "rows": rows,
+            "class_rows": class_rows,
         })
 
     rebalancing = {"global": global_rebal, "per_account": per_acct_rebal}
@@ -471,6 +487,7 @@ def run_pipeline() -> None:
         upbit_krw += krw_cash
         for h in upbit_holdings:
             upbit_krw += h["eval_krw"]
+            principal = round(h["avg_buy_price"] * h["quantity"])
             all_holdings.append({
                 "ticker": h["currency"],
                 "name": h["currency"],
@@ -479,6 +496,9 @@ def run_pipeline() -> None:
                 "current_price": h["current_price"],
                 "eval_krw": h["eval_krw"],
                 "profit_rate": h["profit_rate"],
+                "principal_krw": principal,
+                "pnl_krw": round(h["eval_krw"] - principal),
+                "pnl_pct": h["profit_rate"],
                 "account": "UPBIT",
                 "asset_class": classify(h["currency"]),
             })
@@ -506,6 +526,8 @@ def run_pipeline() -> None:
         okx_holdings = okx_fetch()
         for h in okx_holdings:
             krw_val = h["usd_value"] * usdkrw
+            if krw_val < 5000:
+                continue
             okx_krw += krw_val
             all_holdings.append({
                 "ticker": h["currency"],
@@ -515,6 +537,9 @@ def run_pipeline() -> None:
                 "current_price": h["usd_value"] / h["quantity"] if h["quantity"] else 0,
                 "eval_krw": krw_val,
                 "profit_rate": 0,
+                "principal_krw": 0,
+                "pnl_krw": 0,
+                "pnl_pct": 0.0,
                 "account": "OKX",
                 "asset_class": classify(h["currency"]),
             })
@@ -525,12 +550,14 @@ def run_pipeline() -> None:
 
     # ── 4. 한투 잔고 ─────────────────────────────────────────────
     kis_krw = 0.0
+    kis_cash: dict = {}
     print("\n[4/9] 한투 KIS 잔고 조회...")
     try:
         kis_data = kis_fetch()
         for h in kis_data.get("overseas", []):
             krw_val = h["eval_usd"] * usdkrw
             kis_krw += krw_val
+            principal = round(h["avg_price"] * h["quantity"] * usdkrw)
             all_holdings.append({
                 "ticker": h["ticker"],
                 "name": h["name"],
@@ -539,11 +566,15 @@ def run_pipeline() -> None:
                 "current_price": (h["eval_usd"] / h["quantity"] * usdkrw) if h["quantity"] else 0,
                 "eval_krw": krw_val,
                 "profit_rate": h["profit_rate"],
+                "principal_krw": principal,
+                "pnl_krw": round(krw_val - principal),
+                "pnl_pct": h["profit_rate"],
                 "account": f"KIS_{h['account']}",
                 "asset_class": classify(h["ticker"]),
             })
         for h in kis_data.get("domestic", []):
             kis_krw += h["eval_krw"]
+            principal = round(h["avg_price"] * h["quantity"])
             all_holdings.append({
                 "ticker": h["ticker"],
                 "name": h["name"],
@@ -552,17 +583,28 @@ def run_pipeline() -> None:
                 "current_price": h["eval_krw"] / h["quantity"] if h["quantity"] else 0,
                 "eval_krw": h["eval_krw"],
                 "profit_rate": h["profit_rate"],
+                "principal_krw": principal,
+                "pnl_krw": round(h["eval_krw"] - principal),
+                "pnl_pct": h["profit_rate"],
                 "account": f"KIS_{h['account']}",
                 "asset_class": classify(h["ticker"]),
             })
-        print(f"  한투 총액: {kis_krw:,.0f} KRW")
+        # KIS 현금 잔고 (예수금)
+        kis_cash = {
+            "KIS_JONGHAP": kis_data.get("cash_jonghap", 0),
+            "KIS_ISA":     kis_data.get("cash_isa", 0),
+            "KIS_YEON":    kis_data.get("cash_yeon", 0),
+        }
+        kis_cash_total = sum(kis_cash.values())
+        kis_krw += kis_cash_total
+        print(f"  한투 총액: {kis_krw:,.0f} KRW (현금 {kis_cash_total:,.0f} 포함)")
     except Exception as e:
         errors.append(f"KIS: {e}")
         print(f"  [오류] {e}")
 
     # ── 5. 포트폴리오 지표 계산 ───────────────────────────────────
     print("\n[5/9] 포트폴리오 집계...")
-    total_krw = upbit_krw + okx_krw + kis_krw
+    total_krw = upbit_krw + okx_krw + kis_krw  # kis_krw already includes cash
 
     class_totals: dict[str, float] = {}
     for h in all_holdings:
@@ -589,7 +631,7 @@ def run_pipeline() -> None:
         "usdkrw": usdkrw,
         "mdd": 0.0,
         "asset_classes": asset_class_pct,
-        "asset_class_targets": {"crypto": 35.0, "us_stock": 25.0, "bond": 20.0, "commodity": 10.0},
+        "asset_class_targets": {"crypto": 35.0, "us_stock": 25.0, "bond": 20.0, "gold": 10.0, "oil": 5.0},
     }
 
     btc_holding = next((h for h in all_holdings if h["ticker"] == "BTC" and h["account"] == "UPBIT"), None)
@@ -599,8 +641,8 @@ def run_pipeline() -> None:
         "total_krw": total_krw,
         "crypto_krw": class_totals.get("crypto", 0),
         "stock_krw": class_totals.get("us_stock", 0),
-        "gold_krw": class_totals.get("commodity", 0),
-        "oil_krw": 0,
+        "gold_krw": class_totals.get("gold", 0),
+        "oil_krw": class_totals.get("oil", 0),
         "bond_krw": class_totals.get("bond", 0),
         "cash_krw": upbit_krw - sum(h["eval_krw"] for h in all_holdings if h["account"] == "UPBIT"),
         "risky_pct": risky_pct,
@@ -678,6 +720,7 @@ def run_pipeline() -> None:
         "nvda_current_krw": nvda_current_krw,
         "risky_pct": risky_pct,
         "safe_pct": safe_pct,
+        "kis_cash": kis_cash,
     }
 
     # ── docs/data.json 생성 ──────────────────────────────────────

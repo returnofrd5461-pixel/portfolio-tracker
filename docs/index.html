@@ -130,6 +130,18 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .sat-row .spct{font-size:12px;font-weight:500}
 .sat-row .samt{font-size:12px;font-family:var(--mono);text-align:right;padding-right:4px}
 
+/* ── P&L sub-row ── */
+.tpnl{font-size:9px;margin-top:2px;font-family:var(--mono)}
+.tpnl.pos{color:var(--pos)}.tpnl.neg{color:var(--neg)}.tpnl.neu{color:var(--txt3)}
+
+/* ── account rebalancing header ── */
+.acct-rebal{padding:8px 14px;border-bottom:0.5px solid var(--bdr);background:var(--bg3);font-size:10px;line-height:1.6}
+.acct-rebal-row{display:flex;flex-wrap:wrap;gap:3px;align-items:baseline}
+.acct-rebal-lbl{color:var(--txt3);min-width:28px;flex-shrink:0;font-weight:600}
+.arb-item{font-family:var(--mono);color:var(--txt2)}
+.arb-item.ok{color:var(--pos)}.arb-item.alert{color:var(--neg);font-weight:700}
+.arb-sep{color:var(--bdr2);margin:0 1px}
+
 /* ── split buying bar ── */
 .split-buy{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
 .split-buy .sb-title{font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px;display:flex;justify-content:space-between}
@@ -549,19 +561,50 @@ function renderNvdaMdd(mdd) {
     </div>`;
 }
 
+// ── account rebalancing header ───────────────────────────────────────────────
+function renderAcctRebal(accountId, d) {
+  if(!d.rebalancing) return '';
+  const acct = (d.rebalancing.per_account||[]).find(a => a.account_id === accountId);
+  if(!acct||!acct.class_rows||acct.class_rows.length===0) return '';
+
+  function fmtRow(rows, useActual) {
+    return rows.map((r,i) => {
+      const val = useActual ? r.actual : r.target;
+      const alert = useActual && Math.abs(r.diff)>5 ? ' alert' : (useActual ? ' ok' : '');
+      const sep = i<rows.length-1 ? '<span class="arb-sep">/</span>' : '';
+      return `<span class="arb-item${alert}">${r.name} ${val}%</span>${sep}`;
+    }).join('');
+  }
+
+  return `
+    <div class="acct-rebal">
+      <div class="acct-rebal-row"><span class="acct-rebal-lbl">목표</span>${fmtRow(acct.class_rows, false)}</div>
+      <div class="acct-rebal-row"><span class="acct-rebal-lbl">현재</span>${fmtRow(acct.class_rows, true)}</div>
+    </div>`;
+}
+
 // ── core table ───────────────────────────────────────────────────────────────
 function renderCoreTable(h, total, d) {
-  const rows = h.items.map(item => `
+  const rows = h.items.map(item => {
+    let pnlHtml = '';
+    if(item.principal_krw > 0) {
+      const s = item.pnl_krw >= 0 ? '+' : '';
+      const cls = item.pnl_krw >= 0 ? 'pos' : 'neg';
+      pnlHtml = `<div class="tpnl ${cls}">${s}${item.pnl_pct.toFixed(2)}% · ${s}${fmtM(Math.abs(item.pnl_krw))}</div>`;
+    }
+    return `
     <div class="grid-row">
       <div class="color-bar" style="background:${item.color}"></div>
       <div class="cat">${item.cat}</div>
       <div class="ticker-wrap">
         <div class="tname">${item.name}</div>
         <div class="tcode">${item.ticker}</div>
+        ${pnlHtml}
       </div>
       <div class="gpct">${item.pct}%</div>
       <div class="gamt">${fmt(item.krw)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const extras = h.account_id === 'kis_jonghap'
     ? renderSplitBuying(d.split_buying)
@@ -576,6 +619,7 @@ function renderCoreTable(h, total, d) {
         </div>
         <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
       </div>
+      ${renderAcctRebal(h.account_id, d)}
       <div class="grid-head"><div></div><div>자산군</div><div>종목</div><div>비중</div><div>금액</div></div>
       ${rows}
       ${extras}
@@ -617,10 +661,16 @@ function renderTossPnl(tn) {
 function renderSatelliteTable(h, total, d) {
   const rows = h.items.map(item => {
     const p = pctN(item.krw, h.total_krw).toFixed(1);
+    let pnlHtml = '';
+    if(item.principal_krw > 0) {
+      const s = item.pnl_krw >= 0 ? '+' : '';
+      const cls = item.pnl_krw >= 0 ? 'pos' : 'neg';
+      pnlHtml = `<div class="tpnl ${cls}">${s}${item.pnl_pct.toFixed(2)}% · ${s}${fmtM(Math.abs(item.pnl_krw))}</div>`;
+    }
     return `
       <div class="sat-row">
         <div class="color-bar" style="background:${item.color}"></div>
-        <div><div class="sname">${item.name}</div><div class="scat">${item.cat}</div></div>
+        <div><div class="sname">${item.name}</div><div class="scat">${item.cat}</div>${pnlHtml}</div>
         <div class="spct">${p}%</div>
         <div class="samt">${fmt(item.krw)}</div>
       </div>`;
@@ -872,7 +922,6 @@ function render(d) {
     ${renderAccountGrid(d)}
     <div class="sec-label">종목 상세</div>
     ${renderHoldings(d)}
-    ${renderRebalancingSignals(d)}
     ${renderMetrics(d)}`;
 
   document.getElementById('app').innerHTML = html;

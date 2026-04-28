@@ -75,7 +75,7 @@ def _base_headers(name: str, tr_id: str) -> dict:
     }
 
 
-def get_overseas_balance(name: str) -> list[dict]:
+def get_overseas_balance(name: str) -> tuple[list[dict], float]:
     acc = ACCOUNTS[name]
     cano, acnt_prdt_cd = _parse_account(acc["account"])
     params = {
@@ -95,7 +95,11 @@ def get_overseas_balance(name: str) -> list[dict]:
     data = resp.json()
     if data.get("rt_cd") != "0":
         raise RuntimeError(f"KIS {name} 해외잔고 오류: {data.get('msg1')}")
-    return [
+    out2 = data.get("output2", {})
+    if isinstance(out2, list):
+        out2 = out2[0] if out2 else {}
+    cash_krw = float(out2.get("dnca_tot_amt") or 0)
+    holdings = [
         {
             "account": name,
             "ticker": item["ovrs_pdno"],
@@ -108,9 +112,10 @@ def get_overseas_balance(name: str) -> list[dict]:
         for item in data.get("output1", [])
         if float(item.get("ovrs_cblc_qty", 0)) > 0
     ]
+    return holdings, cash_krw
 
 
-def get_domestic_balance(name: str) -> list[dict]:
+def get_domestic_balance(name: str) -> tuple[list[dict], float]:
     acc = ACCOUNTS[name]
     cano, acnt_prdt_cd = _parse_account(acc["account"])
     params = {
@@ -135,7 +140,11 @@ def get_domestic_balance(name: str) -> list[dict]:
     data = resp.json()
     if data.get("rt_cd") != "0":
         raise RuntimeError(f"KIS {name} 국내잔고 오류: {data.get('msg1')}")
-    return [
+    out2 = data.get("output2", {})
+    if isinstance(out2, list):
+        out2 = out2[0] if out2 else {}
+    cash_krw = float(out2.get("dnca_tot_amt") or 0)
+    holdings = [
         {
             "account": name,
             "ticker": item["pdno"],
@@ -148,16 +157,22 @@ def get_domestic_balance(name: str) -> list[dict]:
         for item in data.get("output1", [])
         if float(item.get("hldg_qty", 0)) > 0
     ]
+    return holdings, cash_krw
 
 
 def fetch_all_balances() -> dict:
-    result = {"overseas": [], "domestic": []}
+    result = {"overseas": [], "domestic": [],
+              "cash_jonghap": 0.0, "cash_isa": 0.0, "cash_yeon": 0.0}
     for name, cfg in ACCOUNTS.items():
         try:
             if cfg["type"] == "overseas":
-                result["overseas"].extend(get_overseas_balance(name))
+                holdings, cash = get_overseas_balance(name)
+                result["overseas"].extend(holdings)
+                result[f"cash_{name.lower()}"] = cash
             else:
-                result["domestic"].extend(get_domestic_balance(name))
+                holdings, cash = get_domestic_balance(name)
+                result["domestic"].extend(holdings)
+                result[f"cash_{name.lower()}"] = cash
         except Exception as e:
             print(f"  [경고] {name} 잔고 조회 실패: {e}")
     return result
