@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자산 포트폴리오 계산기 v3.4</title>
+<style>
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f7f7f5;
+  --color-text-primary: #1c1c1a;
+  --color-text-secondary: #6b6a64;
+  --color-text-tertiary: #a3a299;
+  --color-border-tertiary: rgba(0, 0, 0, 0.08);
+  --color-border-secondary: rgba(0, 0, 0, 0.15);
+  --font-mono: 'SF Mono', Monaco, Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1c1c1a;
+    --color-background-secondary: #2a2a28;
+    --color-text-primary: #f0efe8;
+    --color-text-secondary: #a3a299;
+    --color-text-tertiary: #6b6a64;
+    --color-border-tertiary: rgba(255, 255, 255, 0.1);
+    --color-border-secondary: rgba(255, 255, 255, 0.18);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-background-primary);
+  margin: 0; padding: 24px;
+  max-width: 760px;
+  margin-left: auto; margin-right: auto;
+  line-height: 1.5;
+}
+.title { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+.subtitle { font-size: 12px; color: var(--color-text-tertiary); margin: 0 0 1.5rem; }
+button {
+  background: transparent;
+  border: 0.5px solid var(--color-border-secondary);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius-md);
+  cursor: pointer; font-family: inherit;
+}
+button:hover { background: var(--color-background-secondary); }
+button:active { transform: scale(0.98); }
+.btn-primary {
+  background: #1c1c1a; color: #fff; border-color: #1c1c1a;
+}
+.btn-primary:hover { background: #333330; }
+@media (prefers-color-scheme: dark) {
+  .btn-primary { background: #f0efe8; color: #1c1c1a; border-color: #f0efe8; }
+  .btn-primary:hover { background: #d3d1c7; }
+}
+input[type="number"] {
+  border: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius-md);
+  font-family: inherit;
+}
+input[type="number"]:focus {
+  outline: none; border-color: var(--color-border-secondary);
+}
+.input-row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px; align-items: center; padding: 7px 0; }
+.input-row label { font-size: 13px; color: var(--color-text-secondary); }
+.input-row input { width: 100%; padding: 8px 12px; font-size: 14px; font-family: var(--font-mono); text-align: right; }
+.grid-row { display: grid; grid-template-columns: 6px 1.4fr 1.8fr 0.6fr 0.9fr; align-items: center; padding: 11px 16px 11px 0; border-top: 0.5px solid var(--color-border-tertiary); }
+.grid-header { display: grid; grid-template-columns: 6px 1.4fr 1.8fr 0.6fr 0.9fr; align-items: center; padding: 9px 16px 9px 0; background: var(--color-background-secondary); font-size: 12px; color: var(--color-text-secondary); }
+.cat-bar { height: 36px; }
+.cat-name { padding-left: 12px; font-size: 13px; }
+.ticker { font-size: 12px; }
+.ticker-code { color: var(--color-text-tertiary); font-family: var(--font-mono); font-size: 11px; }
+.pct { font-size: 13px; font-weight: 500; }
+.amt { text-align: right; font-size: 13px; font-family: var(--font-mono); }
+.save-btn { padding: 7px 14px; font-size: 12px; }
+.toast { padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 13px; margin-top: 12px; display: none; }
+.acct-row { display: grid; grid-template-columns: 8px 1.5fr 0.7fr 1.3fr 1fr; align-items: center; padding: 12px 18px 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.acct-row:last-child { border-bottom: none; }
+.acct-bar { height: 38px; }
+.acct-info-name { margin: 0; font-size: 13px; font-weight: 500; }
+.acct-info-sub { margin: 0; font-size: 11px; color: var(--color-text-secondary); }
+.pbar-track { height: 6px; border-radius: 3px; overflow: hidden; background: var(--color-background-secondary); }
+.pbar-fill { height: 100%; }
+.dirty-indicator { font-size: 11px; color: var(--color-text-tertiary); }
+.dirty-indicator.dirty { color: #BA7517; }
+</style>
+</head>
+<body>
+
+<p class="title">자산 포트폴리오 계산기</p>
+<p class="subtitle">v3.4 · 자기수정형 (저장 누르면 현재값 박힌 HTML 다운로드 → 다른 PC에서도 동일하게 열림)</p>
+
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px 20px; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <p style="margin: 0; font-size: 14px; font-weight: 500;">계좌별 입력 (단위: 원)</p>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <span id="dirty-indicator" class="dirty-indicator dirty">⚠ 저장 안 된 변경 있음</span>
+      <button class="save-btn btn-primary" id="btn-export">파일로 저장</button>
+      <button class="save-btn" id="btn-reset">초기화</button>
+    </div>
+  </div>
+  <div class="input-row"><label>한투 종합 (직투ETF)</label><input type="number" id="seed-jonghap" value="30000000" step="1000000"></div>
+  <div class="input-row"><label>ISA</label><input type="number" id="seed-isa" value="20000000" step="1000000"></div>
+  <div class="input-row"><label>연금저축</label><input type="number" id="seed-yeon" value="6000000" step="500000"></div>
+  <div class="input-row"><label>토스 직투 (NVDA 관련)</label><input type="number" id="seed-toss" value="20000000" step="500000"></div>
+  <div class="input-row"><label>크립토 (BTC + ETH)</label><input type="number" id="seed-crypto" value="50000000" step="1000000"></div>
+  <div class="input-row"><label>비상금 (장기 유동자금)</label><input type="number" id="seed-emergency" value="20000000" step="1000000"></div>
+  <div class="input-row"><label>사업 운영자금 (월 단기)</label><input type="number" id="seed-biz" value="10000000" step="500000"></div>
+  <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px; align-items: center; padding: 12px 0 4px; margin-top: 8px; border-top: 0.5px solid var(--color-border-tertiary);">
+    <p style="font-size: 13px; font-weight: 500; margin: 0;">총 자산</p>
+    <p id="total-display" style="font-size: 17px; font-weight: 500; margin: 0; text-align: right; font-family: var(--font-mono);">156,000,000</p>
+  </div>
+  <div id="toast" class="toast" style="display: none; background: rgb(234, 243, 222); color: rgb(39, 80, 10);">파일 다운로드 완료. 다운받은 새 파일을 사용하세요</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+  <div style="background: #FCEBEB; border-radius: var(--border-radius-md); padding: 14px;">
+    <p style="font-size: 12px; color: #791F1F; margin: 0 0 4px;">위험자산 (주식 + 크립토 + 원유)</p>
+    <p id="risk-pct" style="font-size: 22px; font-weight: 500; margin: 0; color: #501313;">65.8%</p>
+    <p id="risk-amt" style="font-size: 11px; color: #791F1F; margin: 4px 0 0; font-family: var(--font-mono);">102,700,000</p>
+  </div>
+  <div style="background: #EAF3DE; border-radius: var(--border-radius-md); padding: 14px;">
+    <p style="font-size: 12px; color: #27500A; margin: 0 0 4px;">안전자산 (채권 + 금 + 현금)</p>
+    <p id="safe-pct" style="font-size: 22px; font-weight: 500; margin: 0; color: #173404;">34.2%</p>
+    <p id="safe-amt" style="font-size: 11px; color: #27500A; margin: 4px 0 0; font-family: var(--font-mono);">53,300,000</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem;">
+  <div style="background: #EEEDFE; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #3C3489; margin: 0 0 3px;">주식</p>
+    <p id="cls-stock-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #26215C;">32.0%</p>
+    <p id="cls-stock-amt" style="font-size: 10px; color: #3C3489; margin: 2px 0 0; font-family: var(--font-mono);">49,900,000</p>
+  </div>
+  <div style="background: #FAECE7; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #712B13; margin: 0 0 3px;">크립토</p>
+    <p id="cls-crypto-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #4A1B0C;">32.1%</p>
+    <p id="cls-crypto-amt" style="font-size: 10px; color: #712B13; margin: 2px 0 0; font-family: var(--font-mono);">50,000,000</p>
+  </div>
+  <div style="background: #E6F1FB; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #0C447C; margin: 0 0 3px;">채권</p>
+    <p id="cls-bond-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #042C53;">7.6%</p>
+    <p id="cls-bond-amt" style="font-size: 10px; color: #0C447C; margin: 2px 0 0; font-family: var(--font-mono);">11,800,000</p>
+  </div>
+  <div style="background: #FAEEDA; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #633806; margin: 0 0 3px;">금</p>
+    <p id="cls-gold-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #412402;">7.4%</p>
+    <p id="cls-gold-amt" style="font-size: 10px; color: #633806; margin: 2px 0 0; font-family: var(--font-mono);">11,500,000</p>
+  </div>
+  <div style="background: #F1EFE8; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #444441; margin: 0 0 3px;">원유</p>
+    <p id="cls-oil-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #2C2C2A;">1.8%</p>
+    <p id="cls-oil-amt" style="font-size: 10px; color: #444441; margin: 2px 0 0; font-family: var(--font-mono);">2,800,000</p>
+  </div>
+  <div style="background: #E1F5EE; border-radius: var(--border-radius-md); padding: 12px;">
+    <p style="font-size: 11px; color: #085041; margin: 0 0 3px;">현금</p>
+    <p id="cls-cash-pct" style="font-size: 19px; font-weight: 500; margin: 0; color: #04342C;">19.2%</p>
+    <p id="cls-cash-amt" style="font-size: 10px; color: #085041; margin: 2px 0 0; font-family: var(--font-mono);">30,000,000</p>
+  </div>
+</div>
+
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1.5rem;">
+  <div style="padding: 14px 18px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary);">
+    <p style="margin: 0; font-size: 14px; font-weight: 500;">계좌별 배분 구조</p>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #534AB7;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">한투 종합 (직투ETF)</p><p class="acct-info-sub">미국 직투, 주식 50%</p></div>
+    <div id="row-jonghap-pct" style="font-size: 13px;">19.2%</div>
+    <div><div class="pbar-track"><div id="bar-jonghap" class="pbar-fill" style="background: rgb(83, 74, 183); width: 19.2308%;"></div></div></div>
+    <div id="row-jonghap-amt" class="amt" style="padding-right: 18px;">30,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #7F77DD;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">ISA (한투 중개형)</p><p class="acct-info-sub">국내 ETF, 주식 55%</p></div>
+    <div id="row-isa-pct" style="font-size: 13px;">12.8%</div>
+    <div><div class="pbar-track"><div id="bar-isa" class="pbar-fill" style="background: rgb(127, 119, 221); width: 12.8205%;"></div></div></div>
+    <div id="row-isa-amt" class="amt" style="padding-right: 18px;">20,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #AFA9EC;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">연금저축 (한투)</p><p class="acct-info-sub">국내 ETF, 주식 65%</p></div>
+    <div id="row-yeon-pct" style="font-size: 13px;">3.8%</div>
+    <div><div class="pbar-track"><div id="bar-yeon" class="pbar-fill" style="background: rgb(175, 169, 236); width: 3.84615%;"></div></div></div>
+    <div id="row-yeon-amt" class="amt" style="padding-right: 18px;">6,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #D4537E;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">토스 직투 (NVDA 관련)</p><p class="acct-info-sub">개별주 액티브, 주식 100%</p></div>
+    <div id="row-toss-pct" style="font-size: 13px;">12.8%</div>
+    <div><div class="pbar-track"><div id="bar-toss" class="pbar-fill" style="background: rgb(212, 83, 126); width: 12.8205%;"></div></div></div>
+    <div id="row-toss-amt" class="amt" style="padding-right: 18px;">20,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #EF9F27;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">크립토 (BTC + ETH)</p><p class="acct-info-sub">업비트, 분할 매수</p></div>
+    <div id="row-crypto-pct" style="font-size: 13px;">32.1%</div>
+    <div><div class="pbar-track"><div id="bar-crypto" class="pbar-fill" style="background: rgb(239, 159, 39); width: 32.0513%;"></div></div></div>
+    <div id="row-crypto-amt" class="amt" style="padding-right: 18px;">50,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #1D9E75;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">비상금</p><p class="acct-info-sub">파킹통장, 장기 유동자금</p></div>
+    <div id="row-emergency-pct" style="font-size: 13px;">12.8%</div>
+    <div><div class="pbar-track"><div id="bar-emergency" class="pbar-fill" style="background: rgb(29, 158, 117); width: 12.8205%;"></div></div></div>
+    <div id="row-emergency-amt" class="amt" style="padding-right: 18px;">20,000,000</div>
+  </div>
+  <div class="acct-row">
+    <div class="acct-bar" style="background: #5DCAA5;"></div>
+    <div style="padding-left: 12px;"><p class="acct-info-name">사업 운영자금</p><p class="acct-info-sub">월 단기 유동성</p></div>
+    <div id="row-biz-pct" style="font-size: 13px;">6.4%</div>
+    <div><div class="pbar-track"><div id="bar-biz" class="pbar-fill" style="background: rgb(93, 202, 165); width: 6.41026%;"></div></div></div>
+    <div id="row-biz-amt" class="amt" style="padding-right: 18px;">10,000,000</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden;">
+    <div style="padding: 14px 18px; background: #EEEDFE; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; align-items: center;">
+      <div><p style="margin: 0; font-size: 14px; font-weight: 500; color: #26215C;">한투 종합계좌 (직투 ETF)</p><p style="margin: 0; font-size: 12px; color: #3C3489;">주식 50% · 양도세 22% (250만 공제) · 분리과세</p></div>
+      <p id="jonghap-total" style="margin: 0; font-size: 16px; font-weight: 500; color: #26215C; font-family: var(--font-mono);">30,000,000</p>
+    </div>
+    <div class="grid-header"><div></div><div style="padding-left: 12px;">자산군</div><div>종목</div><div>비중</div><div style="text-align: right;">금액</div></div>
+    <div class="grid-row" data-acct="jonghap" data-pct="27"><div class="cat-bar" style="background: #7F77DD;"></div><div class="cat-name">미국 나스닥</div><div class="ticker">Invesco Nasdaq 100 <span class="ticker-code">QQQM</span></div><div class="pct">27%</div><div class="amt">8,100,000</div></div>
+    <div class="grid-row" data-acct="jonghap" data-pct="23"><div class="cat-bar" style="background: #534AB7;"></div><div class="cat-name">글로벌 AI</div><div class="ticker">KraneShares AI&amp;Tech <span class="ticker-code">AGIX</span></div><div class="pct">23%</div><div class="amt">6,900,000</div></div>
+    <div class="grid-row" data-acct="jonghap" data-pct="22"><div class="cat-bar" style="background: #EF9F27;"></div><div class="cat-name">금 (현물)</div><div class="ticker">iShares Gold <span class="ticker-code">IAU</span></div><div class="pct">22%</div><div class="amt">6,600,000</div></div>
+    <div class="grid-row" data-acct="jonghap" data-pct="23"><div class="cat-bar" style="background: #378ADD;"></div><div class="cat-name">미국채 7-10Y</div><div class="ticker">iShares Treasury <span class="ticker-code">IEF</span></div><div class="pct">23%</div><div class="amt">6,900,000</div></div>
+    <div class="grid-row" data-acct="jonghap" data-pct="5"><div class="cat-bar" style="background: #D85A30;"></div><div class="cat-name">원유</div><div class="ticker">United States Oil <span class="ticker-code">USO</span></div><div class="pct">5%</div><div class="amt">1,500,000</div></div>
+  </div>
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden;">
+    <div style="padding: 14px 18px; background: #E6F1FB; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; align-items: center;">
+      <div><p style="margin: 0; font-size: 14px; font-weight: 500; color: #042C53;">ISA 중개형 (한투)</p><p style="margin: 0; font-size: 12px; color: #0C447C;">주식 55% · 비과세 200만, 초과 9.9%</p></div>
+      <p id="isa-total" style="margin: 0; font-size: 16px; font-weight: 500; color: #042C53; font-family: var(--font-mono);">20,000,000</p>
+    </div>
+    <div class="grid-header"><div></div><div style="padding-left: 12px;">자산군</div><div>종목</div><div>비중</div><div style="text-align: right;">금액</div></div>
+    <div class="grid-row" data-acct="isa" data-pct="30"><div class="cat-bar" style="background: #7F77DD;"></div><div class="cat-name">미국 나스닥</div><div class="ticker">TIME 미국나스닥100액티브 <span class="ticker-code">426030</span></div><div class="pct">30%</div><div class="amt">6,000,000</div></div>
+    <div class="grid-row" data-acct="isa" data-pct="25"><div class="cat-bar" style="background: #534AB7;"></div><div class="cat-name">글로벌 AI</div><div class="ticker">TIMEFOLIO 글로벌AI인공지능액티브 <span class="ticker-code">456600</span></div><div class="pct">25%</div><div class="amt">5,000,000</div></div>
+    <div class="grid-row" data-acct="isa" data-pct="20"><div class="cat-bar" style="background: #EF9F27;"></div><div class="cat-name">금</div><div class="ticker">ACE KRX금현물 <span class="ticker-code">411060</span></div><div class="pct">20%</div><div class="amt">4,000,000</div></div>
+    <div class="grid-row" data-acct="isa" data-pct="20"><div class="cat-bar" style="background: #378ADD;"></div><div class="cat-name">미국채 10년</div><div class="ticker">KODEX 미국채10년선물(H) <span class="ticker-code">308620</span></div><div class="pct">20%</div><div class="amt">4,000,000</div></div>
+    <div class="grid-row" data-acct="isa" data-pct="5"><div class="cat-bar" style="background: #D85A30;"></div><div class="cat-name">원유</div><div class="ticker">TIGER 원유선물Enhanced(H) <span class="ticker-code">130680</span></div><div class="pct">5%</div><div class="amt">1,000,000</div></div>
+  </div>
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden;">
+    <div style="padding: 14px 18px; background: #E1F5EE; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; align-items: center;">
+      <div><p style="margin: 0; font-size: 14px; font-weight: 500; color: #04342C;">연금저축펀드 (한투)</p><p style="margin: 0; font-size: 12px; color: #085041;">주식 65% · 세액공제 16.5% · 과세이연</p></div>
+      <p id="yeon-total" style="margin: 0; font-size: 16px; font-weight: 500; color: #04342C; font-family: var(--font-mono);">6,000,000</p>
+    </div>
+    <div class="grid-header"><div></div><div style="padding-left: 12px;">자산군</div><div>종목</div><div>비중</div><div style="text-align: right;">금액</div></div>
+    <div class="grid-row" data-acct="yeon" data-pct="35"><div class="cat-bar" style="background: #7F77DD;"></div><div class="cat-name">미국 나스닥</div><div class="ticker">TIME 미국나스닥100액티브 <span class="ticker-code">426030</span></div><div class="pct">35%</div><div class="amt">2,100,000</div></div>
+    <div class="grid-row" data-acct="yeon" data-pct="30"><div class="cat-bar" style="background: #534AB7;"></div><div class="cat-name">글로벌 AI</div><div class="ticker">TIMEFOLIO 글로벌AI인공지능액티브 <span class="ticker-code">456600</span></div><div class="pct">30%</div><div class="amt">1,800,000</div></div>
+    <div class="grid-row" data-acct="yeon" data-pct="15"><div class="cat-bar" style="background: #EF9F27;"></div><div class="cat-name">금</div><div class="ticker">ACE KRX금현물 <span class="ticker-code">411060</span></div><div class="pct">15%</div><div class="amt">900,000</div></div>
+    <div class="grid-row" data-acct="yeon" data-pct="15"><div class="cat-bar" style="background: #378ADD;"></div><div class="cat-name">미국채 10년</div><div class="ticker">KODEX 미국채10년선물(H) <span class="ticker-code">308620</span></div><div class="pct">15%</div><div class="amt">900,000</div></div>
+    <div class="grid-row" data-acct="yeon" data-pct="5"><div class="cat-bar" style="background: #D85A30;"></div><div class="cat-name">원유</div><div class="ticker">TIGER 원유선물Enhanced(H) <span class="ticker-code">130680</span></div><div class="pct">5%</div><div class="amt">300,000</div></div>
+  </div>
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden;">
+    <div style="padding: 14px 18px; background: #FBEAF0; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; align-items: center;">
+      <div><p style="margin: 0; font-size: 14px; font-weight: 500; color: #4B1528;">토스증권 직투 (NVDA 관련)</p><p style="margin: 0; font-size: 12px; color: #72243E;">개별주 액티브 베팅 · 양도세 22% (250만 공제 공유)</p></div>
+      <p id="toss-total" style="margin: 0; font-size: 16px; font-weight: 500; color: #4B1528; font-family: var(--font-mono);">20,000,000</p>
+    </div>
+    <div class="grid-header"><div></div><div style="padding-left: 12px;">자산군</div><div>종목</div><div>비중</div><div style="text-align: right;">금액</div></div>
+    <div class="grid-row" data-acct="toss" data-pct="100"><div class="cat-bar" style="background: #D4537E;"></div><div class="cat-name">엔비디아 관련</div><div class="ticker">NVDA + NVDL + TSLL 등 <span class="ticker-code">통합</span></div><div class="pct">100%</div><div class="amt">20,000,000</div></div>
+  </div>
+</div>
+
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px 20px; margin-top: 1.5rem;">
+  <p style="margin: 0 0 14px; font-size: 14px; font-weight: 500;">자산운용 보조 지표</p>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+    <div style="background: var(--color-background-secondary); padding: 12px 14px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">USD 노출 자산</p>
+      <p id="usd-pct" style="font-size: 18px; font-weight: 500; margin: 0;">32.1%</p>
+      <p id="usd-amt" style="font-size: 11px; color: var(--color-text-secondary); margin: 4px 0 0; font-family: var(--font-mono);">50,000,000원 (종합 직투 + 토스)</p>
+    </div>
+    <div style="background: var(--color-background-secondary); padding: 12px 14px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">양도세 면세 한도 (직투)</p>
+      <p style="font-size: 18px; font-weight: 500; margin: 0;">2,500,000원/년</p>
+      <p style="font-size: 11px; color: var(--color-text-secondary); margin: 4px 0 0;">차익 250만까지 0원, 초과분만 22%</p>
+    </div>
+  </div>
+  <p style="margin: 0 0 8px; font-size: 13px; font-weight: 500;">유동성 등급별 자산</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;">
+    <div style="background: #E1F5EE; padding: 10px 12px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: #085041; margin: 0;">즉시</p>
+      <p id="liq-instant" style="font-size: 14px; font-weight: 500; margin: 2px 0 0; color: #04342C; font-family: var(--font-mono);">30,000,000</p>
+      <p style="font-size: 10px; color: #085041; margin: 2px 0 0;">현금 전체</p>
+    </div>
+    <div style="background: #E6F1FB; padding: 10px 12px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: #0C447C; margin: 0;">1주 이내</p>
+      <p id="liq-week" style="font-size: 14px; font-weight: 500; margin: 2px 0 0; color: #042C53; font-family: var(--font-mono);">100,000,000</p>
+      <p style="font-size: 10px; color: #0C447C; margin: 2px 0 0;">종합/토스/크립토</p>
+    </div>
+    <div style="background: #FAEEDA; padding: 10px 12px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: #633806; margin: 0;">3년 이상</p>
+      <p id="liq-mid" style="font-size: 14px; font-weight: 500; margin: 2px 0 0; color: #412402; font-family: var(--font-mono);">20,000,000</p>
+      <p style="font-size: 10px; color: #633806; margin: 2px 0 0;">ISA 만기 권장</p>
+    </div>
+    <div style="background: #FCEBEB; padding: 10px 12px; border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: #791F1F; margin: 0;">55세 락업</p>
+      <p id="liq-long" style="font-size: 14px; font-weight: 500; margin: 2px 0 0; color: #501313; font-family: var(--font-mono);">6,000,000</p>
+      <p style="font-size: 10px; color: #791F1F; margin: 2px 0 0;">연금저축</p>
+    </div>
+  </div>
+  <p style="margin: 0 0 8px; font-size: 13px; font-weight: 500;">세제 한도 활용 현황</p>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+    <div style="padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: var(--color-text-secondary); margin: 0;">연저펀 세액공제</p>
+      <p style="font-size: 14px; font-weight: 500; margin: 2px 0 0;">600 / 600만</p>
+      <p style="font-size: 10px; color: var(--color-text-tertiary); margin: 2px 0 0;">올해 풀 사용 ✓</p>
+    </div>
+    <div style="padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: var(--color-text-secondary); margin: 0;">IRP 추가 가능</p>
+      <p style="font-size: 14px; font-weight: 500; margin: 2px 0 0;">+300만</p>
+      <p style="font-size: 10px; color: var(--color-text-tertiary); margin: 2px 0 0;">총 900만 한도</p>
+    </div>
+    <div style="padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);">
+      <p style="font-size: 11px; color: var(--color-text-secondary); margin: 0;">ISA 잔여 (올해)</p>
+      <p style="font-size: 14px; font-weight: 500; margin: 2px 0 0;">0 / 2,000만</p>
+      <p style="font-size: 10px; color: var(--color-text-tertiary); margin: 2px 0 0;">내년 1/1 추가</p>
+    </div>
+  </div>
+</div>
+
+<script>/* SAVED_DATA_START */window.SAVED_DATA = {"jonghap":30000000,"isa":20000000,"yeon":6000000,"toss":20000000,"crypto":50000000,"emergency":20000000,"biz":10000000,"savedAt":"2026-04-27T11:04:41.255Z"};/* SAVED_DATA_END */</script>
+
+<script>
+const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+const $ = (id) => document.getElementById(id);
+const DEFAULTS = { jonghap: 20000000, isa: 20000000, yeon: 6000000, toss: 10200000, crypto: 50000000, emergency: 20000000, biz: 13800000 };
+const ALLOC = {
+  jonghap: { stock: 0.50, bond: 0.23, gold: 0.22, oil: 0.05 },
+  isa: { stock: 0.55, bond: 0.20, gold: 0.20, oil: 0.05 },
+  yeon: { stock: 0.65, bond: 0.15, gold: 0.15, oil: 0.05 },
+  toss: { stock: 1.00, bond: 0, gold: 0, oil: 0 }
+};
+let savedSnapshot = null;
+
+function showToast(msg, isError) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.background = isError ? '#FCEBEB' : '#EAF3DE';
+  t.style.color = isError ? '#791F1F' : '#27500A';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+function getCurrentData() {
+  return {
+    jonghap: +$('seed-jonghap').value || 0,
+    isa: +$('seed-isa').value || 0,
+    yeon: +$('seed-yeon').value || 0,
+    toss: +$('seed-toss').value || 0,
+    crypto: +$('seed-crypto').value || 0,
+    emergency: +$('seed-emergency').value || 0,
+    biz: +$('seed-biz').value || 0
+  };
+}
+
+function dataEquals(a, b) {
+  if (!a || !b) return false;
+  return Object.keys(DEFAULTS).every(k => a[k] === b[k]);
+}
+
+function updateDirtyIndicator() {
+  const ind = $('dirty-indicator');
+  const cur = getCurrentData();
+  if (savedSnapshot && dataEquals(cur, savedSnapshot)) {
+    ind.textContent = '변경 없음 (저장된 상태)';
+    ind.classList.remove('dirty');
+  } else if (savedSnapshot) {
+    ind.textContent = '⚠ 저장 안 된 변경 있음';
+    ind.classList.add('dirty');
+  } else {
+    ind.textContent = '⚠ 아직 저장 전';
+    ind.classList.add('dirty');
+  }
+}
+
+function recalc() {
+  const d = getCurrentData();
+  const total = d.jonghap + d.isa + d.yeon + d.toss + d.crypto + d.emergency + d.biz;
+  $('total-display').textContent = fmt(total);
+  const safeTotal = total > 0 ? total : 1;
+  const stock = d.jonghap*ALLOC.jonghap.stock + d.isa*ALLOC.isa.stock + d.yeon*ALLOC.yeon.stock + d.toss*ALLOC.toss.stock;
+  const bond = d.jonghap*ALLOC.jonghap.bond + d.isa*ALLOC.isa.bond + d.yeon*ALLOC.yeon.bond;
+  const gold = d.jonghap*ALLOC.jonghap.gold + d.isa*ALLOC.isa.gold + d.yeon*ALLOC.yeon.gold;
+  const oil = d.jonghap*ALLOC.jonghap.oil + d.isa*ALLOC.isa.oil + d.yeon*ALLOC.yeon.oil;
+  const cash = d.emergency + d.biz;
+  const risk = stock + d.crypto + oil;
+  const safe = bond + gold + cash;
+  $('risk-pct').textContent = (risk / safeTotal * 100).toFixed(1) + '%';
+  $('risk-amt').textContent = fmt(risk);
+  $('safe-pct').textContent = (safe / safeTotal * 100).toFixed(1) + '%';
+  $('safe-amt').textContent = fmt(safe);
+  const setCls = (k, amt) => {
+    $('cls-' + k + '-pct').textContent = (amt / safeTotal * 100).toFixed(1) + '%';
+    $('cls-' + k + '-amt').textContent = fmt(amt);
+  };
+  setCls('stock', stock); setCls('crypto', d.crypto); setCls('bond', bond);
+  setCls('gold', gold); setCls('oil', oil); setCls('cash', cash);
+  const setRow = (k, amt) => {
+    const pct = amt / safeTotal * 100;
+    $('row-' + k + '-pct').textContent = pct.toFixed(1) + '%';
+    $('row-' + k + '-amt').textContent = fmt(amt);
+    $('bar-' + k).style.width = Math.min(pct, 100) + '%';
+  };
+  setRow('jonghap', d.jonghap); setRow('isa', d.isa); setRow('yeon', d.yeon);
+  setRow('toss', d.toss); setRow('crypto', d.crypto);
+  setRow('emergency', d.emergency); setRow('biz', d.biz);
+  $('jonghap-total').textContent = fmt(d.jonghap);
+  $('isa-total').textContent = fmt(d.isa);
+  $('yeon-total').textContent = fmt(d.yeon);
+  $('toss-total').textContent = fmt(d.toss);
+  const seeds = { jonghap: d.jonghap, isa: d.isa, yeon: d.yeon, toss: d.toss };
+  document.querySelectorAll('.grid-row').forEach(row => {
+    const acct = row.dataset.acct;
+    const pct = +row.dataset.pct;
+    const seed = seeds[acct];
+    const amt = seed * pct / 100;
+    row.querySelector('.amt').textContent = fmt(amt);
+  });
+  const usd = d.jonghap + d.toss;
+  $('usd-pct').textContent = (usd / safeTotal * 100).toFixed(1) + '%';
+  $('usd-amt').textContent = fmt(usd) + '원 (종합 직투 + 토스)';
+  $('liq-instant').textContent = fmt(cash);
+  $('liq-week').textContent = fmt(d.jonghap + d.toss + d.crypto);
+  $('liq-mid').textContent = fmt(d.isa);
+  $('liq-long').textContent = fmt(d.yeon);
+  updateDirtyIndicator();
+}
+
+function exportToHTML() {
+  const data = getCurrentData();
+  data.savedAt = new Date().toISOString();
+
+  // input value attribute를 현재 값으로 동기화 (백업용)
+  document.querySelectorAll('input[type="number"]').forEach(inp => {
+    inp.setAttribute('value', inp.value);
+  });
+
+  // outerHTML 가져와서 SAVED_DATA 블록 교체
+  let html = document.documentElement.outerHTML;
+  const newDataBlock = '/* SAVED_DATA_START */window.SAVED_DATA = ' + JSON.stringify(data) + ';/* SAVED_DATA_END */';
+  html = html.replace(/\/\* SAVED_DATA_START \*\/[\s\S]*?\/\* SAVED_DATA_END \*\//, newDataBlock);
+
+  const finalHtml = '<!DOCTYPE html>\n' + html;
+  const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const ts = new Date().toISOString().slice(0, 10);
+  a.download = 'portfolio_calculator_' + ts + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  savedSnapshot = data;
+  showToast('파일 다운로드 완료. 다운받은 새 파일을 사용하세요');
+  updateDirtyIndicator();
+}
+
+function init() {
+  const data = window.SAVED_DATA || DEFAULTS;
+  Object.keys(DEFAULTS).forEach(k => {
+    if (data[k] != null) $('seed-' + k).value = data[k];
+  });
+  if (window.SAVED_DATA) {
+    savedSnapshot = { ...data };
+    delete savedSnapshot.savedAt;
+  }
+  recalc();
+}
+
+function resetData() {
+  if (!confirm('초기값으로 되돌릴까요? 현재 입력값이 사라집니다 (저장 안 됨).')) return;
+  Object.keys(DEFAULTS).forEach(k => $('seed-' + k).value = DEFAULTS[k]);
+  recalc();
+}
+
+['seed-jonghap', 'seed-isa', 'seed-yeon', 'seed-toss', 'seed-crypto', 'seed-emergency', 'seed-biz'].forEach(id => {
+  $(id).addEventListener('input', recalc);
+});
+
+$('btn-export').addEventListener('click', exportToHTML);
+$('btn-reset').addEventListener('click', resetData);
+
+// Ctrl+S / Cmd+S로 저장
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    exportToHTML();
+  }
+});
+
+init();
+</script>
+
+
+
+</body></html>
