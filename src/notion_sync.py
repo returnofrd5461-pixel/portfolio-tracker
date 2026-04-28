@@ -10,6 +10,7 @@ load_dotenv()
 notion = Client(auth=os.getenv("NOTION_TOKEN"))
 HOLDINGS_DB = os.getenv("NOTION_HOLDINGS_DB")
 SNAPSHOT_DB = os.getenv("NOTION_SNAPSHOT_DB")
+TRANSACTIONS_DB = os.getenv("NOTION_TRANSACTIONS_DB")
 
 
 def _text(value: str) -> dict:
@@ -39,7 +40,6 @@ def upsert_holding(ticker: str, props: dict) -> None:
         filter={"property": "티커", "rich_text": {"equals": ticker}},
     )
 
-    # Holdings 실제 컬럼명 매핑
     page_props = {
         "종목": _title(props.get("name", ticker)),
         "티커": _text(ticker),
@@ -80,7 +80,6 @@ def add_snapshot(snapshot: dict) -> None:
         filter={"property": "날짜", "date": {"equals": today}},
     )
 
-    # Snapshot 실제 컬럼명 매핑
     page_props = {
         "Name": _title(today),
         "날짜": _date(today),
@@ -125,6 +124,144 @@ def sync_holdings(holdings: list[dict]) -> None:
         except Exception as e:
             print(f"    [경고] {h['ticker']} 업데이트 실패: {e}")
     print("  완료.")
+
+
+# ── 노션 → 파이프라인 양방향 동기화 ──────────────────────────────────
+
+
+_ACCOUNT_NOTION_LABEL = {
+    "toss": "토스",
+    "emergency": "비상금",
+    "biz": "사업",
+}
+
+
+def pull_manual_holdings() -> dict:
+    """Holdings DB에서 수동 입력 계좌(toss/emergency/biz) 평가금액 합계 반환."""
+    result = {"toss": 0, "emergency": 0, "biz": 0}
+    for account_id in result:
+        label = _ACCOUNT_NOTION_LABEL.get(account_id, account_id)
+        try:
+            rows = notion.databases.query(
+                database_id=HOLDINGS_DB,
+                filter={"property": "계좌", "select": {"equals": label}},
+            )
+            total = sum(
+                (row["properties"].get("평가금액(KRW)", {}).get("number") or 0)
+                for row in rows["results"]
+            )
+            if total > 0:
+                result[account_id] = round(total)
+        except Exception:
+            pass  # 해당 선택지가 없으면 0 반환 (기존 data.json 값 사용)
+    return result
+
+
+def get_yesterday_snapshot() -> dict | None:
+    """Snapshots DB에서 어제 행 반환."""
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+    try:
+        rows = notion.databases.query(
+            database_id=SNAPSHOT_DB,
+            filter={"property": "날짜", "date": {"equals": yesterday}},
+        )
+        if not rows["results"]:
+            return None
+        props = rows["results"][0]["properties"]
+
+        def _num(key):
+            return props.get(key, {}).get("number") or 0
+
+        return {
+            "total_krw": _num("총자산"),
+            "crypto_krw": _num("크립토"),
+            "stock_krw": _num("주식"),
+            "gold_krw": _num("금"),
+            "oil_krw": _num("원유"),
+            "bond_krw": _num("채권"),
+            "cash_krw": _num("현금"),
+            "risky_pct": _num("위험자산%"),
+            "safe_pct": _num("안전자산%"),
+        }
+    except Exception as e:
+        print(f"  [경고] 어제 스냅샷 조회 실패: {e}")
+        return None
+
+
+def get_capital_gains_ytd() -> float:
+    """Transactions DB에서 올해 매도 기록의 매매차익(KRW) 합계 반환."""
+    if not TRANSACTIONS_DB:
+        return 0.0
+    year_start = f"{datetime.date.today().year}-01-01"
+    try:
+        rows = notion.databases.query(
+            database_id=TRANSACTIONS_DB,
+            filter={
+                "and": [
+                    {"property": "거래유형", "select": {"equals": "매도"}},
+                    {"property": "거래일", "date": {"on_or_after": year_start}},
+                ]
+            },
+        )
+        return sum(
+            (row["properties"].get("매매차익(KRW)", {}).get("number") or 0)
+            for row in rows["results"]
+        )
+    except Exception as e:
+        print(f"  [경고] 양도세 계산 실패: {e}")
+        return 0.0
+
+
+def get_sparkline_history(days: int = 30) -> list[dict]:
+    """Snapshots DB에서 최근 N일 데이터 반환 (스파크라인용)."""
+    since = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    try:
+        rows = notion.databases.query(
+            database_id=SNAPSHOT_DB,
+            filter={"property": "날짜", "date": {"on_or_after": since}},
+            sorts=[{"property": "날짜", "direction": "ascending"}],
+        )
+        result = []
+        for row in rows["results"]:
+            props = row["properties"]
+
+            def _num(key):
+                return props.get(key, {}).get("number") or 0
+
+            date_node = props.get("날짜", {}).get("date") or {}
+            result.append({
+                "date": date_node.get("start", ""),
+                "total": _num("총자산"),
+                "crypto": _num("크립토"),
+                "stock": _num("주식"),
+                "gold": _num("금"),
+                "oil": _num("원유"),
+                "bond": _num("채권"),
+                "cash": _num("현금"),
+            })
+        return result
+    except Exception as e:
+        print(f"  [경고] 스파크라인 히스토리 조회 실패: {e}")
+        return []
+
+
+def get_nvda_avg_price() -> float:
+    """Holdings DB에서 토스 계좌 NVDA 평균단가(USD) 반환."""
+    try:
+        rows = notion.databases.query(
+            database_id=HOLDINGS_DB,
+            filter={
+                "and": [
+                    {"property": "티커", "rich_text": {"contains": "NVDA"}},
+                    {"property": "계좌", "select": {"equals": "토스"}},
+                ]
+            },
+        )
+        if rows["results"]:
+            return rows["results"][0]["properties"].get("평균단가", {}).get("number") or 0.0
+    except Exception as e:
+        print(f"  [경고] NVDA 평단 조회 실패: {e}")
+    return 0.0
 
 
 if __name__ == "__main__":

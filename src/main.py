@@ -9,15 +9,19 @@ sys.stdout.reconfigure(encoding="utf-8")
 from upbit_api import fetch_balances as upbit_fetch
 from okx_api import get_balance as okx_fetch
 from kis_api import fetch_all_balances as kis_fetch
-from market_data import get_prices
-from notion_sync import sync_holdings, add_snapshot
+from market_data import get_prices, get_market_data
+from notion_sync import (
+    sync_holdings, add_snapshot,
+    pull_manual_holdings, get_yesterday_snapshot,
+    get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
+)
 from alerts import send_daily_report, send_manual_input_reminder
 
 
 # ── 자산군 분류 ────────────────────────────────────────────────────────────────
 CRYPTO_TICKERS = {"BTC", "ETH", "XRP", "SOL", "DOGE", "ADA", "AVAX", "MATIC",
                   "LINK", "DOT", "USDT", "USDC", "BNB", "GAS"}
-SAFE_TICKERS = {"IEF", "SGOV", "SHY", "BIL", "VMFXX"}  # 채권/MMF
+SAFE_TICKERS = {"IEF", "SGOV", "SHY", "BIL", "VMFXX"}
 COMMODITY_TICKERS = {"IAU", "GLD", "SLV", "USO", "UNG"}
 
 
@@ -59,6 +63,18 @@ CLS_COLORS = {
     "bond": "#378ADD", "commodity": "#EF9F27", "cash": "#1D9E75",
 }
 
+# 분할매수 기본값 (data.json에 없을 경우 초기화)
+DEFAULT_SPLIT_BUYING = {
+    "target_total": 30000000,
+    "completed": 10300000,
+    "next_date": "2026-06-01",
+    "schedule": [
+        {"round": 1, "date": "2026-04-27", "amount": 10300000, "status": "done"},
+        {"round": 2, "date": "2026-06-01", "amount": 9850000,  "status": "pending"},
+        {"round": 3, "date": "2026-08-01", "amount": 9850000,  "status": "pending"},
+    ],
+}
+
 
 def _holding_color(ticker: str, asset_class: str) -> str:
     return HOLDING_COLOR.get(ticker, CLS_COLORS.get(asset_class, "#888888"))
@@ -70,37 +86,38 @@ def write_data_json(
     okx_krw: float,
     class_totals: dict[str, float],
     usdkrw: float,
+    extras: dict | None = None,
 ) -> None:
-    """Build docs/data.json from pipeline results, preserving manual account values."""
+    """Build docs/data.json from pipeline results."""
+    extras = extras or {}
     docs_dir = pathlib.Path(__file__).parent.parent / "docs"
     docs_dir.mkdir(exist_ok=True)
     data_path = docs_dir / "data.json"
 
-    # Load existing for manual accounts (toss, emergency, biz)
-    existing = {}
+    # Load existing for fallback values
+    existing: dict = {}
     if data_path.exists():
         try:
             existing = json.loads(data_path.read_text(encoding="utf-8"))
         except Exception:
             pass
 
-    manual_krw = {
-        acc_id: next(
-            (a["krw"] for a in existing.get("accounts", []) if a["id"] == acc_id), 0
-        )
-        for acc_id in MANUAL_ACCOUNT_META
-    }
+    # 수동 잔고: 노션 우선, 없으면 기존 data.json 값
+    notion_manual = extras.get("notion_manual", {})
+    manual_krw: dict[str, float] = {}
+    for acc_id in MANUAL_ACCOUNT_META:
+        notion_val = notion_manual.get(acc_id, 0)
+        if notion_val > 0:
+            manual_krw[acc_id] = notion_val
+        else:
+            manual_krw[acc_id] = next(
+                (a["krw"] for a in existing.get("accounts", []) if a["id"] == acc_id), 0
+            )
 
     # Per-account totals from holdings
     acct_totals: dict[str, float] = {}
     for h in all_holdings:
         acct_totals[h["account"]] = acct_totals.get(h["account"], 0) + h["eval_krw"]
-
-    # KIS cash not in holdings — distribute remainder to jonghap as cash
-    kis_holdings_sum = sum(v for k, v in acct_totals.items() if k.startswith("KIS_"))
-    total_kis_from_api = sum(
-        h["eval_krw"] for h in all_holdings if h["account"].startswith("KIS_")
-    )
 
     # Build accounts list
     accounts = []
@@ -119,18 +136,77 @@ def write_data_json(
 
     total_krw = sum(a["krw"] for a in accounts)
 
-    # Asset class totals — map commodity → gold/oil split preserved from existing if available
+    # Asset class totals
     cls_raw = {
-        "us_stock": round(class_totals.get("us_stock", 0)),
+        "us_stock": round(class_totals.get("us_stock", 0) + manual_krw.get("toss", 0)),
         "crypto":   round(class_totals.get("crypto", 0)),
         "bond":     round(class_totals.get("bond", 0)),
-        "gold":     round(class_totals.get("commodity", 0)),  # combined for now
+        "gold":     round(class_totals.get("commodity", 0)),
         "oil":      0,
         "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0)),
     }
-    cls_raw["us_stock"] += round(manual_krw.get("toss", 0))
 
-    # Build core holdings (KIS accounts)
+    # ── 일일 변동 계산 ────────────────────────────────────────────────
+    risky_total = cls_raw["us_stock"] + cls_raw["crypto"] + cls_raw["oil"]
+    safe_total = cls_raw["bond"] + cls_raw["gold"] + cls_raw["cash"]
+    risky_pct = extras.get("risky_pct", risky_total / total_krw * 100 if total_krw else 0)
+    safe_pct = extras.get("safe_pct", 100 - risky_pct)
+
+    yesterday = extras.get("yesterday") or {}
+    daily_change: dict = {}
+    if yesterday:
+        yest_total = yesterday.get("total_krw", 0)
+        daily_change = {
+            "total": {
+                "today": total_krw,
+                "yesterday": round(yest_total),
+                "diff": round(total_krw - yest_total),
+                "pct": round((total_krw - yest_total) / yest_total * 100, 2) if yest_total else 0,
+            },
+            "risky_pct": {
+                "today": round(risky_pct, 1),
+                "yesterday": round(yesterday.get("risky_pct", 0), 1),
+                "diff": round(risky_pct - yesterday.get("risky_pct", 0), 1),
+            },
+            "safe_pct": {
+                "today": round(safe_pct, 1),
+                "yesterday": round(yesterday.get("safe_pct", 0), 1),
+                "diff": round(safe_pct - yesterday.get("safe_pct", 0), 1),
+            },
+            "classes": {
+                "us_stock": _cls_delta(cls_raw["us_stock"], yesterday.get("stock_krw", 0)),
+                "crypto":   _cls_delta(cls_raw["crypto"],   yesterday.get("crypto_krw", 0)),
+                "bond":     _cls_delta(cls_raw["bond"],     yesterday.get("bond_krw", 0)),
+                "gold":     _cls_delta(cls_raw["gold"],     yesterday.get("gold_krw", 0)),
+                "oil":      _cls_delta(cls_raw["oil"],      yesterday.get("oil_krw", 0)),
+                "cash":     _cls_delta(cls_raw["cash"],     yesterday.get("cash_krw", 0)),
+            },
+        }
+
+    # ── NVDA MDD ─────────────────────────────────────────────────────
+    nvda_avg_krw = extras.get("nvda_avg_krw", 0)
+    nvda_current_krw = extras.get("nvda_current_krw", 0)
+    nvda_mdd: dict = {}
+    if nvda_avg_krw > 0:
+        mdd_pct = (nvda_current_krw - nvda_avg_krw) / nvda_avg_krw * 100
+        nvda_mdd = {
+            "avg_price_krw": round(nvda_avg_krw),
+            "current_price_krw": round(nvda_current_krw),
+            "mdd_pct": round(mdd_pct, 1),
+            "threshold_15": -15,
+            "threshold_25": -25,
+        }
+
+    # ── 양도세 면세 한도 ─────────────────────────────────────────────
+    capital_gains_raw = extras.get("capital_gains", 0)
+    cap_limit = 2500000
+    capital_gains = {
+        "ytd_gain": round(capital_gains_raw),
+        "limit": cap_limit,
+        "used_pct": round(min(capital_gains_raw / cap_limit * 100, 100), 1) if cap_limit else 0,
+    }
+
+    # ── Build core & satellite holdings ─────────────────────────────
     kis_account_map: dict[str, list] = {}
     for h in all_holdings:
         if not h["account"].startswith("KIS_"):
@@ -157,7 +233,6 @@ def write_data_json(
             "total_krw": round(acct_total), "items": items,
         })
 
-    # Build satellite holdings (upbit, okx)
     sat_map: dict[str, list] = {}
     for h in all_holdings:
         if h["account"] in ("UPBIT", "OKX"):
@@ -182,22 +257,40 @@ def write_data_json(
             "total_krw": round(acct_total), "items": items,
         })
 
-    # Preserve toss satellite from existing
+    # toss satellite — 노션 우선, 없으면 기존 보존
     existing_sat = existing.get("satellite_holdings", [])
     toss_sat = next((s for s in existing_sat if s.get("account_id") == "toss"), None)
     if toss_sat:
         toss_sat["total_krw"] = manual_krw.get("toss", toss_sat["total_krw"])
+        if nvda_mdd:
+            toss_sat["nvda_mdd"] = nvda_mdd
         satellite_holdings.append(toss_sat)
 
-    # Liquidity metrics
+    # ── Liquidity metrics ─────────────────────────────────────────────
     upbit_okx_toss = (upbit_krw + okx_krw + manual_krw.get("toss", 0)
                       + acct_totals.get("KIS_JONGHAP", 0))
     instant_cash = manual_krw.get("emergency", 0) + manual_krw.get("biz", 0)
     existing_metrics = existing.get("metrics", {})
     existing_tax = existing_metrics.get("tax", {})
 
+    # ── Split buying — 기존 data.json 보존, 없으면 기본값 ─────────────
+    split_buying = existing.get("split_buying", DEFAULT_SPLIT_BUYING)
+
+    # ── Markets ──────────────────────────────────────────────────────
+    market_data = extras.get("market_data", {})
+    markets: dict = {}
+    if market_data:
+        markets = {
+            "indices": market_data.get("indices", {}),
+            "btc_dominance": market_data.get("btc_dominance"),
+            "fear_greed": market_data.get("fear_greed"),
+            "usdkrw_change_pct": market_data.get("usdkrw_change_pct"),
+        }
+
     payload = {
-        "updated_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).isoformat(timespec="seconds"),
+        "updated_at": datetime.datetime.now(
+            datetime.timezone(datetime.timedelta(hours=9))
+        ).isoformat(timespec="seconds"),
         "usdkrw": round(usdkrw),
         "total_krw": total_krw,
         "accounts": accounts,
@@ -224,10 +317,22 @@ def write_data_json(
                 "isa_limit": existing_tax.get("isa_limit", 20000000),
             },
         },
+        "daily_change": daily_change,
+        "split_buying": split_buying,
+        "capital_gains": capital_gains,
+        "markets": markets,
+        "sparkline_history": extras.get("sparkline_history", []),
+        "nvda_mdd": nvda_mdd,
     }
 
     data_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  docs/data.json 저장 완료 (총 자산: {total_krw:,.0f} KRW)")
+
+
+def _cls_delta(today: float, yesterday: float) -> dict:
+    diff = round(today - yesterday)
+    pct = round((today - yesterday) / yesterday * 100, 2) if yesterday else 0
+    return {"today": round(today), "yesterday": round(yesterday), "diff": diff, "pct": pct}
 
 
 def run_pipeline() -> None:
@@ -238,9 +343,19 @@ def run_pipeline() -> None:
     errors = []
     all_holdings = []
 
+    # ── 0. 노션 수동 잔고 (양방향 동기화) ───────────────────────────
+    notion_manual = {"toss": 0, "emergency": 0, "biz": 0}
+    print("\n[0/9] 노션 수동 잔고 조회 (토스/비상금/사업자금)...")
+    try:
+        notion_manual = pull_manual_holdings()
+        print(f"  토스: {notion_manual['toss']:,.0f} | 비상금: {notion_manual['emergency']:,.0f} | 사업: {notion_manual['biz']:,.0f}")
+    except Exception as e:
+        errors.append(f"노션수동잔고: {e}")
+        print(f"  [오류] {e}")
+
     # ── 1. 업비트 잔고 ──────────────────────────────────────────
     upbit_krw = 0.0
-    print("\n[1/7] 업비트 잔고 조회...")
+    print("\n[1/9] 업비트 잔고 조회...")
     try:
         krw_cash, upbit_holdings = upbit_fetch()
         upbit_krw += krw_cash
@@ -262,8 +377,8 @@ def run_pipeline() -> None:
         errors.append(f"업비트: {e}")
         print(f"  [오류] {e}")
 
-    # ── 2. 시세 조회 (환율 먼저 필요) ───────────────────────────
-    print("\n[2/7] 시장 데이터 조회...")
+    # ── 2. 시세 조회 ────────────────────────────────────────────
+    print("\n[2/9] 시장 데이터 조회...")
     prices = {}
     usdkrw = 1380.0
     try:
@@ -276,7 +391,7 @@ def run_pipeline() -> None:
 
     # ── 3. OKX 잔고 ─────────────────────────────────────────────
     okx_krw = 0.0
-    print("\n[3/7] OKX 잔고 조회...")
+    print("\n[3/9] OKX 잔고 조회...")
     try:
         okx_holdings = okx_fetch()
         for h in okx_holdings:
@@ -300,7 +415,7 @@ def run_pipeline() -> None:
 
     # ── 4. 한투 잔고 ─────────────────────────────────────────────
     kis_krw = 0.0
-    print("\n[4/7] 한투 KIS 잔고 조회...")
+    print("\n[4/9] 한투 KIS 잔고 조회...")
     try:
         kis_data = kis_fetch()
         for h in kis_data.get("overseas", []):
@@ -336,7 +451,7 @@ def run_pipeline() -> None:
         print(f"  [오류] {e}")
 
     # ── 5. 포트폴리오 지표 계산 ───────────────────────────────────
-    print("\n[5/7] 포트폴리오 집계...")
+    print("\n[5/9] 포트폴리오 집계...")
     total_krw = upbit_krw + okx_krw + kis_krw
 
     class_totals: dict[str, float] = {}
@@ -367,7 +482,6 @@ def run_pipeline() -> None:
         "asset_class_targets": {"crypto": 35.0, "us_stock": 25.0, "bond": 20.0, "commodity": 10.0},
     }
 
-    # 업비트 BTC/ETH 현재가 (노션 스냅샷용)
     btc_holding = next((h for h in all_holdings if h["ticker"] == "BTC" and h["account"] == "UPBIT"), None)
     eth_holding = next((h for h in all_holdings if h["ticker"] == "ETH" and h["account"] == "UPBIT"), None)
 
@@ -388,16 +502,82 @@ def run_pipeline() -> None:
         "eth_price": eth_holding["current_price"] if eth_holding else None,
     }
 
-    # ── 6. docs/data.json 생성 ──────────────────────────────────
-    print("\n[6/7] GitHub Pages 데이터 생성...")
+    # ── 6. 마켓 데이터 (지수 + BTC 도미넌스 + 공포탐욕) ──────────────
+    print("\n[6/9] 시장 지수 조회...")
+    market_data = {}
     try:
-        write_data_json(all_holdings, upbit_krw, okx_krw, class_totals, usdkrw)
+        market_data = get_market_data(usdkrw)
+        idx_keys = list(market_data.get("indices", {}).keys())
+        print(f"  지수: {idx_keys} | BTC도미넌스: {market_data.get('btc_dominance')}% | F&G: {market_data.get('fear_greed', {}).get('value')}")
+    except Exception as e:
+        errors.append(f"마켓데이터: {e}")
+        print(f"  [오류] {e}")
+
+    # ── 7. 어제 스냅샷 + 일일 변동 ─────────────────────────────────
+    print("\n[7/9] 어제 스냅샷 조회...")
+    yesterday_snapshot = None
+    try:
+        yesterday_snapshot = get_yesterday_snapshot()
+        if yesterday_snapshot:
+            print(f"  어제 총자산: {yesterday_snapshot.get('total_krw', 0):,.0f}")
+        else:
+            print("  어제 데이터 없음")
+    except Exception as e:
+        errors.append(f"어제스냅샷: {e}")
+        print(f"  [오류] {e}")
+
+    # ── 8. 양도세 YTD ─────────────────────────────────────────────
+    print("\n[8/9] 양도세 YTD 계산...")
+    capital_gains = 0.0
+    try:
+        capital_gains = get_capital_gains_ytd()
+        print(f"  YTD 실현 차익: {capital_gains:,.0f} KRW")
+    except Exception as e:
+        errors.append(f"양도세: {e}")
+        print(f"  [오류] {e}")
+
+    # ── 9. 스파크라인 히스토리 ────────────────────────────────────
+    print("\n[9/9] 스파크라인 히스토리 조회...")
+    sparkline_history = []
+    try:
+        sparkline_history = get_sparkline_history(30)
+        print(f"  스파크라인: {len(sparkline_history)}일")
+    except Exception as e:
+        errors.append(f"스파크라인: {e}")
+        print(f"  [오류] {e}")
+
+    # NVDA 평단 (토스, USD → KRW 변환)
+    nvda_avg_krw = 0.0
+    try:
+        nvda_avg_usd = get_nvda_avg_price()
+        nvda_avg_krw = nvda_avg_usd * usdkrw if nvda_avg_usd else 0
+    except Exception:
+        pass
+    nvda_current_krw = (prices.get("NVDA") or 0) * usdkrw
+
+    extras = {
+        "notion_manual": notion_manual,
+        "yesterday": yesterday_snapshot,
+        "capital_gains": capital_gains,
+        "sparkline_history": sparkline_history,
+        "market_data": market_data,
+        "nvda_avg_krw": nvda_avg_krw,
+        "nvda_current_krw": nvda_current_krw,
+        "risky_pct": risky_pct,
+        "safe_pct": safe_pct,
+    }
+
+    # ── docs/data.json 생성 ──────────────────────────────────────
+    print("\n[data.json] GitHub Pages 데이터 생성...")
+    try:
+        write_data_json(all_holdings, upbit_krw, okx_krw, class_totals, usdkrw, extras)
     except Exception as e:
         errors.append(f"data.json: {e}")
         print(f"  [오류] {e}")
+        traceback.print_exc()
 
-    # ── 7. 노션 업데이트 ─────────────────────────────────────────
-    print("\n[7/7] 노션 동기화...")
+    # ── 노션 업데이트 ─────────────────────────────────────────────
+    print("\n[notion] 노션 동기화...")
     try:
         sync_holdings(all_holdings)
         add_snapshot(snapshot)
@@ -406,10 +586,10 @@ def run_pipeline() -> None:
         print(f"  [오류] {e}")
 
     # ── Slack 알림 ───────────────────────────────────────────────
-    print("\n[알림] Slack 발송...")
+    print("\n[slack] Slack 발송...")
     try:
         send_daily_report(portfolio)
-        if datetime.date.today().weekday() == 0:  # 0 = 월요일
+        if datetime.date.today().weekday() == 0:
             send_manual_input_reminder()
     except Exception as e:
         errors.append(f"Slack: {e}")
