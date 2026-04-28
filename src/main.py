@@ -324,6 +324,12 @@ def write_data_json(
             toss_sat["nvda_mdd"] = nvda_mdd
         if toss_nvda:
             toss_sat["toss_nvda"] = toss_nvda
+            # NVDA+ 아이템에 P&L 주입 (7-col 테이블에서 손익 컬럼 표시용)
+            for item in toss_sat.get("items", []):
+                item["principal_krw"] = toss_nvda.get("principal_krw", 0)
+                item["pnl_krw"]       = toss_nvda.get("pnl_krw", 0)
+                item["pnl_pct"]       = toss_nvda.get("pnl_pct", 0)
+                item["krw"]           = toss_nvda.get("current_krw", item.get("krw", 0))
         satellite_holdings.append(toss_sat)
 
     # bank satellite card (비상금 + 사업자금)
@@ -553,7 +559,7 @@ def run_pipeline() -> None:
     kis_cash: dict = {}
     print("\n[4/9] 한투 KIS 잔고 조회...")
     try:
-        kis_data = kis_fetch()
+        kis_data = kis_fetch(usdkrw)
         for h in kis_data.get("overseas", []):
             krw_val = h["eval_usd"] * usdkrw
             kis_krw += krw_val
@@ -620,6 +626,14 @@ def run_pipeline() -> None:
 
     print(f"  총 자산: {total_krw:,.0f} KRW")
     print(f"  위험자산: {risky_pct:.1f}% | 안전자산: {safe_pct:.1f}%")
+
+    # 현금 잔고 요약 디버그
+    upbit_crypto_total = sum(h["eval_krw"] for h in all_holdings if h["account"] == "UPBIT")
+    upbit_cash = max(0.0, upbit_krw - upbit_crypto_total)
+    print(f"  [현금 요약] 한투종합 {kis_cash.get('KIS_JONGHAP',0):,.0f} | "
+          f"ISA {kis_cash.get('KIS_ISA',0):,.0f} | "
+          f"연저 {kis_cash.get('KIS_YEON',0):,.0f} | "
+          f"업비트 {upbit_cash:,.0f}")
 
     portfolio = {
         "total_krw": total_krw,

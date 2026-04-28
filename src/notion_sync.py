@@ -148,6 +148,10 @@ def pull_manual_holdings() -> dict:
     원금(KRW) 컬럼이 없거나 0이면 pnl 필드 미포함.
     """
     result: dict = {"toss": {"eval": 0}, "emergency": {"eval": 0}, "biz": {"eval": 0}}
+    # 원금 컬럼 후보 (사용자가 어떤 명칭으로 입력했을 수 있음)
+    PRINCIPAL_KEYS = ("원금(KRW)", "원금", "원금 (KRW)", "원금(₩)", "Principal", "원금KRW")
+    EVAL_KEYS = ("평가금액(KRW)", "평가금액", "평가금액 (KRW)", "Eval")
+
     for account_id in result:
         label = _ACCOUNT_NOTION_LABEL.get(account_id, account_id)
         try:
@@ -155,14 +159,36 @@ def pull_manual_holdings() -> dict:
                 database_id=HOLDINGS_DB,
                 filter={"property": "계좌", "select": {"equals": label}},
             )
-            total_eval = sum(
-                (row["properties"].get("평가금액(KRW)", {}).get("number") or 0)
-                for row in rows["results"]
-            )
-            total_principal = sum(
-                (row["properties"].get("원금(KRW)", {}).get("number") or 0)
-                for row in rows["results"]
-            )
+
+            # toss: 디버그 출력 (NVDA 원금 인식 확인)
+            if account_id == "toss" and rows["results"]:
+                print(f"  [DEBUG toss 행 {len(rows['results'])}개]")
+                for row in rows["results"]:
+                    props = row["properties"]
+                    name_p = props.get("종목", {}).get("title", [])
+                    nm = name_p[0]["plain_text"] if name_p else "?"
+                    nums = []
+                    for k, v in props.items():
+                        if v.get("type") == "number" and v.get("number") is not None:
+                            nums.append(f"{k}={v['number']}")
+                    print(f"    [{nm}] {' | '.join(nums) if nums else '(number 컬럼 없음)'}")
+
+            def _sum_col(rows_list, candidates):
+                for col in candidates:
+                    s = sum(
+                        (row["properties"].get(col, {}).get("number") or 0)
+                        for row in rows_list
+                    )
+                    if s > 0:
+                        return s, col
+                return 0, None
+
+            total_eval, eval_col = _sum_col(rows["results"], EVAL_KEYS)
+            total_principal, princ_col = _sum_col(rows["results"], PRINCIPAL_KEYS)
+
+            if account_id == "toss":
+                print(f"  [DEBUG toss] 평가합계={total_eval:,.0f} (col={eval_col}) | 원금합계={total_principal:,.0f} (col={princ_col})")
+
             if total_eval > 0:
                 result[account_id]["eval"] = round(total_eval)
             if total_principal > 0:
@@ -170,8 +196,9 @@ def pull_manual_holdings() -> dict:
                 result[account_id]["principal"] = round(total_principal)
                 result[account_id]["pnl"] = round(pnl)
                 result[account_id]["pnl_pct"] = round(pnl / total_principal * 100, 2) if total_principal else 0.0
-        except Exception:
-            pass  # 해당 선택지가 없으면 eval=0 반환 (기존 data.json 값 사용)
+        except Exception as e:
+            if account_id == "toss":
+                print(f"  [경고] toss 조회 실패: {e}")
     return result
 
 

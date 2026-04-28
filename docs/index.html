@@ -26,121 +26,153 @@
 body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 24px;line-height:1.5}
 
 /* ── header ── */
-.hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-.hdr h1{font-size:17px;font-weight:600}
-.hdr-meta{font-size:12px;color:var(--txt3);font-family:var(--mono)}
-.total-krw{font-size:13px;color:var(--txt2)}
-.total-krw strong{font-family:var(--mono);font-size:15px;color:var(--txt);font-weight:600}
-.total-delta{font-size:11px;font-family:var(--mono);margin-left:6px}
+.hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.hdr h1{font-size:20px;font-weight:600}
+.hdr-meta{font-size:13px;color:var(--txt3);font-family:var(--mono)}
+.total-krw{font-size:15px;color:var(--txt2)}
+.total-krw strong{font-family:var(--mono);font-size:18px;color:var(--txt);font-weight:600}
+.total-delta{font-size:13px;font-family:var(--mono);margin-left:8px}
 
-/* ── market strip ── */
-.market-strip{
-  display:flex;flex-direction:column;gap:6px;margin-bottom:18px;
-  padding:10px 12px;background:var(--bg2);border-radius:var(--r-md);
+/* ── market sections (top: macro/assets/indicators) ── */
+.market-section{
+  display:flex;align-items:center;margin-bottom:8px;
+  padding:12px 16px;background:var(--bg2);border-radius:var(--r-md);
   border:0.5px solid var(--bdr);
 }
-.mkt-row{display:flex;flex-wrap:wrap;align-items:center;gap:0}
-.mkt-row-lbl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);min-width:40px;flex-shrink:0;padding:2px 4px 2px 0}
-.mkt-row-items{display:flex;flex-wrap:wrap;flex:1}
-.mkt-item{display:flex;flex-direction:column;min-width:78px;padding:2px 8px;border-right:0.5px solid var(--bdr)}
-.mkt-item:last-child{border-right:none}
-.mkt-name{font-size:10px;color:var(--txt3);margin-bottom:1px}
-.mkt-price{font-size:12px;font-weight:600;font-family:var(--mono)}
-.mkt-chg{font-size:10px;font-family:var(--mono)}
-.fg-bar-wrap{height:4px;width:70px;background:var(--bg3);border-radius:2px;margin-top:3px;overflow:hidden}
-.fg-bar-fill{height:100%;border-radius:2px;transition:width .3s}
+.ms-label{
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--txt3);min-width:60px;flex-shrink:0;padding-right:4px;
+}
+.ms-items{display:flex;flex-wrap:wrap;flex:1;gap:0}
+.ms-item{
+  flex:1;min-width:90px;padding:4px 14px;
+  border-right:0.5px solid var(--bdr);display:flex;flex-direction:column;
+}
+.ms-item:last-child{border-right:none}
+.ms-name{font-size:12px;color:var(--txt3);margin-bottom:3px}
+.ms-price{font-size:16px;font-weight:600;font-family:var(--mono)}
+.ms-chg{font-size:13px;font-family:var(--mono);margin-top:2px}
+
+.indicators-section{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px;
+}
+@media(max-width:900px){.indicators-section{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.indicators-section{grid-template-columns:repeat(2,1fr)}}
+.ind-card{
+  padding:12px 14px;border-radius:var(--r-md);
+  background:var(--bg2);border:0.5px solid var(--bdr);
+}
+.ind-label{font-size:12px;color:var(--txt3);margin-bottom:4px}
+.ind-value{font-size:22px;font-weight:600;font-family:var(--mono);line-height:1.1}
+.ind-sub{font-size:11px;color:var(--txt2);margin-top:3px}
+.ind-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.ind-bar-fill{height:100%;border-radius:3px;transition:width .3s}
 
 /* ── section label ── */
-.sec-label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px}
+.sec-label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px;margin-top:6px}
 
 /* ── delta badge ── */
-.delta{font-size:10px;font-family:var(--mono);margin-top:2px}
+.delta{font-size:12px;font-family:var(--mono);margin-top:3px}
 .delta.pos{color:var(--pos)}.delta.neg{color:var(--neg)}.delta.neu{color:var(--txt3)}
 
 /* ── summary row ── */
-.summary-row{display:grid;grid-template-columns:1fr 1fr repeat(6,1fr);gap:8px;margin-bottom:20px}
+.summary-row{display:grid;grid-template-columns:1fr 1fr repeat(6,1fr);gap:10px;margin-bottom:22px}
 @media(max-width:960px){.summary-row{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:600px){.summary-row{grid-template-columns:1fr 1fr}}
-.card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:12px 14px}
-.card-risk .label{font-size:11px;color:#791F1F;margin-bottom:3px}
-.card-risk .pct{font-size:22px;font-weight:600;color:#501313}
-.card-risk .amt{font-size:10px;color:#791F1F;margin-top:2px;font-family:var(--mono)}
+.card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:14px 16px}
+.card-risk .label{font-size:14px;color:#791F1F;margin-bottom:4px;font-weight:500}
+.card-risk .pct{font-size:28px;font-weight:600;color:#501313;line-height:1.1}
+.card-risk .amt{font-size:13px;color:#791F1F;margin-top:3px;font-family:var(--mono)}
 @media(prefers-color-scheme:dark){
   .card-risk{background:#3a1a1a}
   .card-risk .label,.card-risk .amt{color:#e07070}
   .card-risk .pct{color:#f0a0a0}
 }
-.card-safe{background:#EAF3DE;border-radius:var(--r-md);padding:12px 14px}
-.card-safe .label{font-size:11px;color:#27500A;margin-bottom:3px}
-.card-safe .pct{font-size:22px;font-weight:600;color:#173404}
-.card-safe .amt{font-size:10px;color:#27500A;margin-top:2px;font-family:var(--mono)}
+.card-safe{background:#EAF3DE;border-radius:var(--r-md);padding:14px 16px}
+.card-safe .label{font-size:14px;color:#27500A;margin-bottom:4px;font-weight:500}
+.card-safe .pct{font-size:28px;font-weight:600;color:#173404;line-height:1.1}
+.card-safe .amt{font-size:13px;color:#27500A;margin-top:3px;font-family:var(--mono)}
 @media(prefers-color-scheme:dark){
   .card-safe{background:#1a2e12}
   .card-safe .label,.card-safe .amt{color:#80c050}
   .card-safe .pct{color:#a0e070}
 }
-.cls-card{border-radius:var(--r-md);padding:10px 12px}
-.cls-card .label{font-size:10px;margin-bottom:2px}
-.cls-card .pct{font-size:17px;font-weight:600}
-.cls-card .amt{font-size:9px;margin-top:1px;font-family:var(--mono)}
-.spark-wrap{margin-top:5px;line-height:0}
+.cls-card{border-radius:var(--r-md);padding:12px 14px}
+.cls-card .label{font-size:13px;margin-bottom:3px;font-weight:500}
+.cls-card .pct{font-size:22px;font-weight:600;line-height:1.1}
+.cls-card .amt{font-size:11px;margin-top:2px;font-family:var(--mono)}
+.spark-wrap{margin-top:6px;line-height:0}
 .spark-svg{cursor:pointer;opacity:.85;transition:opacity .15s}
 .spark-svg:hover{opacity:1}
 
 /* ── account grid ── */
-.account-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.account-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
 @media(max-width:960px){.account-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.account-grid{grid-template-columns:1fr 1fr}}
-.acct-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-.acct-card .bar{height:3px;border-radius:2px;margin-bottom:2px}
-.acct-card .name{font-size:13px;font-weight:500}
-.acct-card .sub{font-size:10px;color:var(--txt3)}
-.acct-card .amount{font-size:15px;font-weight:600;font-family:var(--mono)}
-.acct-card .pct-row{display:flex;align-items:center;gap:6px}
-.acct-card .pct-val{font-size:11px;color:var(--txt2);white-space:nowrap}
-.pbar{height:4px;flex:1;background:var(--bg2);border-radius:2px;overflow:hidden}
-.pbar-fill{height:100%;border-radius:2px}
+.acct-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.acct-card .bar{height:4px;border-radius:2px;margin-bottom:2px}
+.acct-card .name{font-size:16px;font-weight:600}
+.acct-card .sub{font-size:11px;color:var(--txt3)}
+.acct-card .amount{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1.1}
+.acct-card .pct-row{display:flex;align-items:center;gap:8px;margin-top:2px}
+.acct-card .pct-val{font-size:14px;color:var(--txt2);white-space:nowrap;font-weight:500}
+.pbar{height:5px;flex:1;background:var(--bg2);border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px}
 
 /* ── holdings 2-col ── */
-.holdings-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-@media(max-width:800px){.holdings-row{grid-template-columns:1fr}}
-.holdings-col .col-label{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px}
-.h-table{border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px}
-.h-table-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg2);border-bottom:0.5px solid var(--bdr)}
-.h-table-hdr .acct-title{font-size:13px;font-weight:500}
-.h-table-hdr .acct-sub{font-size:10px;color:var(--txt2);margin-top:1px}
-.h-table-hdr .acct-total{font-size:14px;font-weight:600;font-family:var(--mono);white-space:nowrap;margin-left:10px}
-.grid-head{display:grid;grid-template-columns:5px 1.2fr 1.6fr 0.5fr 0.9fr;padding:6px 14px 6px 0;background:var(--bg3);font-size:11px;color:var(--txt2)}
-.grid-head>*:nth-child(2){padding-left:10px}
-.grid-head>*:last-child{text-align:right;padding-right:4px}
-.grid-row{display:grid;grid-template-columns:5px 1.2fr 1.6fr 0.5fr 0.9fr;padding:9px 14px 9px 0;border-top:0.5px solid var(--bdr);align-items:center}
-.grid-row .color-bar{height:32px}
-.grid-row .cat{padding-left:10px;font-size:12px}
-.grid-row .ticker-wrap .tname{font-size:11px}
-.grid-row .ticker-wrap .tcode{font-size:10px;color:var(--txt3);font-family:var(--mono)}
-.grid-row .gpct{font-size:12px;font-weight:500}
-.grid-row .gamt{font-size:12px;font-family:var(--mono);text-align:right;padding-right:4px}
-.sat-head{display:grid;grid-template-columns:5px 2fr 0.8fr 1fr;padding:6px 14px 6px 0;background:var(--bg3);font-size:11px;color:var(--txt2)}
-.sat-head>*:nth-child(2){padding-left:10px}
-.sat-head>*:last-child{text-align:right;padding-right:4px}
-.sat-row{display:grid;grid-template-columns:5px 2fr 0.8fr 1fr;padding:9px 14px 9px 0;border-top:0.5px solid var(--bdr);align-items:center}
-.sat-row .color-bar{height:32px}
-.sat-row .sname{padding-left:10px;font-size:12px;font-weight:500}
-.sat-row .scat{font-size:10px;color:var(--txt3)}
-.sat-row .spct{font-size:12px;font-weight:500}
-.sat-row .samt{font-size:12px;font-family:var(--mono);text-align:right;padding-right:4px}
+.holdings-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+@media(max-width:1000px){.holdings-row{grid-template-columns:1fr}}
+.holdings-col .col-label{font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:10px}
+.h-table{border:0.5px solid var(--bdr);border-radius:var(--r-lg);overflow-x:auto;overflow-y:hidden;margin-bottom:12px}
+.h-table-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg2);border-bottom:0.5px solid var(--bdr)}
+.h-table-hdr .acct-title{font-size:15px;font-weight:600}
+.h-table-hdr .acct-sub{font-size:12px;color:var(--txt2);margin-top:2px}
+.h-table-hdr .acct-total{font-size:18px;font-weight:700;font-family:var(--mono);white-space:nowrap;margin-left:12px}
 
-/* ── P&L sub-row ── */
-.tpnl{font-size:9px;margin-top:2px;font-family:var(--mono)}
-.tpnl.pos{color:var(--pos)}.tpnl.neg{color:var(--neg)}.tpnl.neu{color:var(--txt3)}
+/* 7-column grid for core/satellite holdings */
+.grid-head{display:grid;grid-template-columns:5px 0.8fr 1.6fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:8px 14px 8px 0;background:var(--bg3);font-size:12px;color:var(--txt2);min-width:680px}
+.grid-head>*{padding:0 4px}
+.grid-head>*:nth-child(2){padding-left:10px}
+.grid-head>*:nth-child(n+4){text-align:right}
+.grid-row{display:grid;grid-template-columns:5px 0.8fr 1.6fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:12px 14px 12px 0;border-top:0.5px solid var(--bdr);align-items:center;min-width:680px}
+.grid-row .color-bar{height:38px}
+.grid-row .cat{padding-left:10px;font-size:12px;color:var(--txt3)}
+.grid-row .ticker-wrap{padding:0 4px}
+.grid-row .ticker-wrap .tname{font-size:14px;font-weight:500;line-height:1.3}
+.grid-row .ticker-wrap .tcode{font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:1px}
+.grid-row .gpct{font-size:14px;font-weight:600;text-align:right;padding:0 4px}
+.grid-row .gprincipal{font-size:13px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
+.grid-row .gamt{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.grid-row .gpnl{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.grid-row .gpnlpct{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
+.grid-row .gpnl.pos,.grid-row .gpnlpct.pos{color:var(--pos)}
+.grid-row .gpnl.neg,.grid-row .gpnlpct.neg{color:var(--neg)}
+
+.sat-head{display:grid;grid-template-columns:5px 1.4fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:8px 14px 8px 0;background:var(--bg3);font-size:12px;color:var(--txt2);min-width:600px}
+.sat-head>*{padding:0 4px}
+.sat-head>*:nth-child(2){padding-left:10px}
+.sat-head>*:nth-child(n+3){text-align:right}
+.sat-row{display:grid;grid-template-columns:5px 1.4fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:12px 14px 12px 0;border-top:0.5px solid var(--bdr);align-items:center;min-width:600px}
+.sat-row .color-bar{height:38px}
+.sat-row .sname-wrap{padding-left:10px}
+.sat-row .sname{font-size:14px;font-weight:500;line-height:1.3}
+.sat-row .scat{font-size:11px;color:var(--txt3);margin-top:1px}
+.sat-row .spct{font-size:14px;font-weight:600;text-align:right;padding:0 4px}
+.sat-row .sprincipal{font-size:13px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
+.sat-row .samt{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.sat-row .spnl{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.sat-row .spnlpct{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
+.sat-row .spnl.pos,.sat-row .spnlpct.pos{color:var(--pos)}
+.sat-row .spnl.neg,.sat-row .spnlpct.neg{color:var(--neg)}
 
 /* ── account rebalancing header ── */
-.acct-rebal{padding:8px 14px;border-bottom:0.5px solid var(--bdr);background:var(--bg3);font-size:10px;line-height:1.6}
-.acct-rebal-row{display:flex;flex-wrap:wrap;gap:3px;align-items:baseline}
-.acct-rebal-lbl{color:var(--txt3);min-width:28px;flex-shrink:0;font-weight:600}
-.arb-item{font-family:var(--mono);color:var(--txt2)}
-.arb-item.ok{color:var(--pos)}.arb-item.alert{color:var(--neg);font-weight:700}
-.arb-sep{color:var(--bdr2);margin:0 1px}
+.acct-rebal{padding:10px 16px;border-bottom:0.5px solid var(--bdr);background:var(--bg3);font-size:13px;line-height:1.7}
+.acct-rebal-row{display:flex;flex-wrap:wrap;gap:4px;align-items:baseline;margin-bottom:2px}
+.acct-rebal-row:last-child{margin-bottom:0}
+.acct-rebal-lbl{color:var(--txt3);min-width:36px;flex-shrink:0;font-weight:700;font-size:12px}
+.arb-item{font-family:var(--mono);color:var(--txt2);font-size:13px}
+.arb-item.ok{color:var(--txt2)}.arb-item.alert{color:var(--neg);font-weight:700}
+.arb-sep{color:var(--bdr2);margin:0 2px}
 
 /* ── split buying bar ── */
 .split-buy{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
@@ -314,10 +346,10 @@ function closeModal(e) {
   if(e.target.id==='sparkModal') document.getElementById('sparkModal').classList.remove('open');
 }
 
-// ── market strip ─────────────────────────────────────────────────────────────
-function _mktItem(name, priceStr, chgPct) {
+// ── market sections (top of page) ────────────────────────────────────────────
+function _msItem(name, priceStr, chgPct) {
   const c = chgPct>0?'chg-pos':chgPct<0?'chg-neg':'chg-neu';
-  return `<div class="mkt-item"><div class="mkt-name">${name}</div><div class="mkt-price">${priceStr}</div><div class="mkt-chg ${c}">${sign(chgPct)}${chgPct.toFixed(2)}%</div></div>`;
+  return `<div class="ms-item"><div class="ms-name">${name}</div><div class="ms-price">${priceStr}</div><div class="ms-chg ${c}">${sign(chgPct)}${chgPct.toFixed(2)}%</div></div>`;
 }
 function _fmtMktPrice(p) {
   if(p>=10000) return fmt(Math.round(p));
@@ -326,34 +358,91 @@ function _fmtMktPrice(p) {
   return p.toFixed(3);
 }
 
-function renderMarketStrip(d) {
-  const m = d.markets;
-  if(!m) return '';
-
-  const fxChg = m.usdkrw_change_pct||0;
-  let row1 = _mktItem('USD/KRW', fmt(d.usdkrw), fxChg);
-  for(const item of Object.values(m.macro||{})) {
-    row1 += _mktItem(item.name, _fmtMktPrice(item.price), item.change_pct);
+function renderMacroRow(d) {
+  if(!d.markets) return '';
+  const fxChg = d.markets.usdkrw_change_pct||0;
+  let items = _msItem('USD/KRW', fmt(d.usdkrw), fxChg);
+  for(const it of Object.values(d.markets.macro||{})) {
+    items += _msItem(it.name, _fmtMktPrice(it.price), it.change_pct);
   }
+  return `
+    <div class="market-section">
+      <div class="ms-label">매크로</div>
+      <div class="ms-items">${items}</div>
+    </div>`;
+}
 
-  let row2 = '';
-  for(const item of Object.values(m.assets||{})) {
-    row2 += _mktItem(item.name, _fmtMktPrice(item.price), item.change_pct);
+function renderAssetsRow(d) {
+  if(!d.markets || !d.markets.assets) return '';
+  let items = '';
+  for(const it of Object.values(d.markets.assets)) {
+    items += _msItem(it.name, _fmtMktPrice(it.price), it.change_pct);
   }
-  const fg = m.fear_greed||{};
-  function fgMini(obj, label) {
+  if(!items) return '';
+  return `
+    <div class="market-section">
+      <div class="ms-label">자산</div>
+      <div class="ms-items">${items}</div>
+    </div>`;
+}
+
+function renderIndicatorsRow(d) {
+  const m = d.markets || {};
+  const ci = d.crypto_indicators || {};
+  const fg = m.fear_greed || {};
+  const cards = [];
+
+  function fgCard(obj, label) {
     if(!obj||obj.value==null) return '';
     const v = typeof obj.value==='number' ? obj.value : parseFloat(obj.value);
     const fc = v>=60?'#EF9F27':v>=40?'#D4A520':v>=25?'#378ADD':'#D85A30';
-    return `<div class="mkt-item"><div class="mkt-name">${label}</div><div class="mkt-price" style="color:${fc}">${Math.round(v)}</div><div class="fg-bar-wrap"><div class="fg-bar-fill" style="width:${v}%;background:${fc}"></div></div><div class="mkt-chg" style="color:${fc}">${obj.label||''}</div></div>`;
-  }
-  row2 += fgMini(fg.crypto, '크립토 F&G') + fgMini(fg.sp500, 'S&P F&G');
-
-  return `
-    <div class="market-strip">
-      <div class="mkt-row"><span class="mkt-row-lbl">매크로</span><div class="mkt-row-items">${row1}</div></div>
-      <div class="mkt-row"><span class="mkt-row-lbl">자산</span><div class="mkt-row-items">${row2}</div></div>
+    return `<div class="ind-card">
+      <div class="ind-label">${label}</div>
+      <div class="ind-value" style="color:${fc}">${Math.round(v)}</div>
+      <div class="ind-sub">${obj.label||''}</div>
+      <div class="ind-bar"><div class="ind-bar-fill" style="width:${v}%;background:${fc}"></div></div>
     </div>`;
+  }
+
+  cards.push(fgCard(fg.crypto, '크립토 F&G'));
+  cards.push(fgCard(fg.sp500,  'S&P F&G'));
+
+  if(ci.btc_dominance!=null) {
+    const v = ci.btc_dominance;
+    cards.push(`<div class="ind-card">
+      <div class="ind-label">BTC 도미넌스</div>
+      <div class="ind-value">${v.toFixed(1)}%</div>
+      <div class="ind-sub">${v>55?'BTC 강세장':'알트 시즌'}</div>
+    </div>`);
+  }
+  if(ci.usdt_dominance!=null) {
+    const v = ci.usdt_dominance;
+    cards.push(`<div class="ind-card">
+      <div class="ind-label">USDT 도미넌스</div>
+      <div class="ind-value">${v.toFixed(1)}%</div>
+      <div class="ind-sub">${v>5?'시장 회피↑':'정상 수준'}</div>
+    </div>`);
+  }
+  if(ci.eth_btc_ratio!=null) {
+    const v = ci.eth_btc_ratio;
+    cards.push(`<div class="ind-card">
+      <div class="ind-label">ETH/BTC</div>
+      <div class="ind-value">${v.toFixed(4)}</div>
+      <div class="ind-sub">${v>0.06?'ETH 강세':'BTC 강세'}</div>
+    </div>`);
+  }
+  if(ci.total3_market_cap!=null) {
+    const t3B = (ci.total3_market_cap/1e9).toFixed(0);
+    cards.push(`<div class="ind-card">
+      <div class="ind-label">TOTAL3 시총</div>
+      <div class="ind-value">${t3B}B$</div>
+      <div class="ind-sub">BTC+ETH 제외</div>
+    </div>`);
+  }
+
+  const filled = cards.filter(c=>c);
+  if(filled.length===0) return '';
+  return `<div class="indicators-section">${filled.join('')}</div>`;
 }
 
 const CLS_META = {
@@ -586,12 +675,9 @@ function renderAcctRebal(accountId, d) {
 // ── core table ───────────────────────────────────────────────────────────────
 function renderCoreTable(h, total, d) {
   const rows = h.items.map(item => {
-    let pnlHtml = '';
-    if(item.principal_krw > 0) {
-      const s = item.pnl_krw >= 0 ? '+' : '';
-      const cls = item.pnl_krw >= 0 ? 'pos' : 'neg';
-      pnlHtml = `<div class="tpnl ${cls}">${s}${item.pnl_pct.toFixed(2)}% · ${s}${fmtM(Math.abs(item.pnl_krw))}</div>`;
-    }
+    const hasPnl = item.principal_krw > 0;
+    const pnlCls = item.pnl_krw >= 0 ? 'pos' : 'neg';
+    const s = item.pnl_krw >= 0 ? '+' : '';
     return `
     <div class="grid-row">
       <div class="color-bar" style="background:${item.color}"></div>
@@ -599,10 +685,12 @@ function renderCoreTable(h, total, d) {
       <div class="ticker-wrap">
         <div class="tname">${item.name}</div>
         <div class="tcode">${item.ticker}</div>
-        ${pnlHtml}
       </div>
       <div class="gpct">${item.pct}%</div>
+      <div class="gprincipal">${hasPnl?fmt(item.principal_krw):'—'}</div>
       <div class="gamt">${fmt(item.krw)}</div>
+      <div class="gpnl ${hasPnl?pnlCls:''}">${hasPnl?s+fmt(item.pnl_krw):'—'}</div>
+      <div class="gpnlpct ${hasPnl?pnlCls:''}">${hasPnl?s+item.pnl_pct.toFixed(2)+'%':'—'}</div>
     </div>`;
   }).join('');
 
@@ -620,7 +708,11 @@ function renderCoreTable(h, total, d) {
         <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
       </div>
       ${renderAcctRebal(h.account_id, d)}
-      <div class="grid-head"><div></div><div>자산군</div><div>종목</div><div>비중</div><div>금액</div></div>
+      <div class="grid-head">
+        <div></div><div>자산군</div><div>종목</div>
+        <div>비중</div><div>원금</div><div>평가금</div>
+        <div>손익</div><div>수익률</div>
+      </div>
       ${rows}
       ${extras}
     </div>`;
@@ -661,28 +753,28 @@ function renderTossPnl(tn) {
 function renderSatelliteTable(h, total, d) {
   const rows = h.items.map(item => {
     const p = pctN(item.krw, h.total_krw).toFixed(1);
-    let pnlHtml = '';
-    if(item.principal_krw > 0) {
-      const s = item.pnl_krw >= 0 ? '+' : '';
-      const cls = item.pnl_krw >= 0 ? 'pos' : 'neg';
-      pnlHtml = `<div class="tpnl ${cls}">${s}${item.pnl_pct.toFixed(2)}% · ${s}${fmtM(Math.abs(item.pnl_krw))}</div>`;
-    }
+    const hasPnl = (item.principal_krw||0) > 0;
+    const pnlCls = (item.pnl_krw||0) >= 0 ? 'pos' : 'neg';
+    const s = (item.pnl_krw||0) >= 0 ? '+' : '';
     return `
       <div class="sat-row">
         <div class="color-bar" style="background:${item.color}"></div>
-        <div><div class="sname">${item.name}</div><div class="scat">${item.cat}</div>${pnlHtml}</div>
+        <div class="sname-wrap">
+          <div class="sname">${item.name}</div>
+          <div class="scat">${item.cat}</div>
+        </div>
         <div class="spct">${p}%</div>
+        <div class="sprincipal">${hasPnl?fmt(item.principal_krw):'—'}</div>
         <div class="samt">${fmt(item.krw)}</div>
+        <div class="spnl ${hasPnl?pnlCls:''}">${hasPnl?s+fmt(item.pnl_krw):'—'}</div>
+        <div class="spnlpct ${hasPnl?pnlCls:''}">${hasPnl?s+item.pnl_pct.toFixed(2)+'%':'—'}</div>
       </div>`;
   }).join('');
 
   let extras = '';
   if(h.account_id === 'toss') {
-    const tn = d.toss_nvda || h.toss_nvda;
-    extras += renderTossPnl(tn);
     extras += renderNvdaMdd(d.nvda_mdd || h.nvda_mdd);
   }
-  // bank card has no extras
 
   return `
     <div class="h-table">
@@ -693,7 +785,10 @@ function renderSatelliteTable(h, total, d) {
         </div>
         <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
       </div>
-      <div class="sat-head"><div></div><div>종목</div><div>비중</div><div>금액</div></div>
+      <div class="sat-head">
+        <div></div><div>종목</div><div>비중</div>
+        <div>원금</div><div>평가금</div><div>손익</div><div>수익률</div>
+      </div>
       ${rows}
       ${extras}
     </div>`;
@@ -876,7 +971,6 @@ function renderMetrics(d) {
 
   return `
     <div class="metrics-card">
-      <div class="sec-label" style="margin-bottom:10px">보조 지표</div>
       <div class="metrics-grid">
         <div class="m-item">
           <div class="m-label">USD 노출 자산</div>
@@ -891,8 +985,6 @@ function renderMetrics(d) {
         ${liqHTML}
       </div>
       ${renderCapitalGainsGauge(d.capital_gains)}
-      ${renderFearGreed(d.markets)}
-      ${renderCryptoIndicators(d)}
       <div class="sec-label" style="margin-bottom:8px;margin-top:14px">세제 한도 활용</div>
       <div class="tax-row">${taxHTML}</div>
     </div>`;
@@ -916,12 +1008,17 @@ function render(d) {
       </div>
       <div class="hdr-meta">마지막 갱신 ${fmtUpdatedAt(d.updated_at)}</div>
     </div>
-    ${renderMarketStrip(d)}
+    <div class="sec-label">시장 컨텍스트</div>
+    ${renderMacroRow(d)}
+    ${renderAssetsRow(d)}
+    ${renderIndicatorsRow(d)}
+    <div class="sec-label">자산 비율</div>
     ${renderSummaryRow(d)}
     <div class="sec-label">계좌별 현황</div>
     ${renderAccountGrid(d)}
     <div class="sec-label">종목 상세</div>
     ${renderHoldings(d)}
+    <div class="sec-label">보조 지표</div>
     ${renderMetrics(d)}`;
 
   document.getElementById('app').innerHTML = html;

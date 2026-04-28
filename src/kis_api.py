@@ -75,7 +75,31 @@ def _base_headers(name: str, tr_id: str) -> dict:
     }
 
 
-def get_overseas_balance(name: str) -> tuple[list[dict], float]:
+def _get_overseas_psamount(name: str) -> dict:
+    """해외주식 매수가능금액조회 (TTTS3007R) — KRW + USD 예수금 반환."""
+    acc = ACCOUNTS[name]
+    cano, acnt_prdt_cd = _parse_account(acc["account"])
+    params = {
+        "CANO": cano,
+        "ACNT_PRDT_CD": acnt_prdt_cd,
+        "OVRS_EXCG_CD": "NASD",
+        "OVRS_ORD_UNPR": "1",
+        "ITEM_CD": "AAPL",
+    }
+    try:
+        resp = requests.get(
+            f"{BASE_URL}/uapi/overseas-stock/v1/trading/inquire-psamount",
+            headers=_base_headers(name, "TTTS3007R"),
+            params=params,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json().get("output", {}) or {}
+    except Exception:
+        return {}
+
+
+def get_overseas_balance(name: str, usdkrw: float = 1380.0) -> tuple[list[dict], float]:
     acc = ACCOUNTS[name]
     cano, acnt_prdt_cd = _parse_account(acc["account"])
     params = {
@@ -98,7 +122,45 @@ def get_overseas_balance(name: str) -> tuple[list[dict], float]:
     out2 = data.get("output2", {})
     if isinstance(out2, list):
         out2 = out2[0] if out2 else {}
-    cash_krw = float(out2.get("dnca_tot_amt") or 0)
+
+    # output2에서 KRW/USD 예수금 후보 필드 탐색
+    krw_cash = float(out2.get("dnca_tot_amt") or 0)
+    usd_cash = 0.0
+    for f in ("frcr_dncl_amt1", "frcr_dncl_amt", "frcr_buy_able_amt"):
+        v = out2.get(f)
+        if v:
+            try:
+                usd_cash = float(v)
+                if usd_cash > 0:
+                    break
+            except (ValueError, TypeError):
+                pass
+
+    # output2에 없으면 inquire-psamount 보조 호출
+    if krw_cash == 0 and usd_cash == 0:
+        psa = _get_overseas_psamount(name)
+        try:
+            krw_cash = float(psa.get("frcr_ord_psbl_amt1") or psa.get("ord_psbl_frcr_amt") or 0)
+        except (ValueError, TypeError):
+            pass
+        try:
+            usd_cash = float(psa.get("ovrs_ord_psbl_amt") or 0)
+        except (ValueError, TypeError):
+            pass
+
+    total_cash_krw = krw_cash + usd_cash * usdkrw
+
+    # 디버그: output2 비-제로 필드 출력
+    print(f"  [DEBUG {name} output2 비-제로 필드]")
+    for k, v in sorted(out2.items()):
+        try:
+            fv = float(v or 0)
+            if fv != 0:
+                print(f"    {k}: {fv:,.2f}")
+        except (ValueError, TypeError):
+            pass
+    print(f"  [{name}] KRW예수금 {krw_cash:,.0f} | USD예수금 {usd_cash:,.2f} (≈{usd_cash*usdkrw:,.0f}원) → 합산 {total_cash_krw:,.0f}원")
+
     holdings = [
         {
             "account": name,
@@ -112,7 +174,7 @@ def get_overseas_balance(name: str) -> tuple[list[dict], float]:
         for item in data.get("output1", [])
         if float(item.get("ovrs_cblc_qty", 0)) > 0
     ]
-    return holdings, cash_krw
+    return holdings, total_cash_krw
 
 
 def get_domestic_balance(name: str) -> tuple[list[dict], float]:
@@ -144,6 +206,7 @@ def get_domestic_balance(name: str) -> tuple[list[dict], float]:
     if isinstance(out2, list):
         out2 = out2[0] if out2 else {}
     cash_krw = float(out2.get("dnca_tot_amt") or 0)
+    print(f"  [{name}] KRW예수금 {cash_krw:,.0f}원")
     holdings = [
         {
             "account": name,
@@ -160,13 +223,13 @@ def get_domestic_balance(name: str) -> tuple[list[dict], float]:
     return holdings, cash_krw
 
 
-def fetch_all_balances() -> dict:
+def fetch_all_balances(usdkrw: float = 1380.0) -> dict:
     result = {"overseas": [], "domestic": [],
               "cash_jonghap": 0.0, "cash_isa": 0.0, "cash_yeon": 0.0}
     for name, cfg in ACCOUNTS.items():
         try:
             if cfg["type"] == "overseas":
-                holdings, cash = get_overseas_balance(name)
+                holdings, cash = get_overseas_balance(name, usdkrw)
                 result["overseas"].extend(holdings)
                 result[f"cash_{name.lower()}"] = cash
             else:
