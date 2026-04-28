@@ -36,36 +36,49 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 /* ── market sections (top: macro/assets/indicators) ── */
 .market-section{
   display:flex;align-items:center;margin-bottom:8px;
-  padding:12px 16px;background:var(--bg2);border-radius:var(--r-md);
+  padding:12px 16px;border-radius:var(--r-md);
   border:0.5px solid var(--bdr);
+}
+.market-section.macro{background:#F5F0E8;border-color:#DCD0BC}
+.market-section.assets{background:#EEF2FA;border-color:#C8D6EC}
+@media(prefers-color-scheme:dark){
+  .market-section.macro{background:#2A2520;border-color:#403A30}
+  .market-section.assets{background:#1F2638;border-color:#2E3A52}
 }
 .ms-label{
   font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--txt3);min-width:60px;flex-shrink:0;padding-right:4px;
+  color:var(--txt3);min-width:60px;flex-shrink:0;padding-right:8px;
+  display:flex;align-items:center;gap:4px;
 }
 .ms-items{display:flex;flex-wrap:wrap;flex:1;gap:0}
 .ms-item{
-  flex:1;min-width:90px;padding:4px 14px;
-  border-right:0.5px solid var(--bdr);display:flex;flex-direction:column;
+  flex:1;min-width:100px;padding:4px 14px;
+  border-right:0.5px solid var(--bdr);display:flex;align-items:center;gap:10px;
 }
 .ms-item:last-child{border-right:none}
-.ms-name{font-size:12px;color:var(--txt3);margin-bottom:3px}
-.ms-price{font-size:16px;font-weight:600;font-family:var(--mono)}
+.ms-emoji{font-size:24px;line-height:1;flex-shrink:0}
+.ms-meta{display:flex;flex-direction:column;flex:1;min-width:0}
+.ms-name{font-size:11px;color:var(--txt3);margin-bottom:2px}
+.ms-price{font-size:18px;font-weight:600;font-family:var(--mono);line-height:1.15}
 .ms-chg{font-size:13px;font-family:var(--mono);margin-top:2px}
 
 .indicators-section{
-  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:20px;
 }
 @media(max-width:900px){.indicators-section{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:500px){.indicators-section{grid-template-columns:repeat(2,1fr)}}
 .ind-card{
   padding:12px 14px;border-radius:var(--r-md);
-  background:var(--bg2);border:0.5px solid var(--bdr);
+  background:#F0F4ED;border:0.5px solid #C8D6BB;
+}
+@media(prefers-color-scheme:dark){
+  .ind-card{background:#1F2A22;border-color:#324A38}
 }
 .ind-label{font-size:12px;color:var(--txt3);margin-bottom:4px}
 .ind-value{font-size:22px;font-weight:600;font-family:var(--mono);line-height:1.1}
 .ind-sub{font-size:11px;color:var(--txt2);margin-top:3px}
-.ind-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.ind-bar{height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden;margin-top:6px}
+@media(prefers-color-scheme:dark){.ind-bar{background:rgba(255,255,255,0.10)}}
 .ind-bar-fill{height:100%;border-radius:3px;transition:width .3s}
 
 /* ── section label ── */
@@ -79,27 +92,27 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .summary-row{display:grid;grid-template-columns:1fr 1fr repeat(6,1fr);gap:10px;margin-bottom:22px}
 @media(max-width:960px){.summary-row{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:600px){.summary-row{grid-template-columns:1fr 1fr}}
-.card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:14px 16px}
+.card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:12px 14px}
 .card-risk .label{font-size:14px;color:#791F1F;margin-bottom:4px;font-weight:500}
-.card-risk .pct{font-size:28px;font-weight:600;color:#501313;line-height:1.1}
-.card-risk .amt{font-size:13px;color:#791F1F;margin-top:3px;font-family:var(--mono)}
+.card-risk .pct{font-size:24px;font-weight:600;color:#501313;line-height:1.1}
+.card-risk .amt{font-size:12px;color:#791F1F;margin-top:3px;font-family:var(--mono)}
 @media(prefers-color-scheme:dark){
   .card-risk{background:#3a1a1a}
   .card-risk .label,.card-risk .amt{color:#e07070}
   .card-risk .pct{color:#f0a0a0}
 }
-.card-safe{background:#EAF3DE;border-radius:var(--r-md);padding:14px 16px}
+.card-safe{background:#EAF3DE;border-radius:var(--r-md);padding:12px 14px}
 .card-safe .label{font-size:14px;color:#27500A;margin-bottom:4px;font-weight:500}
-.card-safe .pct{font-size:28px;font-weight:600;color:#173404;line-height:1.1}
-.card-safe .amt{font-size:13px;color:#27500A;margin-top:3px;font-family:var(--mono)}
+.card-safe .pct{font-size:24px;font-weight:600;color:#173404;line-height:1.1}
+.card-safe .amt{font-size:12px;color:#27500A;margin-top:3px;font-family:var(--mono)}
 @media(prefers-color-scheme:dark){
   .card-safe{background:#1a2e12}
   .card-safe .label,.card-safe .amt{color:#80c050}
   .card-safe .pct{color:#a0e070}
 }
-.cls-card{border-radius:var(--r-md);padding:12px 14px}
+.cls-card{border-radius:var(--r-md);padding:11px 13px}
 .cls-card .label{font-size:13px;margin-bottom:3px;font-weight:500}
-.cls-card .pct{font-size:22px;font-weight:600;line-height:1.1}
+.cls-card .pct{font-size:21px;font-weight:600;line-height:1.1}
 .cls-card .amt{font-size:11px;margin-top:2px;font-family:var(--mono)}
 .spark-wrap{margin-top:6px;line-height:0}
 .spark-svg{cursor:pointer;opacity:.85;transition:opacity .15s}
@@ -109,13 +122,16 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .account-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
 @media(max-width:960px){.account-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.account-grid{grid-template-columns:1fr 1fr}}
-.acct-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.acct-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .acct-card .bar{height:4px;border-radius:2px;margin-bottom:2px}
 .acct-card .name{font-size:16px;font-weight:600}
 .acct-card .sub{font-size:11px;color:var(--txt3)}
-.acct-card .amount{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1.1}
-.acct-card .pct-row{display:flex;align-items:center;gap:8px;margin-top:2px}
+.acct-card .amount{font-size:18px;font-weight:700;font-family:var(--mono);line-height:1.15}
+.acct-card .pct-row{display:flex;align-items:center;gap:8px;margin-top:1px}
 .acct-card .pct-val{font-size:14px;color:var(--txt2);white-space:nowrap;font-weight:500}
+.acct-pnl{font-size:11px;color:var(--txt3);font-family:var(--mono);line-height:1.5;margin-top:2px}
+.acct-pnl .acct-pnl-strong{font-weight:600;font-size:12px}
+.acct-pnl .pos{color:var(--pos)}.acct-pnl .neg{color:var(--neg)}
 .pbar{height:5px;flex:1;background:var(--bg2);border-radius:3px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:3px}
 
@@ -138,13 +154,13 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .grid-row .color-bar{height:38px}
 .grid-row .cat{padding-left:10px;font-size:12px;color:var(--txt3)}
 .grid-row .ticker-wrap{padding:0 4px}
-.grid-row .ticker-wrap .tname{font-size:14px;font-weight:500;line-height:1.3}
+.grid-row .ticker-wrap .tname{font-size:13px;font-weight:500;line-height:1.3}
 .grid-row .ticker-wrap .tcode{font-size:11px;color:var(--txt3);font-family:var(--mono);margin-top:1px}
-.grid-row .gpct{font-size:14px;font-weight:600;text-align:right;padding:0 4px}
-.grid-row .gprincipal{font-size:13px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
-.grid-row .gamt{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
-.grid-row .gpnl{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
-.grid-row .gpnlpct{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
+.grid-row .gpct{font-size:13px;font-weight:600;text-align:right;padding:0 4px}
+.grid-row .gprincipal{font-size:12px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
+.grid-row .gamt{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.grid-row .gpnl{font-size:12px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.grid-row .gpnlpct{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
 .grid-row .gpnl.pos,.grid-row .gpnlpct.pos{color:var(--pos)}
 .grid-row .gpnl.neg,.grid-row .gpnlpct.neg{color:var(--neg)}
 
@@ -155,24 +171,24 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .sat-row{display:grid;grid-template-columns:5px 1.4fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:12px 14px 12px 0;border-top:0.5px solid var(--bdr);align-items:center;min-width:600px}
 .sat-row .color-bar{height:38px}
 .sat-row .sname-wrap{padding-left:10px}
-.sat-row .sname{font-size:14px;font-weight:500;line-height:1.3}
+.sat-row .sname{font-size:13px;font-weight:500;line-height:1.3}
 .sat-row .scat{font-size:11px;color:var(--txt3);margin-top:1px}
-.sat-row .spct{font-size:14px;font-weight:600;text-align:right;padding:0 4px}
-.sat-row .sprincipal{font-size:13px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
-.sat-row .samt{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
-.sat-row .spnl{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
-.sat-row .spnlpct{font-size:14px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
+.sat-row .spct{font-size:13px;font-weight:600;text-align:right;padding:0 4px}
+.sat-row .sprincipal{font-size:12px;font-family:var(--mono);text-align:right;color:var(--txt3);padding:0 4px}
+.sat-row .samt{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.sat-row .spnl{font-size:12px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:500}
+.sat-row .spnlpct{font-size:13px;font-family:var(--mono);text-align:right;padding:0 4px;font-weight:600}
 .sat-row .spnl.pos,.sat-row .spnlpct.pos{color:var(--pos)}
 .sat-row .spnl.neg,.sat-row .spnlpct.neg{color:var(--neg)}
 
 /* ── account rebalancing header ── */
-.acct-rebal{padding:10px 16px;border-bottom:0.5px solid var(--bdr);background:var(--bg3);font-size:13px;line-height:1.7}
-.acct-rebal-row{display:flex;flex-wrap:wrap;gap:4px;align-items:baseline;margin-bottom:2px}
+.acct-rebal{padding:10px 16px;border-bottom:0.5px solid var(--bdr);background:var(--bg3);font-size:14px;line-height:1.7}
+.acct-rebal-row{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin-bottom:3px}
 .acct-rebal-row:last-child{margin-bottom:0}
-.acct-rebal-lbl{color:var(--txt3);min-width:36px;flex-shrink:0;font-weight:700;font-size:12px}
-.arb-item{font-family:var(--mono);color:var(--txt2);font-size:13px}
-.arb-item.ok{color:var(--txt2)}.arb-item.alert{color:var(--neg);font-weight:700}
-.arb-sep{color:var(--bdr2);margin:0 2px}
+.acct-rebal-lbl{color:var(--txt2);flex-shrink:0;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.arb-item{color:var(--txt2);font-size:14px;white-space:nowrap}
+.arb-item.alert{color:var(--neg);font-weight:700}
+.arb-sep{color:var(--bdr2);margin:0 4px}
 
 /* ── split buying bar ── */
 .split-buy{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
@@ -207,14 +223,19 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .mdd-info{font-size:10px;color:var(--txt3);margin-top:4px}
 
 /* ── metrics ── */
-.metrics-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:16px 18px}
+.metrics-card{border:0.5px solid var(--bdr);border-radius:var(--r-lg);padding:18px 20px}
 .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.metrics-grid-4{grid-template-columns:repeat(4,1fr)}
 @media(max-width:800px){.metrics-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.metrics-grid{grid-template-columns:1fr}}
-.m-item{background:var(--bg2);border-radius:var(--r-md);padding:10px 12px}
-.m-item .m-label{font-size:11px;color:var(--txt2);margin-bottom:3px}
-.m-item .m-val{font-size:16px;font-weight:600;font-family:var(--mono)}
-.m-item .m-sub{font-size:10px;color:var(--txt3);margin-top:2px}
+.m-item{background:var(--bg2);border-radius:var(--r-md);padding:11px 13px}
+.m-item .m-label{font-size:12px;color:var(--txt2);margin-bottom:4px;font-weight:500}
+.m-item .m-emoji{font-size:14px;margin-right:2px}
+.m-item .m-val{font-size:17px;font-weight:600;font-family:var(--mono);line-height:1.15}
+.m-item .m-sub{font-size:11px;color:var(--txt3);margin-top:3px;line-height:1.4}
+.m-item-wide{padding:14px 16px;margin-bottom:0}
+.m-item-wide .m-val{font-size:24px}
+.m-subhdr{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px}
 .tax-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 @media(max-width:600px){.tax-row{grid-template-columns:1fr 1fr}}
 .tax-item{padding:8px 10px;border:0.5px solid var(--bdr);border-radius:var(--r-md)}
@@ -347,9 +368,20 @@ function closeModal(e) {
 }
 
 // ── market sections (top of page) ────────────────────────────────────────────
-function _msItem(name, priceStr, chgPct) {
+const MACRO_EMOJI = {USDKRW:'💱', DXY:'💵', US10Y:'📈', VIX:'😱', CL1:'🛢️'};
+const ASSET_EMOJI = {BTC:'₿', NDX:'💎', GOLD:'🥇', KOSPI:'🇰🇷', ETH:'⟠'};
+const CLS_EMOJI   = {us_stock:'📈', bond:'🏦', gold:'🥇', oil:'🛢', cash:'💵', crypto:'₿'};
+
+function _msItem(emoji, name, priceStr, chgPct) {
   const c = chgPct>0?'chg-pos':chgPct<0?'chg-neg':'chg-neu';
-  return `<div class="ms-item"><div class="ms-name">${name}</div><div class="ms-price">${priceStr}</div><div class="ms-chg ${c}">${sign(chgPct)}${chgPct.toFixed(2)}%</div></div>`;
+  return `<div class="ms-item">
+    <div class="ms-emoji">${emoji}</div>
+    <div class="ms-meta">
+      <div class="ms-name">${name}</div>
+      <div class="ms-price">${priceStr}</div>
+      <div class="ms-chg ${c}">${sign(chgPct)}${chgPct.toFixed(2)}%</div>
+    </div>
+  </div>`;
 }
 function _fmtMktPrice(p) {
   if(p>=10000) return fmt(Math.round(p));
@@ -361,12 +393,13 @@ function _fmtMktPrice(p) {
 function renderMacroRow(d) {
   if(!d.markets) return '';
   const fxChg = d.markets.usdkrw_change_pct||0;
-  let items = _msItem('USD/KRW', fmt(d.usdkrw), fxChg);
-  for(const it of Object.values(d.markets.macro||{})) {
-    items += _msItem(it.name, _fmtMktPrice(it.price), it.change_pct);
+  let items = _msItem(MACRO_EMOJI.USDKRW, 'USD/KRW', fmt(d.usdkrw), fxChg);
+  for(const [key, it] of Object.entries(d.markets.macro||{})) {
+    const e = MACRO_EMOJI[key] || '📊';
+    items += _msItem(e, it.name, _fmtMktPrice(it.price), it.change_pct);
   }
   return `
-    <div class="market-section">
+    <div class="market-section macro">
       <div class="ms-label">매크로</div>
       <div class="ms-items">${items}</div>
     </div>`;
@@ -375,12 +408,13 @@ function renderMacroRow(d) {
 function renderAssetsRow(d) {
   if(!d.markets || !d.markets.assets) return '';
   let items = '';
-  for(const it of Object.values(d.markets.assets)) {
-    items += _msItem(it.name, _fmtMktPrice(it.price), it.change_pct);
+  for(const [key, it] of Object.entries(d.markets.assets)) {
+    const e = ASSET_EMOJI[key] || '📊';
+    items += _msItem(e, it.name, _fmtMktPrice(it.price), it.change_pct);
   }
   if(!items) return '';
   return `
-    <div class="market-section">
+    <div class="market-section assets">
       <div class="ms-label">자산</div>
       <div class="ms-items">${items}</div>
     </div>`;
@@ -565,6 +599,12 @@ function renderAccountGrid(d) {
     const usdLine = a.usd_amount!=null
       ? `<div class="sub" style="font-family:var(--mono);margin-top:1px">$${a.usd_amount.toLocaleString('en-US')}</div>`
       : '';
+    let pnlLine = '';
+    if(a.principal_krw && a.principal_krw > 0) {
+      const sgn = a.pnl_krw >= 0 ? '+' : '';
+      const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
+      pnlLine = `<div class="acct-pnl">원금 ${fmt(a.principal_krw)} · 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
+    }
     return `
       <div class="acct-card">
         <div class="bar" style="background:${a.color}"></div>
@@ -575,6 +615,7 @@ function renderAccountGrid(d) {
           <span class="pct-val">${p.toFixed(1)}%</span>
           <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${clamp(p,0,100)}%"></div></div>
         </div>
+        ${pnlLine}
       </div>`;
   }).join('');
   return `<div class="account-grid">${cards}</div>`;
@@ -659,16 +700,17 @@ function renderAcctRebal(accountId, d) {
   function fmtRow(rows, useActual) {
     return rows.map((r,i) => {
       const val = useActual ? r.actual : r.target;
-      const alert = useActual && Math.abs(r.diff)>5 ? ' alert' : (useActual ? ' ok' : '');
-      const sep = i<rows.length-1 ? '<span class="arb-sep">/</span>' : '';
-      return `<span class="arb-item${alert}">${r.name} ${val}%</span>${sep}`;
+      const alert = useActual && Math.abs(r.diff)>5 ? ' alert' : '';
+      const sep = i<rows.length-1 ? '<span class="arb-sep">·</span>' : '';
+      const emoji = CLS_EMOJI[r.cls] || '';
+      return `<span class="arb-item${alert}">${emoji} ${r.name} ${val}%</span>${sep}`;
     }).join('');
   }
 
   return `
     <div class="acct-rebal">
-      <div class="acct-rebal-row"><span class="acct-rebal-lbl">목표</span>${fmtRow(acct.class_rows, false)}</div>
-      <div class="acct-rebal-row"><span class="acct-rebal-lbl">현재</span>${fmtRow(acct.class_rows, true)}</div>
+      <div class="acct-rebal-row"><span class="acct-rebal-lbl">🎯 기준</span>${fmtRow(acct.class_rows, false)}</div>
+      <div class="acct-rebal-row"><span class="acct-rebal-lbl">📊 현재</span>${fmtRow(acct.class_rows, true)}</div>
     </div>`;
 }
 
@@ -938,19 +980,21 @@ function renderCryptoIndicators(d) {
 function renderMetrics(d) {
   const m = d.metrics, liq = m.liquidity, tax = m.tax;
 
+  // 유동성 4단계 (가로 4칸)
   const liqItems = [
-    {label:'즉시 인출', val:liq.instant, sub:liq.instant_note, bg:'#E1F5EE',fg:'#04342C',lbl:'#085041'},
-    {label:'1주 이내',  val:liq.week,    sub:liq.week_note,    bg:'#E6F1FB',fg:'#042C53',lbl:'#0C447C'},
-    {label:'ISA (3년↑)',val:liq.mid,     sub:liq.mid_note,     bg:'#FAEEDA',fg:'#412402',lbl:'#633806'},
-    {label:'55세 락업', val:liq.long,    sub:liq.long_note,    bg:'#FCEBEB',fg:'#501313',lbl:'#791F1F'},
+    {emoji:'💵', label:'즉시 인출',   val:liq.instant, sub:liq.instant_note, bg:'#E1F5EE',fg:'#04342C',lbl:'#085041'},
+    {emoji:'📅', label:'1주 이내',    val:liq.week,    sub:liq.week_note,    bg:'#E6F1FB',fg:'#042C53',lbl:'#0C447C'},
+    {emoji:'📆', label:'ISA (3년+)',  val:liq.mid,     sub:liq.mid_note,     bg:'#FAEEDA',fg:'#412402',lbl:'#633806'},
+    {emoji:'🔒', label:'55세 락업',   val:liq.long,    sub:liq.long_note,    bg:'#FCEBEB',fg:'#501313',lbl:'#791F1F'},
   ];
   const liqHTML = liqItems.map(i => `
     <div class="m-item" style="background:${i.bg}">
-      <div class="m-label" style="color:${i.lbl}">${i.label}</div>
+      <div class="m-label" style="color:${i.lbl}"><span class="m-emoji">${i.emoji}</span> ${i.label}</div>
       <div class="m-val" style="color:${i.fg}">${fmt(i.val)}</div>
       <div class="m-sub" style="color:${i.lbl}">${i.sub}</div>
     </div>`).join('');
 
+  // 세제 한도 활용 3카드
   const yeonPct = tax.yeon_limit>0 ? (tax.yeon_used/tax.yeon_limit*100).toFixed(0) : 0;
   const taxHTML = `
     <div class="tax-item">
@@ -971,22 +1015,16 @@ function renderMetrics(d) {
 
   return `
     <div class="metrics-card">
-      <div class="metrics-grid">
-        <div class="m-item">
-          <div class="m-label">USD 노출 자산</div>
-          <div class="m-val">${pct(m.usd_exposure_krw, d.total_krw)}</div>
-          <div class="m-sub">${fmt(m.usd_exposure_krw)}원 · ${m.usd_exposure_note}</div>
-        </div>
-        <div class="m-item">
-          <div class="m-label">양도세 면세 한도</div>
-          <div class="m-val">250만원/년</div>
-          <div class="m-sub">초과분만 22% 과세</div>
-        </div>
-        ${liqHTML}
-      </div>
+      <div class="m-subhdr">유동성 4단계</div>
+      <div class="metrics-grid metrics-grid-4">${liqHTML}</div>
       ${renderCapitalGainsGauge(d.capital_gains)}
-      <div class="sec-label" style="margin-bottom:8px;margin-top:14px">세제 한도 활용</div>
+      <div class="m-subhdr" style="margin-top:14px">세제 한도 활용</div>
       <div class="tax-row">${taxHTML}</div>
+      <div class="m-subhdr" style="margin-top:14px">USD 노출 자산</div>
+      <div class="m-item m-item-wide">
+        <div class="m-val">${pct(m.usd_exposure_krw, d.total_krw)}</div>
+        <div class="m-sub">${fmt(m.usd_exposure_krw)}원 · ${m.usd_exposure_note}</div>
+      </div>
     </div>`;
 }
 

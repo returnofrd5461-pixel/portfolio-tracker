@@ -74,6 +74,11 @@ _CLS_NAMES = {
     "us_stock": "주식", "crypto": "크립토", "bond": "채권",
     "gold": "금", "oil": "원유", "cash": "현금",
 }
+# 종목 정렬 순서: us_stock → bond → gold → oil → crypto → cash
+SORT_ORDER = {
+    "us_stock": 1, "bond": 2, "gold": 3, "oil": 4,
+    "commodity": 5, "crypto": 6, "cash": 7,
+}
 
 GLOBAL_REBAL_TARGETS = {
     "us_stock": 30.0, "crypto": 35.0, "bond": 15.0,
@@ -150,6 +155,19 @@ def write_data_json(
         if cash > 0:
             acct_totals[api_key] = acct_totals.get(api_key, 0) + cash
 
+    # Per-account P&L aggregation (principal/pnl 합산)
+    acct_pnl: dict[str, dict] = {}
+    for h in all_holdings:
+        if h.get("principal_krw", 0) > 0:
+            agg = acct_pnl.setdefault(h["account"], {"principal_krw": 0, "pnl_krw": 0})
+            agg["principal_krw"] += h["principal_krw"]
+            agg["pnl_krw"]       += h["pnl_krw"]
+    for acc, agg in acct_pnl.items():
+        if agg["principal_krw"] > 0:
+            agg["pnl_pct"] = round(agg["pnl_krw"] / agg["principal_krw"] * 100, 2)
+            agg["principal_krw"] = round(agg["principal_krw"])
+            agg["pnl_krw"]       = round(agg["pnl_krw"])
+
     # Build accounts list
     accounts = []
     for api_key, meta in ACCOUNT_META.items():
@@ -162,11 +180,21 @@ def write_data_json(
                        "krw": round(krw), "color": meta["color"]}
         if api_key in ("KIS_JONGHAP", "OKX") and usdkrw:
             entry["usd_amount"] = round(krw / usdkrw)
+        if api_key in acct_pnl:
+            entry.update(acct_pnl[api_key])
         accounts.append(entry)
 
     for acc_id, meta in MANUAL_ACCOUNT_META.items():
-        accounts.append({"id": acc_id, "name": meta["name"], "subtitle": meta["sub"],
-                         "krw": round(manual_krw.get(acc_id, 0)), "color": meta["color"]})
+        entry: dict = {"id": acc_id, "name": meta["name"], "subtitle": meta["sub"],
+                       "krw": round(manual_krw.get(acc_id, 0)), "color": meta["color"]}
+        # toss는 노션 수동입력 P&L 사용
+        if acc_id == "toss":
+            tdata = notion_manual.get("toss", {})
+            if isinstance(tdata, dict) and tdata.get("principal", 0) > 0:
+                entry["principal_krw"] = round(tdata["principal"])
+                entry["pnl_krw"]       = round(tdata.get("pnl", 0))
+                entry["pnl_pct"]       = round(tdata.get("pnl_pct", 0), 2)
+        accounts.append(entry)
 
     total_krw = sum(a["krw"] for a in accounts)
 
@@ -273,6 +301,7 @@ def write_data_json(
             p = round(h["eval_krw"] / acct_total * 100, 1) if acct_total else 0
             items.append({
                 "ticker": h["ticker"], "name": h["name"],
+                "cls": h.get("asset_class", ""),
                 "cat": h.get("asset_class", "").replace("_", " "),
                 "pct": p, "krw": round(h["eval_krw"]),
                 "principal_krw": h.get("principal_krw", 0),
@@ -280,6 +309,8 @@ def write_data_json(
                 "pnl_pct": round(h.get("pnl_pct", 0), 2),
                 "color": _holding_color(h["ticker"], h.get("asset_class", "")),
             })
+        # 자산군 순서로 정렬: us_stock → bond → gold → oil
+        items.sort(key=lambda x: (SORT_ORDER.get(x["cls"], 99), -x["krw"]))
         core_holdings.append({
             "account_id": meta["id"], "account_name": meta["name"],
             "account_sub": meta["sub"], "account_color": meta["color"],
@@ -302,6 +333,7 @@ def write_data_json(
                 continue
             items.append({
                 "ticker": h["ticker"], "name": h["name"],
+                "cls": h.get("asset_class", ""),
                 "cat": h.get("asset_class", ""),
                 "krw": round(h["eval_krw"]),
                 "principal_krw": h.get("principal_krw", 0),
@@ -309,6 +341,7 @@ def write_data_json(
                 "pnl_pct": round(h.get("pnl_pct", 0), 2),
                 "color": _holding_color(h["ticker"], h.get("asset_class", "")),
             })
+        items.sort(key=lambda x: (SORT_ORDER.get(x["cls"], 99), -x["krw"]))
         satellite_holdings.append({
             "account_id": meta["id"], "account_name": meta["name"],
             "account_sub": meta["sub"], "account_color": meta["color"],
