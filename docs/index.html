@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포트폴리오 대시보드</title>
+<style>
+:root {
+  --bg:        #ffffff;
+  --bg2:       #f7f7f5;
+  --bg3:       #eeedea;
+  --txt:       #1c1c1a;
+  --txt2:      #6b6a64;
+  --txt3:      #a3a299;
+  --bdr:       rgba(0,0,0,0.08);
+  --bdr2:      rgba(0,0,0,0.15);
+  --mono:      'SF Mono', Monaco, Menlo, Consolas, monospace;
+  --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --r-md:      8px;
+  --r-lg:      12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:   #1c1c1a;
+    --bg2:  #2a2a28;
+    --bg3:  #333330;
+    --txt:  #f0efe8;
+    --txt2: #a3a299;
+    --txt3: #6b6a64;
+    --bdr:  rgba(255,255,255,0.10);
+    --bdr2: rgba(255,255,255,0.18);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--sans);color:var(--txt);background:var(--bg);
+  padding:20px 24px;line-height:1.5;
+}
+/* ── header ─────────────────────────────── */
+.hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;flex-wrap:wrap;gap:6px}
+.hdr h1{font-size:17px;font-weight:600}
+.hdr-meta{font-size:12px;color:var(--txt3);font-family:var(--mono)}
+.total-krw{font-size:13px;color:var(--txt2)}
+.total-krw strong{font-family:var(--mono);font-size:15px;color:var(--txt);font-weight:600}
+/* ── section label ───────────────────────── */
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px}
+/* ── summary row (risk/safe + 6 asset cards) */
+.summary-row{
+  display:grid;
+  grid-template-columns:1fr 1fr repeat(6,1fr);
+  gap:8px;margin-bottom:20px;
+}
+@media(max-width:960px){.summary-row{grid-template-columns:1fr 1fr 1fr;}}
+@media(max-width:600px){.summary-row{grid-template-columns:1fr 1fr;}}
+.card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:12px 14px}
+.card-risk .label{font-size:11px;color:#791F1F;margin-bottom:3px}
+.card-risk .pct{font-size:22px;font-weight:600;color:#501313}
+.card-risk .amt{font-size:10px;color:#791F1F;margin-top:3px;font-family:var(--mono)}
+@media(prefers-color-scheme:dark){
+  .card-risk{background:#3a1a1a}
+  .card-risk .label,.card-risk .amt{color:#e07070}
+  .card-risk .pct{color:#f0a0a0}
+}
+.card-safe{background:#EAF3DE;border-radius:var(--r-md);padding:12px 14px}
+.card-safe .label{font-size:11px;color:#27500A;margin-bottom:3px}
+.card-safe .pct{font-size:22px;font-weight:600;color:#173404}
+.card-safe .amt{font-size:10px;color:#27500A;margin-top:3px;font-family:var(--mono)}
+@media(prefers-color-scheme:dark){
+  .card-safe{background:#1a2e12}
+  .card-safe .label,.card-safe .amt{color:#80c050}
+  .card-safe .pct{color:#a0e070}
+}
+.cls-card{border-radius:var(--r-md);padding:10px 12px}
+.cls-card .label{font-size:10px;margin-bottom:2px}
+.cls-card .pct{font-size:17px;font-weight:600}
+.cls-card .amt{font-size:9px;margin-top:2px;font-family:var(--mono)}
+/* ── account grid ────────────────────────── */
+.account-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:20px;
+}
+@media(max-width:960px){.account-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.account-grid{grid-template-columns:1fr 1fr;}}
+.acct-card{
+  border:0.5px solid var(--bdr);border-radius:var(--r-lg);
+  padding:12px 14px;display:flex;flex-direction:column;gap:6px;
+}
+.acct-card .bar{height:3px;border-radius:2px;margin-bottom:2px}
+.acct-card .name{font-size:13px;font-weight:500}
+.acct-card .sub{font-size:10px;color:var(--txt3)}
+.acct-card .amount{font-size:15px;font-weight:600;font-family:var(--mono)}
+.acct-card .pct-row{display:flex;align-items:center;gap:6px}
+.acct-card .pct-val{font-size:11px;color:var(--txt2);white-space:nowrap}
+.pbar{height:4px;flex:1;background:var(--bg2);border-radius:2px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:2px}
+/* ── holdings 2-col ──────────────────────── */
+.holdings-row{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:16px;margin-bottom:20px;
+}
+@media(max-width:800px){.holdings-row{grid-template-columns:1fr;}}
+.holdings-col{}
+.holdings-col .col-label{font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:8px}
+.h-table{
+  border:0.5px solid var(--bdr);border-radius:var(--r-lg);
+  overflow:hidden;margin-bottom:10px;
+}
+.h-table-hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;background:var(--bg2);
+  border-bottom:0.5px solid var(--bdr);
+}
+.h-table-hdr .acct-title{font-size:13px;font-weight:500}
+.h-table-hdr .acct-sub{font-size:10px;color:var(--txt2);margin-top:1px}
+.h-table-hdr .acct-total{font-size:14px;font-weight:600;font-family:var(--mono);white-space:nowrap;margin-left:10px}
+.grid-head{
+  display:grid;grid-template-columns:5px 1.2fr 1.6fr 0.5fr 0.9fr;
+  padding:6px 14px 6px 0;background:var(--bg3);
+  font-size:11px;color:var(--txt2);
+}
+.grid-head>*:nth-child(2){padding-left:10px}
+.grid-head>*:last-child{text-align:right;padding-right:4px}
+.grid-row{
+  display:grid;grid-template-columns:5px 1.2fr 1.6fr 0.5fr 0.9fr;
+  padding:9px 14px 9px 0;border-top:0.5px solid var(--bdr);
+  align-items:center;
+}
+.grid-row .color-bar{height:32px}
+.grid-row .cat{padding-left:10px;font-size:12px}
+.grid-row .ticker-wrap .tname{font-size:11px}
+.grid-row .ticker-wrap .tcode{font-size:10px;color:var(--txt3);font-family:var(--mono)}
+.grid-row .gpct{font-size:12px;font-weight:500}
+.grid-row .gamt{font-size:12px;font-family:var(--mono);text-align:right;padding-right:4px}
+/* satellite — simpler 3-col */
+.sat-head{
+  display:grid;grid-template-columns:5px 2fr 0.8fr 1fr;
+  padding:6px 14px 6px 0;background:var(--bg3);
+  font-size:11px;color:var(--txt2);
+}
+.sat-head>*:nth-child(2){padding-left:10px}
+.sat-head>*:last-child{text-align:right;padding-right:4px}
+.sat-row{
+  display:grid;grid-template-columns:5px 2fr 0.8fr 1fr;
+  padding:9px 14px 9px 0;border-top:0.5px solid var(--bdr);
+  align-items:center;
+}
+.sat-row .color-bar{height:32px}
+.sat-row .sname{padding-left:10px;font-size:12px;font-weight:500}
+.sat-row .scat{font-size:10px;color:var(--txt3)}
+.sat-row .spct{font-size:12px;font-weight:500}
+.sat-row .samt{font-size:12px;font-family:var(--mono);text-align:right;padding-right:4px}
+/* ── metrics ─────────────────────────────── */
+.metrics-card{
+  border:0.5px solid var(--bdr);border-radius:var(--r-lg);
+  padding:16px 18px;
+}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:800px){.metrics-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.metrics-grid{grid-template-columns:1fr}}
+.m-item{background:var(--bg2);border-radius:var(--r-md);padding:10px 12px}
+.m-item .m-label{font-size:11px;color:var(--txt2);margin-bottom:3px}
+.m-item .m-val{font-size:16px;font-weight:600;font-family:var(--mono)}
+.m-item .m-sub{font-size:10px;color:var(--txt3);margin-top:2px}
+.tax-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:600px){.tax-row{grid-template-columns:1fr 1fr}}
+.tax-item{padding:8px 10px;border:0.5px solid var(--bdr);border-radius:var(--r-md)}
+.tax-item .t-label{font-size:11px;color:var(--txt2);margin-bottom:2px}
+.tax-item .t-val{font-size:13px;font-weight:500}
+.tax-item .t-sub{font-size:10px;color:var(--txt3);margin-top:1px}
+/* ── loading/error ───────────────────────── */
+.state-msg{padding:40px;text-align:center;color:var(--txt3);font-size:14px}
+</style>
+</head>
+<body>
+
+<div id="app"><div class="state-msg">데이터 로딩 중...</div></div>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const fmtM = n => {
+  if (n >= 1e8) return (n/1e8).toFixed(1) + '억';
+  if (n >= 1e4) return (n/1e4).toFixed(0) + '만';
+  return fmt(n);
+};
+const pct = (n, total) => total > 0 ? (n / total * 100).toFixed(1) + '%' : '0%';
+const pctNum = (n, total) => total > 0 ? n / total * 100 : 0;
+
+const CLS_META = {
+  us_stock: { label: '주식',   bg: '#EEEDFE', fg: '#26215C', lbl: '#3C3489' },
+  crypto:   { label: '크립토', bg: '#FAECE7', fg: '#4A1B0C', lbl: '#712B13' },
+  bond:     { label: '채권',   bg: '#E6F1FB', fg: '#042C53', lbl: '#0C447C' },
+  gold:     { label: '금',     bg: '#FAEEDA', fg: '#412402', lbl: '#633806' },
+  oil:      { label: '원유',   bg: '#F1EFE8', fg: '#2C2C2A', lbl: '#444441' },
+  cash:     { label: '현금',   bg: '#E1F5EE', fg: '#04342C', lbl: '#085041' },
+};
+
+function renderSummaryRow(d) {
+  const total = d.total_krw;
+  const act = d.asset_class_totals;
+  const risk = (act.us_stock || 0) + (act.crypto || 0) + (act.oil || 0);
+  const safe = (act.bond || 0) + (act.gold || 0) + (act.cash || 0);
+
+  const riskCard = `
+    <div class="card-risk">
+      <div class="label">위험자산 (주식+크립토+원유)</div>
+      <div class="pct">${pct(risk, total)}</div>
+      <div class="amt">${fmt(risk)}</div>
+    </div>`;
+
+  const safeCard = `
+    <div class="card-safe">
+      <div class="label">안전자산 (채권+금+현금)</div>
+      <div class="pct">${pct(safe, total)}</div>
+      <div class="amt">${fmt(safe)}</div>
+    </div>`;
+
+  const clsCards = Object.entries(CLS_META).map(([key, m]) => {
+    const v = act[key] || 0;
+    return `
+      <div class="cls-card" style="background:${m.bg}">
+        <div class="label" style="color:${m.lbl}">${m.label}</div>
+        <div class="pct" style="color:${m.fg}">${pct(v, total)}</div>
+        <div class="amt" style="color:${m.lbl}">${fmt(v)}</div>
+      </div>`;
+  }).join('');
+
+  return `<div class="summary-row">${riskCard}${safeCard}${clsCards}</div>`;
+}
+
+function renderAccountGrid(d) {
+  const total = d.total_krw;
+  const cards = d.accounts.map(a => {
+    const p = pctNum(a.krw, total);
+    return `
+      <div class="acct-card">
+        <div class="bar" style="background:${a.color}"></div>
+        <div>
+          <div class="name">${a.name}</div>
+          <div class="sub">${a.subtitle}</div>
+        </div>
+        <div class="amount">${fmt(a.krw)}</div>
+        <div class="pct-row">
+          <span class="pct-val">${p.toFixed(1)}%</span>
+          <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${Math.min(p,100)}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+  return `<div class="account-grid">${cards}</div>`;
+}
+
+function renderCoreTable(h, total) {
+  const p = pctNum(h.total_krw, total).toFixed(1);
+  const rows = h.items.map(item => `
+    <div class="grid-row">
+      <div class="color-bar" style="background:${item.color}"></div>
+      <div class="cat">${item.cat}</div>
+      <div class="ticker-wrap">
+        <div class="tname">${item.name}</div>
+        <div class="tcode">${item.ticker}</div>
+      </div>
+      <div class="gpct">${item.pct}%</div>
+      <div class="gamt">${fmt(item.krw)}</div>
+    </div>`).join('');
+
+  return `
+    <div class="h-table">
+      <div class="h-table-hdr">
+        <div>
+          <div class="acct-title" style="color:${h.account_color}">${h.account_name}</div>
+          <div class="acct-sub">${h.account_sub}</div>
+        </div>
+        <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+      </div>
+      <div class="grid-head">
+        <div></div><div>자산군</div><div>종목</div><div>비중</div><div>금액</div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function renderSatelliteTable(h, total) {
+  const rows = h.items.map(item => {
+    const p = pctNum(item.krw, h.total_krw).toFixed(1);
+    return `
+      <div class="sat-row">
+        <div class="color-bar" style="background:${item.color}"></div>
+        <div>
+          <div class="sname">${item.name}</div>
+          <div class="scat">${item.cat}</div>
+        </div>
+        <div class="spct">${p}%</div>
+        <div class="samt">${fmt(item.krw)}</div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="h-table">
+      <div class="h-table-hdr">
+        <div>
+          <div class="acct-title" style="color:${h.account_color}">${h.account_name}</div>
+          <div class="acct-sub">${h.account_sub}</div>
+        </div>
+        <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+      </div>
+      <div class="sat-head">
+        <div></div><div>종목</div><div>비중</div><div>금액</div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function renderHoldings(d) {
+  const coreHTML = d.core_holdings.map(h => renderCoreTable(h, d.total_krw)).join('');
+  const satHTML  = d.satellite_holdings.map(h => renderSatelliteTable(h, d.total_krw)).join('');
+  return `
+    <div class="holdings-row">
+      <div class="holdings-col">
+        <div class="col-label">코어 (ETF 포트폴리오)</div>
+        ${coreHTML}
+      </div>
+      <div class="holdings-col">
+        <div class="col-label">위성 (개별 / 크립토)</div>
+        ${satHTML}
+      </div>
+    </div>`;
+}
+
+function renderMetrics(d) {
+  const m = d.metrics;
+  const liq = m.liquidity;
+  const tax = m.tax;
+
+  const liqItems = [
+    { label: '즉시 인출', val: liq.instant, sub: liq.instant_note, bg: '#E1F5EE', fg: '#04342C', lbl: '#085041' },
+    { label: '1주 이내', val: liq.week,    sub: liq.week_note,    bg: '#E6F1FB', fg: '#042C53', lbl: '#0C447C' },
+    { label: 'ISA (3년↑)', val: liq.mid,  sub: liq.mid_note,     bg: '#FAEEDA', fg: '#412402', lbl: '#633806' },
+    { label: '55세 락업', val: liq.long,   sub: liq.long_note,    bg: '#FCEBEB', fg: '#501313', lbl: '#791F1F' },
+  ];
+
+  const liqHTML = liqItems.map(item => `
+    <div class="m-item" style="background:${item.bg}">
+      <div class="m-label" style="color:${item.lbl}">${item.label}</div>
+      <div class="m-val" style="color:${item.fg}">${fmt(item.val)}</div>
+      <div class="m-sub" style="color:${item.lbl}">${item.sub}</div>
+    </div>`).join('');
+
+  const yeonPct = tax.yeon_limit > 0 ? (tax.yeon_used / tax.yeon_limit * 100).toFixed(0) : 0;
+  const taxHTML = `
+    <div class="tax-item">
+      <div class="t-label">연저펀 세액공제</div>
+      <div class="t-val">${fmt(tax.yeon_used/1e4)}만 / ${fmt(tax.yeon_limit/1e4)}만</div>
+      <div class="t-sub">${yeonPct}% 사용${yeonPct >= 100 ? ' ✓' : ''}</div>
+    </div>
+    <div class="tax-item">
+      <div class="t-label">IRP 추가 가능</div>
+      <div class="t-val">+300만</div>
+      <div class="t-sub">총 900만 한도</div>
+    </div>
+    <div class="tax-item">
+      <div class="t-label">ISA 잔여 (올해)</div>
+      <div class="t-val">${fmt(tax.isa_remaining/1e4)}만 / ${fmt(tax.isa_limit/1e4)}만</div>
+      <div class="t-sub">${tax.isa_remaining === 0 ? '한도 소진, 내년 1/1 추가' : '잔여 납입 가능'}</div>
+    </div>`;
+
+  return `
+    <div class="metrics-card">
+      <div class="sec-label" style="margin-bottom:10px">보조 지표</div>
+      <div class="metrics-grid">
+        <div class="m-item">
+          <div class="m-label">USD 노출 자산</div>
+          <div class="m-val">${pct(m.usd_exposure_krw, d.total_krw)}</div>
+          <div class="m-sub">${fmt(m.usd_exposure_krw)}원 · ${m.usd_exposure_note}</div>
+        </div>
+        <div class="m-item">
+          <div class="m-label">양도세 면세 한도</div>
+          <div class="m-val">250만원/년</div>
+          <div class="m-sub">초과분만 22% 과세</div>
+        </div>
+        ${liqHTML}
+      </div>
+      <div class="sec-label" style="margin-bottom:8px">세제 한도 활용</div>
+      <div class="tax-row">${taxHTML}</div>
+    </div>`;
+}
+
+function fmtUpdatedAt(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  } catch { return iso; }
+}
+
+function render(d) {
+  const html = `
+    <div class="hdr">
+      <div>
+        <h1>포트폴리오 대시보드</h1>
+        <div class="total-krw">총 자산 <strong>${fmt(d.total_krw)}</strong> 원 &nbsp;·&nbsp; USD/KRW ${fmt(d.usdkrw)}</div>
+      </div>
+      <div class="hdr-meta">마지막 갱신 ${fmtUpdatedAt(d.updated_at)}</div>
+    </div>
+    ${renderSummaryRow(d)}
+    <div class="sec-label">계좌별 현황</div>
+    ${renderAccountGrid(d)}
+    <div class="sec-label">종목 상세</div>
+    ${renderHoldings(d)}
+    ${renderMetrics(d)}`;
+  document.getElementById('app').innerHTML = html;
+}
+
+fetch('data.json')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(err => {
+    document.getElementById('app').innerHTML =
+      `<div class="state-msg">데이터 로드 실패: ${err.message}<br><small>data.json 파일을 확인하세요</small></div>`;
+  });
+</script>
+</body>
+</html>

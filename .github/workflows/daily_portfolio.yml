@@ -44,3 +44,11 @@ jobs:
           NOTION_TRANSACTIONS_DB: ${{ secrets.NOTION_TRANSACTIONS_DB }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python src/main.py
+
+      - name: Commit and push docs/data.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git diff --staged --quiet || git commit -m "chore: update portfolio data $(date -u +'%Y-%m-%d') [skip ci]"
+          git push
