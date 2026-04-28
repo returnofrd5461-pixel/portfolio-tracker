@@ -30,9 +30,13 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .hdr h1{font-size:20px;font-weight:600}
 .hdr-meta{font-size:13px;color:var(--txt3);font-family:var(--mono);display:flex;align-items:center;gap:10px}
-.total-krw{font-size:15px;color:var(--txt2)}
-.total-krw strong{font-family:var(--mono);font-size:18px;color:var(--txt);font-weight:600}
-.total-delta{font-size:13px;font-family:var(--mono);margin-left:8px}
+.total-krw{font-size:15px;color:var(--txt2);display:flex;align-items:baseline;flex-wrap:wrap;gap:6px}
+.total-krw strong{font-family:var(--mono);font-size:20px;color:var(--txt);font-weight:700}
+.total-delta-val{font-size:14px;font-family:var(--mono);font-weight:600;padding:2px 8px;border-radius:5px}
+.total-delta-val.pos{background:rgba(29,158,117,0.12);color:var(--pos)}
+.total-delta-val.neg{background:rgba(216,90,48,0.12);color:var(--neg)}
+.total-delta-val.neu{color:var(--txt3)}
+.total-fx{font-size:13px;color:var(--txt3);font-family:var(--mono);margin-top:3px}
 .png-btn{
   font-size:12px;padding:6px 12px;border-radius:6px;border:0.5px solid var(--bdr);
   background:var(--bg2);color:var(--txt);cursor:pointer;font-family:var(--sans);
@@ -66,8 +70,8 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
   .market-section.assets{background:#1F2638;border-color:#2E3A52}
 }
 .ms-label{
-  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--txt3);min-width:60px;flex-shrink:0;padding-right:8px;
+  font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--txt2);min-width:80px;flex-shrink:0;padding-right:8px;
   display:flex;align-items:center;gap:4px;
 }
 .ms-items{display:flex;flex-wrap:wrap;flex:1;gap:0}
@@ -110,10 +114,12 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .delta{font-size:12px;font-family:var(--mono);margin-top:3px}
 .delta.pos{color:var(--pos)}.delta.neg{color:var(--neg)}.delta.neu{color:var(--txt3)}
 
-/* ── summary row ── */
-.summary-row{display:grid;grid-template-columns:1fr 1fr repeat(6,1fr);gap:10px;margin-bottom:22px}
-@media(max-width:960px){.summary-row{grid-template-columns:1fr 1fr 1fr}}
-@media(max-width:600px){.summary-row{grid-template-columns:1fr 1fr}}
+/* ── summary row (2-row layout) ── */
+.summary-row-risky{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:10px;margin-bottom:8px}
+.summary-row-safe{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+@media(max-width:700px){
+  .summary-row-risky,.summary-row-safe{grid-template-columns:1fr 1fr}
+}
 .card-risk{background:#FCEBEB;border-radius:var(--r-md);padding:12px 14px}
 .card-risk .label{font-size:14px;color:#791F1F;margin-bottom:4px;font-weight:500}
 .card-risk .pct{font-size:24px;font-weight:600;color:#501313;line-height:1.1}
@@ -155,6 +161,7 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .acct-pnl .acct-pnl-strong{font-weight:700;font-size:13px}
 .acct-pnl .pos,.acct-pnl-strong.pos{color:var(--pos)}
 .acct-pnl .neg,.acct-pnl-strong.neg{color:var(--neg)}
+.acct-mini-cls{font-size:11px;color:var(--txt3);line-height:1.6;margin-top:6px;padding-top:6px;border-top:0.5px dashed var(--bdr);word-break:keep-all}
 .pbar{height:5px;flex:1;background:var(--bg2);border-radius:3px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:3px}
 
@@ -166,7 +173,11 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .h-table-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg2);border-bottom:0.5px solid var(--bdr)}
 .h-table-hdr .acct-title{font-size:15px;font-weight:600}
 .h-table-hdr .acct-sub{font-size:12px;color:var(--txt2);margin-top:2px}
-.h-table-hdr .acct-total{font-size:18px;font-weight:700;font-family:var(--mono);white-space:nowrap;margin-left:12px}
+.h-table-hdr .acct-total-wrap{margin-left:12px;text-align:right;display:flex;flex-direction:column;align-items:flex-end}
+.h-table-hdr .acct-total{font-size:18px;font-weight:700;font-family:var(--mono);white-space:nowrap}
+.h-table-hdr .acct-pnl-summary{font-size:13px;font-family:var(--mono);margin-top:2px;font-weight:500;white-space:nowrap}
+.h-table-hdr .acct-pnl-summary.pos{color:var(--pos)}
+.h-table-hdr .acct-pnl-summary.neg{color:var(--neg)}
 
 /* 7-column grid for core/satellite holdings */
 .grid-head{display:grid;grid-template-columns:5px 0.8fr 1.6fr 0.45fr 1fr 1fr 1fr 0.7fr;padding:8px 14px 8px 0;background:var(--bg3);font-size:12px;color:var(--txt2);min-width:680px}
@@ -702,6 +713,27 @@ function renderMarketStrip(d) {
 }
 
 // ── summary row ──────────────────────────────────────────────────────────────
+function _clsCard(d, key, m) {
+  const total = d.total_krw;
+  const act = d.asset_class_totals;
+  const dc = d.daily_change || {};
+  const hist = d.sparkline_history || [];
+  const last7 = hist.slice(-7);
+  const v = act[key]||0;
+  const clsDc = (dc.classes||{})[key];
+  const deltaH = clsDc ? deltaHtml(clsDc.diff, clsDc.pct) : '';
+  const sparkVals = last7.map(h => h[key==='us_stock'?'stock':key==='gold'?'gold':key==='oil'?'oil':key] || 0);
+  const sparkH = renderSparkline(m.label, sparkVals, CLS_SPARK_COLOR[key]||'#888', 72, 20);
+  return `
+    <div class="cls-card" style="background:${m.bg}">
+      <div class="label" style="color:${m.lbl}">${m.label}</div>
+      <div class="pct" style="color:${m.fg}">${pct(v,total)}</div>
+      <div class="amt" style="color:${m.lbl}">${fmt(v)}</div>
+      ${deltaH}
+      ${sparkH}
+    </div>`;
+}
+
 function renderSummaryRow(d) {
   const total = d.total_krw;
   const act = d.asset_class_totals;
@@ -709,7 +741,6 @@ function renderSummaryRow(d) {
   const safe = (act.bond||0)+(act.gold||0)+(act.cash||0);
   const dc = d.daily_change || {};
   const hist = d.sparkline_history || [];
-  const last7 = hist.slice(-7);
   const last30 = hist.slice(-30);
 
   const riskDelta = dc.risky_pct ? pptDeltaHtml(dc.risky_pct.diff) : '';
@@ -736,26 +767,75 @@ function renderSummaryRow(d) {
       ${safeSpark}
     </div>`;
 
-  const clsCards = Object.entries(CLS_META).map(([key,m]) => {
-    const v = act[key]||0;
-    const clsDc = (dc.classes||{})[key];
-    const deltaH = clsDc ? deltaHtml(clsDc.diff, clsDc.pct) : '';
-    const sparkVals = last7.map(h => h[key==='us_stock'?'stock':key==='gold'?'gold':key==='oil'?'oil':key] || 0);
-    const sparkH = renderSparkline(m.label, sparkVals, CLS_SPARK_COLOR[key]||'#888', 72, 20);
-    return `
-      <div class="cls-card" style="background:${m.bg}">
-        <div class="label" style="color:${m.lbl}">${m.label}</div>
-        <div class="pct" style="color:${m.fg}">${pct(v,total)}</div>
-        <div class="amt" style="color:${m.lbl}">${fmt(v)}</div>
-        ${deltaH}
-        ${sparkH}
-      </div>`;
-  }).join('');
+  // 위험행: 주식 → 크립토 → 원유
+  const riskyClsHtml = ['us_stock','crypto','oil'].map(k => _clsCard(d, k, CLS_META[k])).join('');
+  // 안전행: 채권 → 금 → 현금
+  const safeClsHtml = ['bond','gold','cash'].map(k => _clsCard(d, k, CLS_META[k])).join('');
 
-  return `<div class="summary-row">${riskCard}${safeCard}${clsCards}</div>`;
+  return `
+    <div class="summary-row-risky">${riskCard}${riskyClsHtml}</div>
+    <div class="summary-row-safe">${safeCard}${safeClsHtml}</div>`;
 }
 
 // ── account grid ─────────────────────────────────────────────────────────────
+function _acctClassBreakdown(d, accountId) {
+  const account = (d.accounts||[]).find(a => a.id === accountId);
+  if(!account || !account.krw) return [];
+  const acctTotal = account.krw;
+  const result = {};
+
+  const core = (d.core_holdings||[]).find(h => h.account_id === accountId);
+  const sat  = (d.satellite_holdings||[]).find(h => h.account_id === accountId);
+
+  if(core) {
+    let itemsSum = 0;
+    for(const it of core.items||[]) {
+      const cls = it.cls || 'us_stock';
+      result[cls] = (result[cls]||0) + (it.krw||0);
+      itemsSum += (it.krw||0);
+    }
+    const cash = acctTotal - itemsSum;
+    if(cash > 100) result['cash'] = (result['cash']||0) + cash;
+  } else if(sat) {
+    const defaultCls = accountId==='toss' ? 'us_stock' : 'crypto';
+    let itemsSum = 0;
+    for(const it of sat.items||[]) {
+      const cls = it.cls || defaultCls;
+      result[cls] = (result[cls]||0) + (it.krw||0);
+      itemsSum += (it.krw||0);
+    }
+    if(accountId === 'upbit') {
+      const cash = acctTotal - itemsSum;
+      if(cash > 1000) result['cash'] = (result['cash']||0) + cash;
+    }
+  } else {
+    // emergency / biz: 100% cash
+    result['cash'] = acctTotal;
+  }
+
+  const order = ['us_stock','crypto','bond','gold','oil','cash'];
+  const rows = [];
+  for(const cls of order) {
+    const v = result[cls] || 0;
+    if(v <= 0) continue;
+    const p = v / acctTotal * 100;
+    if(p < 0.1) continue;
+    rows.push({cls, pct: p});
+  }
+  return rows;
+}
+
+function _renderAcctMiniCls(d, accountId) {
+  const rows = _acctClassBreakdown(d, accountId);
+  if(rows.length === 0) return '';
+  const parts = rows.map(r => {
+    const emoji = CLS_EMOJI[r.cls] || '';
+    const label = (CLS_META[r.cls] && CLS_META[r.cls].label) || r.cls;
+    return `${emoji} ${label} ${r.pct.toFixed(1)}%`;
+  });
+  return `<div class="acct-mini-cls">${parts.join(' · ')}</div>`;
+}
+
 function renderAccountGrid(d) {
   const total = d.total_krw;
   const cards = d.accounts.map(a => {
@@ -769,6 +849,7 @@ function renderAccountGrid(d) {
       const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
       pnlLine = `<div class="acct-pnl">총 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
     }
+    const miniCls = _renderAcctMiniCls(d, a.id);
     return `
       <div class="acct-card">
         <div class="bar" style="background:${a.color}"></div>
@@ -780,6 +861,7 @@ function renderAccountGrid(d) {
           <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${clamp(p,0,100)}%"></div></div>
         </div>
         ${pnlLine}
+        ${miniCls}
       </div>`;
   }).join('');
   return `<div class="account-grid">${cards}</div>`;
@@ -879,6 +961,14 @@ function renderAcctRebal(accountId, d) {
 }
 
 // ── core table ───────────────────────────────────────────────────────────────
+function _acctPnlSummaryHtml(d, accountId) {
+  const a = (d.accounts||[]).find(x => x.id === accountId);
+  if(!a || !a.principal_krw || a.principal_krw <= 0) return '';
+  const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
+  const s = a.pnl_krw >= 0 ? '+' : '';
+  return `<div class="acct-pnl-summary ${cls}">${s}${fmt(a.pnl_krw)} (${s}${a.pnl_pct.toFixed(2)}%)</div>`;
+}
+
 function renderCoreTable(h, total, d) {
   const rows = h.items.map(item => {
     const hasPnl = item.principal_krw > 0;
@@ -900,6 +990,28 @@ function renderCoreTable(h, total, d) {
     </div>`;
   }).join('');
 
+  // 예수금 (cash) 행
+  const itemsSum = (h.items||[]).reduce((a,b)=>a+(b.krw||0), 0);
+  const cashKrw = (h.total_krw||0) - itemsSum;
+  let cashRow = '';
+  if(cashKrw > 100) {
+    const cashPct = (cashKrw / h.total_krw * 100).toFixed(1);
+    cashRow = `
+    <div class="grid-row">
+      <div class="color-bar" style="background:#1D9E75"></div>
+      <div class="cat">cash</div>
+      <div class="ticker-wrap">
+        <div class="tname">예수금</div>
+        <div class="tcode">CASH</div>
+      </div>
+      <div class="gpct">${cashPct}%</div>
+      <div class="gprincipal">—</div>
+      <div class="gamt">${fmt(cashKrw)}</div>
+      <div class="gpnl">—</div>
+      <div class="gpnlpct">—</div>
+    </div>`;
+  }
+
   const extras = h.account_id === 'kis_jonghap'
     ? renderSplitBuying(d.split_buying)
     : '';
@@ -911,7 +1023,10 @@ function renderCoreTable(h, total, d) {
           <div class="acct-title" style="color:${h.account_color}">${h.account_name}</div>
           <div class="acct-sub">${h.account_sub}</div>
         </div>
-        <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+        <div class="acct-total-wrap">
+          <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+          ${_acctPnlSummaryHtml(d, h.account_id)}
+        </div>
       </div>
       ${renderAcctRebal(h.account_id, d)}
       <div class="grid-head">
@@ -920,6 +1035,7 @@ function renderCoreTable(h, total, d) {
         <div>손익</div><div>수익률</div>
       </div>
       ${rows}
+      ${cashRow}
       ${extras}
     </div>`;
 }
@@ -977,6 +1093,29 @@ function renderSatelliteTable(h, total, d) {
       </div>`;
   }).join('');
 
+  // 업비트 KRW 잔고 행
+  let cashRow = '';
+  if(h.account_id === 'upbit') {
+    const itemsSum = (h.items||[]).reduce((a,b)=>a+(b.krw||0), 0);
+    const cashKrw = (h.total_krw||0) - itemsSum;
+    if(cashKrw > 1000) {
+      const cashPct = (cashKrw / h.total_krw * 100).toFixed(1);
+      cashRow = `
+      <div class="sat-row">
+        <div class="color-bar" style="background:#1D9E75"></div>
+        <div class="sname-wrap">
+          <div class="sname">원화 잔고</div>
+          <div class="scat">cash</div>
+        </div>
+        <div class="spct">${cashPct}%</div>
+        <div class="sprincipal">—</div>
+        <div class="samt">${fmt(cashKrw)}</div>
+        <div class="spnl">—</div>
+        <div class="spnlpct">—</div>
+      </div>`;
+    }
+  }
+
   let extras = '';
   if(h.account_id === 'toss') {
     extras += renderNvdaMdd(d.nvda_mdd || h.nvda_mdd);
@@ -989,13 +1128,17 @@ function renderSatelliteTable(h, total, d) {
           <div class="acct-title" style="color:${h.account_color}">${h.account_name}</div>
           <div class="acct-sub">${h.account_sub}</div>
         </div>
-        <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+        <div class="acct-total-wrap">
+          <div class="acct-total" style="color:${h.account_color}">${fmt(h.total_krw)}</div>
+          ${_acctPnlSummaryHtml(d, h.account_id)}
+        </div>
       </div>
       <div class="sat-head">
         <div></div><div>종목</div><div>비중</div>
         <div>원금</div><div>평가금</div><div>손익</div><div>수익률</div>
       </div>
       ${rows}
+      ${cashRow}
       ${extras}
     </div>`;
 }
@@ -1651,20 +1794,29 @@ function attachJournalHandlers() {
 }
 
 // ── main render ───────────────────────────────────────────────────────────────
+function _headerDeltaHtml(diff, diffPct) {
+  if(!diff && !diffPct) return '';
+  const cls = diff>0?'pos':diff<0?'neg':'neu';
+  const s = diff>=0?'+':'-';
+  const av = Math.abs(diff);
+  const pctStr = diffPct!==undefined ? ` (${s}${Math.abs(diffPct).toFixed(1)}%)` : '';
+  return `<span class="total-delta-val ${cls}">${s}${fmt(av)}${pctStr}</span>`;
+}
+
 function render(d) {
   window._portfolioData = d;
   const dc = d.daily_change || {};
-  const totalDelta = dc.total ? deltaHtml(dc.total.diff, dc.total.pct) : '';
+  const totalDelta = dc.total ? _headerDeltaHtml(dc.total.diff, dc.total.pct) : '';
 
   const html = `
     <div class="hdr">
       <div>
         <h1>포트폴리오 대시보드</h1>
         <div class="total-krw">
-          총 자산 <strong>${fmt(d.total_krw)}</strong> 원
-          <span class="total-delta">${totalDelta}</span>
-          &nbsp;·&nbsp; USD/KRW ${fmt(d.usdkrw)}
+          <span>총 자산 <strong>${fmt(d.total_krw)}</strong>원</span>
+          ${totalDelta}
         </div>
+        <div class="total-fx">USD/KRW ${fmt(d.usdkrw)}</div>
       </div>
       <div class="hdr-meta">
         <span>마지막 갱신 ${fmtUpdatedAt(d.updated_at)}</span>
