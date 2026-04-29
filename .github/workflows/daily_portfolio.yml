@@ -23,18 +23,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Diagnose Python
-        run: |
-          Write-Host "PATH=$env:PATH"
-          $cmd = Get-Command python -ErrorAction SilentlyContinue
-          if ($cmd) { Write-Host "python -> $($cmd.Source)" } else { Write-Host "python: not found" }
-          $cmd = Get-Command py -ErrorAction SilentlyContinue
-          if ($cmd) { Write-Host "py -> $($cmd.Source)" } else { Write-Host "py: not found" }
-          $cmd = Get-Command python3 -ErrorAction SilentlyContinue
-          if ($cmd) { Write-Host "python3 -> $($cmd.Source)" } else { Write-Host "python3: not found" }
-
       - name: Install dependencies
-        run: python -m pip install --quiet -r requirements.txt
+        run: |
+          $py = "$env:LOCALAPPDATA\Python\bin\python.exe"
+          & $py -m pip install --quiet -r requirements.txt
 
       - name: Run portfolio pipeline
         env:
@@ -58,7 +50,9 @@ jobs:
           NOTION_SNAPSHOT_DB: ${{ secrets.NOTION_SNAPSHOT_DB }}
           NOTION_TRANSACTIONS_DB: ${{ secrets.NOTION_TRANSACTIONS_DB }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: python src/main.py
+        run: |
+          $py = "$env:LOCALAPPDATA\Python\bin\python.exe"
+          & $py src/main.py
 
       - name: Commit and push docs/data.json
         env:
