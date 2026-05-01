@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   run-pipeline:
@@ -33,6 +34,7 @@ jobs:
       - name: Run portfolio pipeline
         env:
           PYTHONIOENCODING: utf-8
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KIS_APP_KEY_JONGHAP: ${{ secrets.KIS_APP_KEY_JONGHAP }}
           KIS_APP_SECRET_JONGHAP: ${{ secrets.KIS_APP_SECRET_JONGHAP }}
           KIS_ACCOUNT_JONGHAP: ${{ secrets.KIS_ACCOUNT_JONGHAP }}

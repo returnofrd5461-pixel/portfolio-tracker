@@ -3,6 +3,8 @@ import sys
 import requests
 from dotenv import load_dotenv
 
+from schedule_monitor import get_schedule_summary, format_summary_line
+
 sys.stdout.reconfigure(encoding="utf-8")
 load_dotenv()
 
@@ -98,6 +100,10 @@ def send_daily_report(portfolio: dict) -> None:
         f"OKX: {portfolio.get('okx_krw', 0):,.0f} KRW\n"
         f"한투: {portfolio.get('kis_krw', 0):,.0f} KRW"
     )
+    summary_line = format_summary_line(get_schedule_summary())
+    if summary_line:
+        message += f"\n{summary_line}"
+
     ok = send_slack(message)
     print(f"  일일 리포트 발송: {'성공' if ok else '실패'}")
 
