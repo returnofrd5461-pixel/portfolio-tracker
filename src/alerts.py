@@ -24,6 +24,15 @@ def send_slack(message: str) -> bool:
     return resp.status_code == 200
 
 
+def send_slack_blocks(payload: dict) -> bool:
+    """Block Kit payload 발송. payload = {"blocks": [...], "text": "fallback"}."""
+    if not SLACK_WEBHOOK:
+        print("  [경고] SLACK_WEBHOOK_URL 미설정")
+        return False
+    resp = requests.post(SLACK_WEBHOOK, json=payload)
+    return resp.status_code == 200
+
+
 def check_alerts(portfolio: dict) -> list[str]:
     """
     portfolio 예시:

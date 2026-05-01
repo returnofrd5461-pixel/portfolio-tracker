@@ -21,7 +21,9 @@ from transactions_api import fetch_all_transactions
 from review_engine import compute_review, build_review_summary, classify_outcome
 from calendar_api import get_calendar_events
 from xray_engine import compute_xray
-from alerts import send_daily_report, send_manual_input_reminder
+from alerts import send_daily_report, send_manual_input_reminder, send_slack_blocks
+import trading_journal
+from notion_sync import notion as notion_client
 
 
 # ── 자산군 분류 ────────────────────────────────────────────────────────────────
@@ -845,6 +847,28 @@ def run_pipeline() -> None:
         print(f"  최근 90일 거래 (메모 포함): {len(transactions)}건")
     except Exception as e:
         errors.append(f"거래내역: {e}")
+        print(f"  [오류] {e}")
+        traceback.print_exc()
+
+    # ── 매매일지 분석 (data/trading_journal.json + 미입력 Slack 알림) ─
+    print("\n[trading_journal] 매매일지 분석...")
+    try:
+        current_prices_krw: dict[str, float] = {}
+        for h in all_holdings:
+            ticker = h.get("ticker")
+            cur = h.get("current_price") or 0
+            if ticker and cur > 0:
+                current_prices_krw[ticker] = float(cur)
+
+        tj_payload = trading_journal.run(notion_client, current_prices=current_prices_krw)
+        unlogged_alert = trading_journal.build_slack_unlogged_alert(
+            tj_payload["unlogged_recent"]
+        )
+        if unlogged_alert:
+            ok = send_slack_blocks(unlogged_alert)
+            print(f"  미입력 알림 발송: {'성공' if ok else '실패'} ({tj_payload['unlogged_count']}건)")
+    except Exception as e:
+        errors.append(f"매매일지: {e}")
         print(f"  [오류] {e}")
         traceback.print_exc()
 
