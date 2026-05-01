@@ -2,7 +2,7 @@ name: Portfolio Tracker (4h + US market)
 
 on:
   schedule:
-    - cron: '35 0,4,8,12,14,16,20 * * *'
+    - cron: '43 0,4,8,12,14,16,20 * * *'
   workflow_dispatch:
 
 permissions:
