@@ -159,7 +159,7 @@ def _get_domestic_psbl(name: str) -> dict:
         return {}
 
 
-def get_overseas_balance(name: str, usdkrw: float = 1380.0) -> tuple[list[dict], float]:
+def get_overseas_balance(name: str, usdkrw: float = 1380.0) -> tuple[list[dict], float, float]:
     acc = ACCOUNTS[name]
     cano, acnt_prdt_cd = _parse_account(acc["account"])
     params = {
@@ -232,7 +232,7 @@ def get_overseas_balance(name: str, usdkrw: float = 1380.0) -> tuple[list[dict],
         for item in data.get("output1", [])
         if float(item.get("ovrs_cblc_qty", 0)) > 0
     ]
-    return holdings, total_cash_krw
+    return holdings, total_cash_krw, usd_cash
 
 
 def get_domestic_balance(name: str) -> tuple[list[dict], float]:
@@ -302,13 +302,15 @@ def get_domestic_balance(name: str) -> tuple[list[dict], float]:
 
 def fetch_all_balances(usdkrw: float = 1380.0) -> dict:
     result = {"overseas": [], "domestic": [],
-              "cash_jonghap": 0.0, "cash_isa": 0.0, "cash_yeon": 0.0}
+              "cash_jonghap": 0.0, "cash_isa": 0.0, "cash_yeon": 0.0,
+              "cash_jonghap_usd": 0.0}
     for name, cfg in ACCOUNTS.items():
         try:
             if cfg["type"] == "overseas":
-                holdings, cash = get_overseas_balance(name, usdkrw)
+                holdings, cash_krw, cash_usd = get_overseas_balance(name, usdkrw)
                 result["overseas"].extend(holdings)
-                result[f"cash_{name.lower()}"] = cash
+                result[f"cash_{name.lower()}"] = cash_krw
+                result[f"cash_{name.lower()}_usd"] = cash_usd
             else:
                 holdings, cash = get_domestic_balance(name)
                 result["domestic"].extend(holdings)

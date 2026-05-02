@@ -90,19 +90,26 @@ def _arrow(v: float) -> str:
 
 def send_daily_report(portfolio: dict) -> None:
     total = portfolio.get("total_krw", 0)
+    total_usd = portfolio.get("total_usd", 0)
     risky = portfolio.get("risky_pct", 0)
     safe = portfolio.get("safe_pct", 0)
     usdkrw = portfolio.get("usdkrw", 0)
+    kis_jonghap_usd = portfolio.get("kis_jonghap_usd", 0)
+    okx_usd = portfolio.get("okx_usd", 0)
+
+    total_usd_str    = f" (≈ ${total_usd:,.0f})" if total_usd else ""
+    kis_jonghap_str  = f" (해외 ≈ ${kis_jonghap_usd:,.0f})" if kis_jonghap_usd else ""
+    okx_usd_str      = f" (≈ ${okx_usd:,.0f})" if okx_usd else ""
 
     message = (
         f":briefcase: *포트폴리오 일일 리포트*\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"총 자산: *{total:,.0f} KRW*\n"
+        f"총 자산: *{total:,.0f} KRW*{total_usd_str}\n"
         f"위험자산: {risky:.1f}% | 안전자산: {safe:.1f}%\n"
         f"USD/KRW: {usdkrw:,.0f}\n"
         f"업비트: {portfolio.get('upbit_krw', 0):,.0f} KRW\n"
-        f"OKX: {portfolio.get('okx_krw', 0):,.0f} KRW\n"
-        f"한투: {portfolio.get('kis_krw', 0):,.0f} KRW"
+        f"OKX: {portfolio.get('okx_krw', 0):,.0f} KRW{okx_usd_str}\n"
+        f"한투: {portfolio.get('kis_krw', 0):,.0f} KRW{kis_jonghap_str}"
     )
 
     dc = portfolio.get("daily_change")

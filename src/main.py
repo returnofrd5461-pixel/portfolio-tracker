@@ -199,6 +199,18 @@ def write_data_json(
     # 어제 계좌별 KRW (snapshot DB)
     yest_accts = (extras.get("yesterday") or {}).get("accounts_krw") or {}
 
+    # 계좌별 USD 합계 (holdings 원본 USD, 환율 역산 아님)
+    acct_usd_totals: dict[str, float] = {}
+    for h in all_holdings:
+        usd_v = h.get("eval_usd", 0) or 0
+        if usd_v > 0:
+            acct_usd_totals[h["account"]] = acct_usd_totals.get(h["account"], 0) + usd_v
+    # KIS 종합 USD 예수금 추가
+    kis_cash_usd = extras.get("kis_cash_usd", {}) or {}
+    for api_key, cash_usd in kis_cash_usd.items():
+        if cash_usd > 0:
+            acct_usd_totals[api_key] = acct_usd_totals.get(api_key, 0) + cash_usd
+
     # Build accounts list
     accounts = []
     for api_key, meta in ACCOUNT_META.items():
@@ -209,8 +221,10 @@ def write_data_json(
             krw = okx_krw
         entry: dict = {"id": meta["id"], "name": meta["name"], "subtitle": meta["sub"],
                        "krw": round(krw), "color": meta["color"]}
-        if api_key in ("KIS_JONGHAP", "OKX") and usdkrw:
-            entry["usd_amount"] = round(krw / usdkrw)
+        if api_key in ("KIS_JONGHAP", "OKX"):
+            usd_native = acct_usd_totals.get(api_key, 0)
+            if usd_native > 0:
+                entry["usd_amount"] = round(usd_native)
         if api_key in acct_pnl:
             entry.update(acct_pnl[api_key])
         delta = _acct_delta(krw, yest_accts.get(meta["id"], 0))
@@ -670,6 +684,7 @@ def run_pipeline() -> None:
                 "avg_price": 0,
                 "current_price": h["usd_value"] / h["quantity"] if h["quantity"] else 0,
                 "eval_krw": krw_val,
+                "eval_usd": h["usd_value"],
                 "profit_rate": 0,
                 "principal_krw": 0,
                 "pnl_krw": 0,
@@ -685,6 +700,7 @@ def run_pipeline() -> None:
     # ── 4. 한투 잔고 ─────────────────────────────────────────────
     kis_krw = 0.0
     kis_cash: dict = {}
+    kis_cash_usd: dict = {}
     print("\n[4/9] 한투 KIS 잔고 조회...")
     try:
         kis_data = kis_fetch(usdkrw)
@@ -699,6 +715,7 @@ def run_pipeline() -> None:
                 "avg_price": h["avg_price"] * usdkrw,
                 "current_price": (h["eval_usd"] / h["quantity"] * usdkrw) if h["quantity"] else 0,
                 "eval_krw": krw_val,
+                "eval_usd": h["eval_usd"],
                 "profit_rate": h["profit_rate"],
                 "principal_krw": principal,
                 "pnl_krw": round(krw_val - principal),
@@ -728,6 +745,9 @@ def run_pipeline() -> None:
             "KIS_JONGHAP": kis_data.get("cash_jonghap", 0),
             "KIS_ISA":     kis_data.get("cash_isa", 0),
             "KIS_YEON":    kis_data.get("cash_yeon", 0),
+        }
+        kis_cash_usd = {
+            "KIS_JONGHAP": kis_data.get("cash_jonghap_usd", 0),
         }
         kis_cash_total = sum(kis_cash.values())
         kis_krw += kis_cash_total
@@ -763,11 +783,21 @@ def run_pipeline() -> None:
           f"연저 {kis_cash.get('KIS_YEON',0):,.0f} | "
           f"업비트 {upbit_cash:,.0f}")
 
+    # USD 합산 (Slack용 — holdings 원본 USD)
+    kis_jonghap_usd = sum(h.get("eval_usd", 0) or 0 for h in all_holdings
+                          if h.get("account") == "KIS_JONGHAP")
+    kis_jonghap_usd += kis_cash_usd.get("KIS_JONGHAP", 0)
+    okx_usd = sum(h.get("eval_usd", 0) or 0 for h in all_holdings
+                  if h.get("account") == "OKX")
+
     portfolio = {
         "total_krw": total_krw,
+        "total_usd": total_krw / usdkrw if usdkrw else 0,
         "upbit_krw": upbit_krw,
         "okx_krw": okx_krw,
+        "okx_usd": okx_usd,
         "kis_krw": kis_krw,
+        "kis_jonghap_usd": kis_jonghap_usd,
         "risky_pct": risky_pct,
         "safe_pct": safe_pct,
         "usdkrw": usdkrw,
@@ -983,6 +1013,7 @@ def run_pipeline() -> None:
         "risky_pct": risky_pct,
         "safe_pct": safe_pct,
         "kis_cash": kis_cash,
+        "kis_cash_usd": kis_cash_usd,
         "transactions": transactions,
         "journal_summary": journal_summary,
         "reviews": reviews,
