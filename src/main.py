@@ -758,22 +758,47 @@ def run_pipeline() -> None:
 
     # ── 5. 포트폴리오 지표 계산 ───────────────────────────────────
     print("\n[5/9] 포트폴리오 집계...")
-    total_krw = upbit_krw + okx_krw + kis_krw  # kis_krw already includes cash
+
+    # 수동 자산: 노션 입력 우선, 없으면 기존 data.json fallback
+    # (write_data_json의 manual_krw 폴백과 동일 — snapshot/portfolio total을 data.json과 일치시킴)
+    _data_path = pathlib.Path(__file__).parent.parent / "docs" / "data.json"
+    _existing: dict = {}
+    if _data_path.exists():
+        try:
+            _existing = json.loads(_data_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    def _resolve_manual(acc_id: str) -> float:
+        val = (notion_manual.get(acc_id) or {}).get("eval", 0) or 0
+        if val > 0:
+            return val
+        return next((a["krw"] for a in _existing.get("accounts", []) if a["id"] == acc_id), 0)
+
+    toss_krw      = _resolve_manual("toss")
+    emergency_krw = _resolve_manual("emergency")
+    biz_krw       = _resolve_manual("biz")
+    manual_total  = toss_krw + emergency_krw + biz_krw
+
+    exchange_krw = upbit_krw + okx_krw + kis_krw  # kis_krw already includes cash
+    total_krw    = exchange_krw + manual_total
 
     class_totals: dict[str, float] = {}
     for h in all_holdings:
         cls = h["asset_class"]
         class_totals[cls] = class_totals.get(cls, 0) + h["eval_krw"]
 
-    risky_krw = sum(v for cls, v in class_totals.items() if is_risky(cls))
-    safe_krw = total_krw - risky_krw
-    risky_pct = risky_krw / total_krw * 100 if total_krw else 0
-    safe_pct = 100 - risky_pct
+    # 위험/안전 = 거래소 holdings 자산군 + 수동 분류 (toss=NVDA→위험, 비상금/사업→안전)
+    exch_risky_krw = sum(v for cls, v in class_totals.items() if is_risky(cls))
+    risky_krw      = exch_risky_krw + toss_krw
+    safe_krw       = total_krw - risky_krw
+    risky_pct      = risky_krw / total_krw * 100 if total_krw else 0
+    safe_pct       = 100 - risky_pct
 
     asset_class_pct = {cls: v / total_krw * 100 for cls, v in class_totals.items()} if total_krw else {}
 
-    print(f"  총 자산: {total_krw:,.0f} KRW")
-    print(f"  위험자산: {risky_pct:.1f}% | 안전자산: {safe_pct:.1f}%")
+    print(f"  총 자산: {total_krw:,.0f} KRW (거래소 {exchange_krw:,.0f} + 수동 {manual_total:,.0f})")
+    print(f"  위험자산: {risky_pct:.2f}% | 안전자산: {safe_pct:.2f}%")
 
     # 현금 잔고 요약 디버그
     upbit_crypto_total = sum(h["eval_krw"] for h in all_holdings if h["account"] == "UPBIT")
