@@ -12,6 +12,7 @@ from kis_api import fetch_all_balances as kis_fetch
 from market_data import get_prices, get_market_data
 from notion_sync import (
     sync_holdings, add_snapshot, ensure_snapshot_crypto_columns,
+    ensure_snapshot_account_columns,
     pull_manual_holdings, get_yesterday_snapshot,
     get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
     ensure_transactions_columns, sync_transactions, pull_transactions,
@@ -195,6 +196,9 @@ def write_data_json(
             agg["principal_krw"] = round(agg["principal_krw"])
             agg["pnl_krw"]       = round(agg["pnl_krw"])
 
+    # 어제 계좌별 KRW (snapshot DB)
+    yest_accts = (extras.get("yesterday") or {}).get("accounts_krw") or {}
+
     # Build accounts list
     accounts = []
     for api_key, meta in ACCOUNT_META.items():
@@ -209,11 +213,15 @@ def write_data_json(
             entry["usd_amount"] = round(krw / usdkrw)
         if api_key in acct_pnl:
             entry.update(acct_pnl[api_key])
+        delta = _acct_delta(krw, yest_accts.get(meta["id"], 0))
+        if delta:
+            entry["daily_change"] = delta
         accounts.append(entry)
 
     for acc_id, meta in MANUAL_ACCOUNT_META.items():
+        krw = manual_krw.get(acc_id, 0)
         entry: dict = {"id": acc_id, "name": meta["name"], "subtitle": meta["sub"],
-                       "krw": round(manual_krw.get(acc_id, 0)), "color": meta["color"]}
+                       "krw": round(krw), "color": meta["color"]}
         # toss는 노션 수동입력 P&L 사용
         if acc_id == "toss":
             tdata = notion_manual.get("toss", {})
@@ -221,6 +229,9 @@ def write_data_json(
                 entry["principal_krw"] = round(tdata["principal"])
                 entry["pnl_krw"]       = round(tdata.get("pnl", 0))
                 entry["pnl_pct"]       = round(tdata.get("pnl_pct", 0), 2)
+        delta = _acct_delta(krw, yest_accts.get(acc_id, 0))
+        if delta:
+            entry["daily_change"] = delta
         accounts.append(entry)
 
     total_krw = sum(a["krw"] for a in accounts)
@@ -531,6 +542,15 @@ def _cls_delta(today: float, yesterday: float) -> dict:
     return {"today": round(today), "yesterday": round(yesterday), "diff": diff, "pct": pct}
 
 
+def _acct_delta(today: float, yesterday: float) -> dict | None:
+    """계좌 카드 D-1 비교. 어제 값이 없으면(=0) None 반환 — 카드 표시 생략."""
+    if not yesterday or yesterday <= 0:
+        return None
+    diff = round(today - yesterday)
+    pct = round((today - yesterday) / yesterday * 100, 2)
+    return {"today": round(today), "yesterday": round(yesterday), "diff": diff, "pct": pct}
+
+
 def _build_journal_summary(transactions: list[dict]) -> dict:
     """매매일지 탭 상단 4개 위젯용 요약 (이번 달 횟수 / 누적 매매차익 / 평균 주기 / 최다 종목)."""
     if not transactions:
@@ -755,9 +775,28 @@ def run_pipeline() -> None:
         "asset_classes": asset_class_pct,
         "asset_class_targets": {"crypto": 35.0, "us_stock": 25.0, "bond": 20.0, "gold": 10.0, "oil": 5.0},
     }
+    # daily_change는 어제 스냅샷 조회 후 채움 (Phase 2-E: Slack D-1)
 
     btc_holding = next((h for h in all_holdings if h["ticker"] == "BTC" and h["account"] == "UPBIT"), None)
     eth_holding = next((h for h in all_holdings if h["ticker"] == "ETH" and h["account"] == "UPBIT"), None)
+
+    # 계좌별 KRW 합계 (snapshot D-1 컬럼 + data.json 카드 D-1 용)
+    acct_totals_for_snap: dict[str, float] = {}
+    for h in all_holdings:
+        acct_totals_for_snap[h["account"]] = acct_totals_for_snap.get(h["account"], 0) + h["eval_krw"]
+    for api_key, cash in kis_cash.items():
+        acct_totals_for_snap[api_key] = acct_totals_for_snap.get(api_key, 0) + cash
+
+    accounts_krw_today = {
+        "kis_jonghap": acct_totals_for_snap.get("KIS_JONGHAP", 0),
+        "kis_isa":     acct_totals_for_snap.get("KIS_ISA", 0),
+        "kis_yeon":    acct_totals_for_snap.get("KIS_YEON", 0),
+        "okx":         okx_krw,
+        "upbit":       upbit_krw,
+        "toss":        notion_manual.get("toss", {}).get("eval", 0),
+        "emergency":   notion_manual.get("emergency", {}).get("eval", 0),
+        "biz":         notion_manual.get("biz", {}).get("eval", 0),
+    }
 
     snapshot = {
         "total_krw": total_krw,
@@ -775,6 +814,7 @@ def run_pipeline() -> None:
         "btc_price": btc_holding["current_price"] if btc_holding else None,
         "eth_price": eth_holding["current_price"] if eth_holding else None,
         "crypto_indicators": {},  # filled after market_data step
+        "accounts_krw": accounts_krw_today,
     }
 
     # ── 6. 마켓 데이터 (지수 + BTC 도미넌스 + 공포탐욕) ──────────────
@@ -805,6 +845,18 @@ def run_pipeline() -> None:
     except Exception as e:
         errors.append(f"어제스냅샷: {e}")
         print(f"  [오류] {e}")
+
+    # Slack용 D-1 요약 주입
+    if yesterday_snapshot:
+        yt = yesterday_snapshot.get("total_krw", 0) or 0
+        yr = yesterday_snapshot.get("risky_pct", 0) or 0
+        ys = yesterday_snapshot.get("safe_pct", 0) or 0
+        portfolio["daily_change"] = {
+            "total_diff": total_krw - yt,
+            "total_pct":  (total_krw - yt) / yt * 100 if yt else 0,
+            "risky_diff": risky_pct - yr,
+            "safe_diff":  safe_pct - ys,
+        }
 
     # ── 8. 양도세 YTD ─────────────────────────────────────────────
     print("\n[8/9] 양도세 YTD 계산...")
@@ -952,6 +1004,7 @@ def run_pipeline() -> None:
     print("\n[notion] 노션 동기화...")
     try:
         ensure_snapshot_crypto_columns()
+        ensure_snapshot_account_columns()
         sync_holdings(all_holdings)
         add_snapshot(snapshot)
     except Exception as e:

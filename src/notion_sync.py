@@ -71,6 +71,19 @@ def upsert_holding(ticker: str, props: dict) -> None:
         )
 
 
+# 계좌 키(소문자) → Snapshots DB 컬럼명 매핑 (Phase 2 D-1 비교용)
+_ACCOUNT_KEY_TO_COLUMN = {
+    "kis_jonghap": "KIS_종합_KRW",
+    "kis_isa":     "KIS_ISA_KRW",
+    "kis_yeon":    "KIS_연저_KRW",
+    "okx":         "OKX_KRW",
+    "upbit":       "Upbit_KRW",
+    "toss":        "Toss_KRW",
+    "emergency":   "Bank_비상금_KRW",
+    "biz":         "Bank_사업자금_KRW",
+}
+
+
 def ensure_snapshot_crypto_columns() -> None:
     """Snapshots DB에 크립토 지표 number 컬럼 4종 보장 (있으면 무시)."""
     if not SNAPSHOT_DB:
@@ -86,6 +99,21 @@ def ensure_snapshot_crypto_columns() -> None:
         print("  Snapshots DB 크립토 컬럼 4종 보장 완료")
     except Exception as e:
         print(f"  [경고] Snapshots 크립토 컬럼 보장 실패: {e}")
+
+
+def ensure_snapshot_account_columns() -> None:
+    """Snapshots DB에 계좌별 KRW number 컬럼 8종 보장 (있으면 무시). 멱등 안전망."""
+    if not SNAPSHOT_DB:
+        return
+    new_props = {
+        col: {"number": {"format": "number"}}
+        for col in _ACCOUNT_KEY_TO_COLUMN.values()
+    }
+    try:
+        notion.databases.update(database_id=SNAPSHOT_DB, properties=new_props)
+        print("  Snapshots DB 계좌별 KRW 컬럼 8종 보장 완료")
+    except Exception as e:
+        print(f"  [경고] Snapshots 계좌별 KRW 컬럼 보장 실패: {e}")
 
 
 def add_snapshot(snapshot: dict) -> None:
@@ -129,6 +157,13 @@ def add_snapshot(snapshot: dict) -> None:
         page_props["ETHBTC비율"]   = _number(ci["eth_btc_ratio"])
     if ci.get("total3_market_cap") is not None:
         page_props["TOTAL3시총"]   = _number(ci["total3_market_cap"])
+
+    # 계좌별 KRW 8종 (D-1 비교용)
+    accounts_krw = snapshot.get("accounts_krw", {}) or {}
+    for key, col in _ACCOUNT_KEY_TO_COLUMN.items():
+        val = accounts_krw.get(key)
+        if val is not None:
+            page_props[col] = _number(val)
 
     if existing["results"]:
         notion.pages.update(
@@ -245,6 +280,10 @@ def get_yesterday_snapshot() -> dict | None:
         def _num(key):
             return props.get(key, {}).get("number") or 0
 
+        accounts_krw = {
+            key: _num(col)
+            for key, col in _ACCOUNT_KEY_TO_COLUMN.items()
+        }
         return {
             "total_krw": _num("총자산"),
             "crypto_krw": _num("크립토"),
@@ -261,6 +300,7 @@ def get_yesterday_snapshot() -> dict | None:
                 "eth_btc_ratio":     _num("ETHBTC비율") or None,
                 "total3_market_cap": _num("TOTAL3시총") or None,
             },
+            "accounts_krw": accounts_krw,
         }
     except Exception as e:
         print(f"  [경고] 어제 스냅샷 조회 실패: {e}")

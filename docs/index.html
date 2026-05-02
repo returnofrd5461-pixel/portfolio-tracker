@@ -36,6 +36,10 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .total-delta-val.pos{background:rgba(29,158,117,0.12);color:var(--pos)}
 .total-delta-val.neg{background:rgba(216,90,48,0.12);color:var(--neg)}
 .total-delta-val.neu{color:var(--txt3)}
+/* 헤더 D-1: 한국식 색상 (양수=빨강 상승, 음수=파랑 하락) */
+.total-delta-val.up{background:rgba(216,68,68,0.12);color:#D84444}
+.total-delta-val.down{background:rgba(58,127,217,0.12);color:#3A7FD9}
+.delta-label{font-size:11px;font-weight:500;opacity:0.7;margin-left:4px}
 .total-fx{font-size:13px;color:var(--txt3);font-family:var(--mono);margin-top:3px}
 .png-btn{
   font-size:12px;padding:6px 12px;border-radius:6px;border:0.5px solid var(--bdr);
@@ -161,6 +165,10 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .acct-pnl .acct-pnl-strong{font-weight:700;font-size:13px}
 .acct-pnl .pos,.acct-pnl-strong.pos{color:var(--pos)}
 .acct-pnl .neg,.acct-pnl-strong.neg{color:var(--neg)}
+/* 계좌 카드 D-1: 한국식 색상 */
+.acct-d1{font-size:11px;font-family:var(--mono);color:var(--txt3);margin-top:2px;line-height:1.4}
+.acct-d1 .up{color:#D84444;font-weight:600}
+.acct-d1 .down{color:#3A7FD9;font-weight:600}
 .acct-card .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
 .acct-card .top-row .left{flex:1;min-width:0}
 .acct-card .top-row .right{flex:0 0 auto;text-align:right;font-size:10px;line-height:1.55;color:var(--txt3);max-width:160px;font-family:var(--mono);word-break:keep-all}
@@ -852,6 +860,15 @@ function renderAccountGrid(d) {
       const cls = a.pnl_krw >= 0 ? 'pos' : 'neg';
       pnlLine = `<div class="acct-pnl">총 손익 <span class="acct-pnl-strong ${cls}">${sgn}${fmt(a.pnl_krw)} (${sgn}${a.pnl_pct.toFixed(2)}%)</span></div>`;
     }
+    let d1Line = '';
+    if(a.daily_change && (a.daily_change.diff || a.daily_change.pct)) {
+      const dd = a.daily_change;
+      const cls = dd.diff > 0 ? 'up' : dd.diff < 0 ? 'down' : '';
+      const arrow = dd.diff > 0 ? '▲' : dd.diff < 0 ? '▼' : '·';
+      const sgn = dd.diff >= 0 ? '+' : '-';
+      const av = Math.abs(dd.diff);
+      d1Line = `<div class="acct-d1">어제比 <span class="${cls}">${arrow} ${sgn}${fmt(av)} (${sgn}${Math.abs(dd.pct).toFixed(2)}%)</span></div>`;
+    }
     const miniRight = _renderAcctMiniCls(d, a.id);
     return `
       <div class="acct-card">
@@ -867,6 +884,7 @@ function renderAccountGrid(d) {
           <div class="pbar"><div class="pbar-fill" style="background:${a.color};width:${clamp(p,0,100)}%"></div></div>
         </div>
         ${pnlLine}
+        ${d1Line}
       </div>`;
   }).join('');
   return `<div class="account-grid">${cards}</div>`;
@@ -1809,19 +1827,42 @@ function attachJournalHandlers() {
 }
 
 // ── main render ───────────────────────────────────────────────────────────────
+// 누적 표시(기존): 미국식 pos/neg 색상. 헤더 D-1(신규): 한국식 up/down 색상.
 function _headerDeltaHtml(diff, diffPct) {
   if(!diff && !diffPct) return '';
   const cls = diff>0?'pos':diff<0?'neg':'neu';
   const s = diff>=0?'+':'-';
   const av = Math.abs(diff);
   const pctStr = diffPct!==undefined ? ` (${s}${Math.abs(diffPct).toFixed(1)}%)` : '';
-  return `<span class="total-delta-val ${cls}">${s}${fmt(av)}${pctStr}</span>`;
+  return `<span class="total-delta-val ${cls}">${s}${fmt(av)}${pctStr}<span class="delta-label">누적</span></span>`;
+}
+
+function _headerD1Html(diff, diffPct) {
+  if(!diff && !diffPct) return '';
+  const cls = diff>0?'up':diff<0?'down':'neu';
+  const arrow = diff>0?'▲':diff<0?'▼':'·';
+  const s = diff>=0?'+':'-';
+  const av = Math.abs(diff);
+  const pctStr = diffPct!==undefined && diffPct!==null ? ` (${s}${Math.abs(diffPct).toFixed(2)}%)` : '';
+  return `<span class="total-delta-val ${cls}">${arrow} ${s}${fmt(av)}${pctStr}<span class="delta-label">어제比</span></span>`;
 }
 
 function render(d) {
   window._portfolioData = d;
   const dc = d.daily_change || {};
-  const totalDelta = dc.total ? _headerDeltaHtml(dc.total.diff, dc.total.pct) : '';
+  // 누적: sparkline 시작점(약 30일 전) → 오늘
+  const hist = d.sparkline_history || [];
+  let cumDiff = 0, cumPct = 0;
+  if(hist.length >= 2) {
+    const startTotal = hist[0].total || 0;
+    if(startTotal > 0) {
+      cumDiff = d.total_krw - startTotal;
+      cumPct  = cumDiff / startTotal * 100;
+    }
+  }
+  const totalDelta = (cumDiff || cumPct) ? _headerDeltaHtml(cumDiff, cumPct) : '';
+  // D-1: 어제 스냅샷 → 오늘
+  const totalD1    = dc.total ? _headerD1Html(dc.total.diff, dc.total.pct) : '';
 
   const html = `
     <div class="hdr">
@@ -1830,6 +1871,7 @@ function render(d) {
         <div class="total-krw">
           <span>총 자산 <strong>${fmt(d.total_krw)}</strong>원</span>
           ${totalDelta}
+          ${totalD1}
         </div>
         <div class="total-fx">USD/KRW ${fmt(d.usdkrw)}</div>
       </div>

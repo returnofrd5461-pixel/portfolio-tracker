@@ -84,6 +84,10 @@ def check_alerts(portfolio: dict) -> list[str]:
     return alerts
 
 
+def _arrow(v: float) -> str:
+    return "▲" if v > 0 else "▼" if v < 0 else "·"
+
+
 def send_daily_report(portfolio: dict) -> None:
     total = portfolio.get("total_krw", 0)
     risky = portfolio.get("risky_pct", 0)
@@ -100,6 +104,18 @@ def send_daily_report(portfolio: dict) -> None:
         f"OKX: {portfolio.get('okx_krw', 0):,.0f} KRW\n"
         f"한투: {portfolio.get('kis_krw', 0):,.0f} KRW"
     )
+
+    dc = portfolio.get("daily_change")
+    if dc:
+        td = dc.get("total_diff", 0)
+        tp = dc.get("total_pct", 0)
+        rd = dc.get("risky_diff", 0)
+        sd = dc.get("safe_diff", 0)
+        message += (
+            f"\n어제比: 총자산 {_arrow(td)} {td:+,.0f} KRW ({tp:+.2f}%) | "
+            f"위험 {rd:+.1f}%p | 안전 {sd:+.1f}%p"
+        )
+
     summary_line = format_summary_line(get_schedule_summary())
     if summary_line:
         message += f"\n{summary_line}"
