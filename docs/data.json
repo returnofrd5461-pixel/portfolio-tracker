@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-05-17T02:39:22+09:00",
+  "updated_at": "2026-05-17T06:33:03+09:00",
   "usdkrw": 1498,
-  "total_krw": 147222163,
+  "total_krw": 147215910,
   "accounts": [
     {
       "id": "kis_jonghap",
@@ -72,14 +72,14 @@
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 832521,
+      "krw": 826268,
       "color": "#D4853A",
-      "usd_amount": 556,
+      "usd_amount": 552,
       "daily_change": {
-        "today": 832521,
+        "today": 826268,
         "yesterday": 1152250,
-        "diff": -319730,
-        "pct": -27.75
+        "diff": -325982,
+        "pct": -28.29
       }
     },
     {
@@ -121,7 +121,7 @@
   ],
   "asset_class_totals": {
     "us_stock": 71181215,
-    "crypto": 832535,
+    "crypto": 826282,
     "bond": 11963952,
     "gold": 11606103,
     "oil": 1325150,
@@ -338,14 +338,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 832521,
+      "total_krw": 826268,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 832521,
+          "krw": 826268,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -415,7 +415,7 @@
     "liquidity": {
       "instant": 20000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 98726209,
+      "week": 98719957,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 21822141,
       "mid_note": "ISA 만기 권장",
@@ -431,9 +431,9 @@
   },
   "daily_change": {
     "total": {
-      "today": 147222163,
+      "today": 147215910,
       "yesterday": 147541892,
-      "diff": -319729,
+      "diff": -325982,
       "pct": -0.22
     },
     "risky_pct": {
@@ -454,10 +454,10 @@
         "pct": 110.16
       },
       "crypto": {
-        "today": 832535,
+        "today": 826282,
         "yesterday": 1152264,
-        "diff": -319729,
-        "pct": -27.75
+        "diff": -325982,
+        "pct": -28.29
       },
       "bond": {
         "today": 11963952,
@@ -541,7 +541,7 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 78244.0,
+        "price": 78243.0,
         "change_pct": -1.04
       },
       "NDX": {
@@ -574,20 +574,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 58.32,
-      "change_pct": 0.03
+      "value": 58.31,
+      "change_pct": 0.02
     },
     "usdt_dominance": {
       "value": 7.06,
       "change_pct": -0.42
     },
     "eth_btc_ratio": {
-      "value": 0.02783,
-      "change_pct": -0.25
+      "value": 0.02788,
+      "change_pct": -0.07
     },
     "total3_market_cap": {
-      "value": 857631245459,
-      "change_pct": 0.45
+      "value": 857383495337,
+      "change_pct": 0.42
     }
   },
   "rebalancing": {
@@ -596,8 +596,8 @@
         "cls": "us_stock",
         "name": "주식",
         "target": 30.0,
-        "actual": 48.3,
-        "diff": 18.3
+        "actual": 48.4,
+        "diff": 18.4
       },
       {
         "cls": "crypto",
@@ -933,8 +933,8 @@
     },
     {
       "date": "2026-05-17",
-      "total": 147338293.87369,
-      "crypto": 948666.346852,
+      "total": 147222162.498382,
+      "crypto": 832534.971544,
       "stock": 33870664.083252,
       "gold": 11606103.297058,
       "oil": 1325150,
@@ -1377,7 +1377,7 @@
       {
         "symbol": "AAPL",
         "krw": 1612074,
-        "pct": 1.09,
+        "pct": 1.1,
         "direct": 0,
         "indirect": 1612074
       },
@@ -1418,9 +1418,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 832521,
-        "pct": 0.57,
-        "direct": 832521,
+        "krw": 826268,
+        "pct": 0.56,
+        "direct": 826268,
         "indirect": 0
       },
       {
@@ -1478,7 +1478,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 832521,
+        "krw": 826268,
         "pct": 0.6
       },
       {
@@ -1510,7 +1510,7 @@
       },
       {
         "region": "크립토",
-        "krw": 832521,
+        "krw": 826268,
         "pct": 0.6
       }
     ]
