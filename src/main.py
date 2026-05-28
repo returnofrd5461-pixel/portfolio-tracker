@@ -164,14 +164,17 @@ def write_data_json(
         except Exception:
             pass
 
-    # 수동 잔고: 노션 우선, 없으면 기존 data.json 값
+    # 수동 잔고: 토스는 노션 우선 + data.json 폴백, 비상금/사업자금은 노션 실값만 사용
     # notion_manual 구조: {"toss": {"eval": ..., "principal": ...}, "emergency": {"eval": ...}, ...}
     notion_manual = extras.get("notion_manual", {})
     manual_krw: dict[str, float] = {}
     for acc_id in MANUAL_ACCOUNT_META:
         acc_data = notion_manual.get(acc_id, {})
         notion_eval = acc_data.get("eval", 0) if isinstance(acc_data, dict) else 0
-        if notion_eval > 0:
+        if acc_id in ("emergency", "biz"):
+            # 노션 실값만 사용 — 0이면 0 (top accounts/cash 합계/유동성에서 자동 누락)
+            manual_krw[acc_id] = notion_eval
+        elif notion_eval > 0:
             manual_krw[acc_id] = notion_eval
         else:
             manual_krw[acc_id] = next(
