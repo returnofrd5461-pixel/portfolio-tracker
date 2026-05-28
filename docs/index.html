@@ -247,6 +247,18 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .sb-round.done{background:#534AB720;color:#534AB7;border:0.5px solid #534AB740}
 .sb-round.pending{background:var(--bg3);color:var(--txt3);border:0.5px solid var(--bdr)}
 
+/* ── 토스 위성 섹터 비율 ── */
+.toss-sectors{padding:12px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
+.toss-sectors-title{font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.toss-sectors-total{font-size:11px;color:var(--txt3);font-family:var(--mono);font-weight:500}
+.sector-row{display:grid;grid-template-columns:90px 1fr 95px 36px;align-items:center;gap:8px;font-size:12px;margin-bottom:6px}
+.sector-row:last-child{margin-bottom:0}
+.sector-name{font-weight:600}
+.sector-bar-wrap{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.sector-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.sector-amt{font-family:var(--mono);text-align:right;color:var(--txt2);font-weight:500}
+.sector-count{font-size:11px;color:var(--txt3);text-align:right;font-family:var(--mono)}
+
 /* ── 토스 위성 MDD gauge ── */
 .toss-mdd{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
 .mdd-title{font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
@@ -443,6 +455,166 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .j-sim-result{padding:10px 12px;background:var(--bg);border-radius:6px;font-size:12px}
 .j-sim-result-row{display:flex;justify-content:space-between;padding:3px 0}
 .j-sim-result-row.tot{font-weight:600;border-top:0.5px solid var(--bdr);margin-top:4px;padding-top:6px}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Mobile-first overrides (iPhone-primary). PC layouts above remain intact.
+ * ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  body {
+    padding: 14px 12px 92px;  /* bottom 92px = fixed tab bar 클리어 */
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ── Header: stack, bigger total ── */
+  .hdr { flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 12px; }
+  .hdr h1 { font-size: 22px; }
+  .total-krw { font-size: 14px; gap: 8px; }
+  .total-krw strong { font-size: 28px; line-height: 1.1; }
+  .total-usd { font-size: 13px; }
+  .total-delta-val { font-size: 14px; padding: 3px 9px; }
+  .total-fx { font-size: 12px; }
+  .hdr-meta { width: 100%; justify-content: space-between; font-size: 12px; gap: 8px; }
+  .png-btn { padding: 9px 14px; font-size: 13px; min-height: 38px; }
+
+  /* ── Tabs: bottom-fixed tab bar (iOS-style) ── */
+  .tabs {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    margin: 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 0.5px solid var(--bdr2);
+    border-bottom: none;
+    z-index: 100;
+    overflow-x: visible;
+    justify-content: space-around;
+    gap: 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+  }
+  .tab {
+    flex: 1;
+    font-size: 11px;
+    padding: 9px 4px;
+    border-bottom: none;
+    border-top: 2px solid transparent;
+    text-align: center;
+    min-height: 44px;       /* touch target */
+    line-height: 1.2;
+    color: var(--txt2);
+  }
+  .tab.active {
+    border-bottom: none;
+    border-top-color: var(--txt);
+    color: var(--txt);
+  }
+
+  /* ── Section labels ── */
+  .sec-label { font-size: 12px; margin-top: 16px; margin-bottom: 8px; }
+
+  /* ── Market sections (macro / assets): 2x2 grid ── */
+  .market-section { flex-direction: column; align-items: stretch; padding: 10px 12px; }
+  .ms-label { min-width: 0; padding: 0 0 8px 0; font-size: 12px; border-bottom: 0.5px solid var(--bdr); margin-bottom: 8px; }
+  .ms-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+  }
+  .ms-item {
+    flex: none; min-width: 0; padding: 4px 0;
+    border-right: none;
+    gap: 8px;
+  }
+  .ms-emoji { font-size: 22px; }
+  .ms-name { font-size: 11px; }
+  .ms-price { font-size: 17px; }
+  .ms-chg { font-size: 12px; }
+
+  /* ── Indicators: 2-col, larger value ── */
+  .indicators-section { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .ind-card { padding: 12px 14px; }
+  .ind-label { font-size: 12px; }
+  .ind-value { font-size: 20px; }
+  .ind-sub { font-size: 11px; }
+
+  /* ── Risky/Safe summary: bigger numbers ── */
+  .summary-row-risky, .summary-row-safe { gap: 8px; margin-bottom: 10px; }
+  .card-risk, .card-safe { padding: 14px 14px; }
+  .card-risk .label, .card-safe .label { font-size: 13px; }
+  .card-risk .pct, .card-safe .pct { font-size: 28px; font-weight: 700; }
+  .card-risk .amt, .card-safe .amt { font-size: 12px; }
+  .cls-card { padding: 12px 13px; }
+  .cls-card .label { font-size: 13px; }
+  .cls-card .pct { font-size: 22px; font-weight: 700; }
+
+  /* ── Account grid: 1-col stack ── */
+  .account-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 18px; }
+  .acct-card { padding: 14px 16px; gap: 7px; }
+  .acct-card .name { font-size: 17px; }
+  .acct-card .sub { font-size: 12px; }
+  .acct-card .amount { font-size: 24px; font-weight: 800; line-height: 1.15; }
+  .acct-card .pct-val { font-size: 14px; }
+  .acct-card .top-row .right { font-size: 10px; max-width: none; }
+  .acct-pnl { font-size: 14px; line-height: 1.55; }
+  .acct-pnl .acct-pnl-strong { font-size: 15px; }
+  .acct-d1 { font-size: 12px; }
+
+  /* ── Holdings tables: keep horiz scroll, but pad/text bigger ── */
+  .holdings-row { gap: 14px; margin-bottom: 18px; }
+  .holdings-col .col-label { font-size: 14px; margin-bottom: 8px; }
+  .h-table { -webkit-overflow-scrolling: touch; }
+  .h-table-hdr { padding: 14px 16px; }
+  .h-table-hdr .acct-title { font-size: 16px; }
+  .h-table-hdr .acct-sub { font-size: 12px; }
+  .h-table-hdr .acct-total { font-size: 22px; font-weight: 800; }
+  .h-table-hdr .acct-pnl-summary { font-size: 14px; }
+
+  /* ── Sector widget (toss): tighter on mobile ── */
+  .toss-sectors { padding: 12px 14px; }
+  .toss-sectors-title { font-size: 12px; }
+  .sector-row { grid-template-columns: 80px 1fr 90px 32px; font-size: 13px; gap: 6px; margin-bottom: 8px; }
+  .sector-name { font-size: 13px; }
+  .sector-amt { font-size: 12px; }
+  .sector-count { font-size: 11px; }
+
+  /* ── MDD gauge: bigger on mobile ── */
+  .toss-mdd { padding: 12px 14px; }
+  .mdd-title { font-size: 12px; }
+  .mdd-val { font-size: 13px; }
+  .mdd-info { font-size: 11px; }
+
+  /* ── Metrics: 1-col ── */
+  .metrics-card { padding: 16px 18px; }
+  .metrics-grid { grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
+  .m-item { padding: 14px 16px; }
+  .m-item .m-label { font-size: 13px; }
+
+  /* ── Tax row: stack ── */
+  .tax-row { grid-template-columns: 1fr; gap: 8px; }
+
+  /* ── Rebalancing: stack ── */
+  .rebal-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* ── Journal/Review summaries: 2-col on small screens ── */
+  .j-summary, .r-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* ── Review insight grid stack ── */
+  .r-insight-grid { grid-template-columns: 1fr; }
+
+  /* ── Calendar items: compact ── */
+  .cal-item { grid-template-columns: 56px 1fr 76px; }
+}
+
+/* ── Very small screens (iPhone SE 등 ~375px) 미세 보정 ── */
+@media (max-width: 380px) {
+  body { padding: 12px 10px 92px; }
+  .hdr h1 { font-size: 20px; }
+  .total-krw strong { font-size: 26px; }
+  .acct-card .amount { font-size: 22px; }
+  .card-risk .pct, .card-safe .pct { font-size: 26px; }
+  .tab { font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -918,6 +1090,38 @@ function renderSplitBuying(sb) {
     </div>`;
 }
 
+// ── 토스 위성 섹터 비율 ────────────────────────────────────────────────────────
+const SECTOR_COLORS = {
+  '반도체': '#3A7FD9',
+  'AI':     '#7F77DD',
+  '양자':   '#D4537E',
+  '기타':   '#888888',
+};
+function renderTossSectors(sectors) {
+  if(!sectors || !sectors.length) return '';
+  const total = sectors.reduce((a,s)=>a+(s.krw||0), 0);
+  if(!total) return '';
+  const rows = sectors.map(s => {
+    const pct = (s.krw / total * 100);
+    const color = SECTOR_COLORS[s.name] || '#888888';
+    return `
+      <div class="sector-row">
+        <div class="sector-name" style="color:${color}">${s.name} ${pct.toFixed(1)}%</div>
+        <div class="sector-bar-wrap"><div class="sector-bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div></div>
+        <div class="sector-amt">${fmt(s.krw)}</div>
+        <div class="sector-count">${s.count}종</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="toss-sectors">
+      <div class="toss-sectors-title">
+        <span>위성 섹터 비율</span>
+        <span class="toss-sectors-total">${sectors.length}섹터 · ${fmt(total)}원</span>
+      </div>
+      ${rows}
+    </div>`;
+}
+
 // ── 토스 위성 MDD gauge (계좌 전체 원금 대비) ────────────────────────────────
 function renderTossMdd(mdd) {
   if(!mdd||!mdd.principal_krw) return '';
@@ -1112,6 +1316,7 @@ function renderSatelliteTable(h, total, d) {
 
   let extras = '';
   if(h.account_id === 'toss') {
+    extras += renderTossSectors(h.toss_sectors);
     extras += renderTossMdd(d.toss_mdd || h.toss_mdd);
   }
 

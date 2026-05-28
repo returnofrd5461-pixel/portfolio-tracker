@@ -63,6 +63,12 @@ HOLDING_COLOR = {
     "BTC": "#EF9F27",  "ETH": "#7F77DD",  "XRP": "#D4537E",
     "SOL": "#9945FF",
 }
+# 토스 위성 종목 → 섹터 매핑 (위젯용)
+TOSS_SECTOR_MAP = {
+    "AMDL": "반도체", "DRAM": "반도체", "SOXL": "반도체", "NVDL": "반도체",
+    "GGLL": "AI",     "PTIR": "AI",
+    "IONL": "양자",   "RGTU": "양자",
+}
 ACCOUNT_META = {
     "KIS_JONGHAP": {"id": "kis_jonghap", "name": "한투 종합 (직투ETF)",  "sub": "미국 직투 · 양도세 22%",           "color": "#534AB7"},
     "KIS_ISA":     {"id": "kis_isa",     "name": "ISA 중개형 (한투)",     "sub": "비과세 200만 · 초과 9.9%",          "color": "#7F77DD"},
@@ -410,6 +416,14 @@ def write_data_json(
                 "color":         _holding_color(it.get("ticker", ""), cls),
             })
         toss_items.sort(key=lambda x: (SORT_ORDER.get(x["cls"], 99), -x["krw"]))
+        # 섹터별 집계 (반도체/AI/양자/기타)
+        sector_agg: dict[str, dict] = {}
+        for it in toss_items:
+            sector = TOSS_SECTOR_MAP.get(it.get("ticker", ""), "기타")
+            bucket = sector_agg.setdefault(sector, {"name": sector, "krw": 0, "count": 0})
+            bucket["krw"]   += it.get("krw", 0)
+            bucket["count"] += 1
+        toss_sectors = sorted(sector_agg.values(), key=lambda s: -s["krw"])
         toss_sat = {
             "account_id":    "toss",
             "account_name":  toss_meta["name"],
@@ -417,6 +431,7 @@ def write_data_json(
             "account_color": toss_meta["color"],
             "total_krw":     round(toss_data.get("eval", 0)),
             "items":         toss_items,
+            "toss_sectors":  toss_sectors,
         }
         if toss_mdd:
             toss_sat["toss_mdd"] = toss_mdd

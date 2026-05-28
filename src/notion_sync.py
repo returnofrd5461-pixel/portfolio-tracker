@@ -198,6 +198,28 @@ _ACCOUNT_NOTION_LABEL = {
     "biz": "사업",
 }
 
+# 자산군 한글 표기 → 파이프라인 영문 키 정규화
+# (Holdings DB '자산군' select 옵션이 한글로 저장된 경우 영문으로 변환)
+_ASSET_CLASS_KR_TO_EN = {
+    "주식":      "us_stock",
+    "미국주식":  "us_stock",
+    "해외주식":  "us_stock",
+    "한국주식":  "us_stock",
+    "채권":      "bond",
+    "금":        "gold",
+    "원유":      "oil",
+    "크립토":    "crypto",
+    "암호화폐":  "crypto",
+    "현금":      "cash",
+}
+
+
+def _normalize_asset_class(raw: str) -> str:
+    """자산군 라벨을 영문 키로 정규화. 이미 영문이면 그대로 반환."""
+    if not raw:
+        return ""
+    return _ASSET_CLASS_KR_TO_EN.get(raw.strip(), raw.strip())
+
 
 def pull_manual_holdings() -> dict:
     """Holdings DB에서 수동 입력 계좌(토스/비상금/사업)의 종목 리스트 + 합계 반환.
@@ -257,7 +279,8 @@ def pull_manual_holdings() -> dict:
             name = name_arr[0]["plain_text"] if name_arr else "?"
             ticker_arr = props.get("티커", {}).get("rich_text", []) or []
             ticker = ticker_arr[0]["plain_text"] if ticker_arr else ""
-            cls = (props.get("자산군", {}).get("select") or {}).get("name", "") or ""
+            cls_raw = (props.get("자산군", {}).get("select") or {}).get("name", "") or ""
+            cls = _normalize_asset_class(cls_raw)
 
             item = {
                 "name": name,
