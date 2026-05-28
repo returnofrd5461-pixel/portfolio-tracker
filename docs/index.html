@@ -247,17 +247,8 @@ body{font-family:var(--sans);color:var(--txt);background:var(--bg);padding:20px 
 .sb-round.done{background:#534AB720;color:#534AB7;border:0.5px solid #534AB740}
 .sb-round.pending{background:var(--bg3);color:var(--txt3);border:0.5px solid var(--bdr)}
 
-/* ── toss NVDA P&L ── */
-.toss-pnl{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
-.toss-pnl-title{font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px}
-.toss-pnl-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
-.toss-pnl-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px}
-.toss-pnl-label{color:var(--txt3)}
-.toss-pnl-val{font-family:var(--mono);font-weight:500}
-.toss-pnl-big{font-size:14px;font-weight:700}
-
-/* ── NVDA MDD gauge ── */
-.nvda-mdd{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
+/* ── 토스 위성 MDD gauge ── */
+.toss-mdd{padding:10px 14px;border-top:0.5px solid var(--bdr);background:var(--bg2)}
 .mdd-title{font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
 .mdd-val{font-family:var(--mono);font-size:12px}
 .mdd-track-wrap{position:relative;height:8px;background:var(--bg3);border-radius:4px;margin-bottom:4px;overflow:visible}
@@ -927,9 +918,9 @@ function renderSplitBuying(sb) {
     </div>`;
 }
 
-// ── NVDA MDD gauge ────────────────────────────────────────────────────────────
-function renderNvdaMdd(mdd) {
-  if(!mdd||!mdd.avg_price_krw) return '';
+// ── 토스 위성 MDD gauge (계좌 전체 원금 대비) ────────────────────────────────
+function renderTossMdd(mdd) {
+  if(!mdd||!mdd.principal_krw) return '';
   const v = mdd.mdd_pct;
   const MIN=-30, MAX=10, RANGE=MAX-MIN;
 
@@ -942,12 +933,12 @@ function renderNvdaMdd(mdd) {
   const markerPct = clamp((MAX-v)/RANGE*100, 0, 100);
 
   const valCls = v >= -15 ? '#1D9E75' : v >= -25 ? '#EF9F27' : '#D85A30';
-  const statusText = v >= 0 ? '평단 이상 ✓' : v >= -15 ? '안전' : v >= -25 ? '⚠ 주의' : '🔴 위험';
+  const statusText = v >= 0 ? '원금 이상 ✓' : v >= -15 ? '안전' : v >= -25 ? '⚠ 주의' : '🔴 위험';
 
   return `
-    <div class="nvda-mdd">
+    <div class="toss-mdd">
       <div class="mdd-title">
-        <span>NVDA 평단 대비 MDD</span>
+        <span>토스 위성 MDD (원금 대비)</span>
         <span class="mdd-val" style="color:${valCls}">${sign(v)}${v.toFixed(1)}% (${statusText})</span>
       </div>
       <div class="mdd-track-wrap">
@@ -957,7 +948,7 @@ function renderNvdaMdd(mdd) {
         <div class="mdd-marker"     style="left:${markerPct}%"></div>
       </div>
       <div class="mdd-labels"><span>+10%</span><span>-15%</span><span>-25%</span><span>-30%</span></div>
-      <div class="mdd-info">평단 ${fmt(mdd.avg_price_krw)}원 → 현재 ${fmt(mdd.current_price_krw)}원</div>
+      <div class="mdd-info">원금 ${fmt(mdd.principal_krw)}원 → 현재 ${fmt(mdd.current_krw)}원</div>
     </div>`;
 }
 
@@ -1074,37 +1065,6 @@ function renderCoreTable(h, total, d) {
     </div>`;
 }
 
-// ── toss NVDA P&L block ───────────────────────────────────────────────────────
-function renderTossPnl(tn) {
-  if(!tn || !tn.principal_krw) return '';
-  const pnl = tn.pnl_krw;
-  const pnlPct = tn.pnl_pct;
-  const pnlCls = pnl >= 0 ? 'chg-pos' : 'chg-neg';
-  const s = pnl >= 0 ? '+' : '';
-  return `
-    <div class="toss-pnl">
-      <div class="toss-pnl-title">NVDA 포지션 손익</div>
-      <div class="toss-pnl-grid">
-        <div class="toss-pnl-row">
-          <span class="toss-pnl-label">원금</span>
-          <span class="toss-pnl-val">${fmt(tn.principal_krw)}</span>
-        </div>
-        <div class="toss-pnl-row">
-          <span class="toss-pnl-label">평가금액</span>
-          <span class="toss-pnl-val">${fmt(tn.current_krw)}</span>
-        </div>
-        <div class="toss-pnl-row">
-          <span class="toss-pnl-label">손익</span>
-          <span class="toss-pnl-val toss-pnl-big ${pnlCls}">${s}${fmt(pnl)}</span>
-        </div>
-        <div class="toss-pnl-row">
-          <span class="toss-pnl-label">수익률</span>
-          <span class="toss-pnl-val toss-pnl-big ${pnlCls}">${s}${pnlPct.toFixed(2)}%</span>
-        </div>
-      </div>
-    </div>`;
-}
-
 // ── satellite table ───────────────────────────────────────────────────────────
 function renderSatelliteTable(h, total, d) {
   const rows = h.items.map(item => {
@@ -1152,7 +1112,7 @@ function renderSatelliteTable(h, total, d) {
 
   let extras = '';
   if(h.account_id === 'toss') {
-    extras += renderNvdaMdd(d.nvda_mdd || h.nvda_mdd);
+    extras += renderTossMdd(d.toss_mdd || h.toss_mdd);
   }
 
   return `

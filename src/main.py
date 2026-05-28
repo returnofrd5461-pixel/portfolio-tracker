@@ -14,7 +14,7 @@ from notion_sync import (
     sync_holdings, add_snapshot, ensure_snapshot_crypto_columns,
     ensure_snapshot_account_columns,
     pull_manual_holdings, get_yesterday_snapshot,
-    get_capital_gains_ytd, get_sparkline_history, get_nvda_avg_price,
+    get_capital_gains_ytd, get_sparkline_history,
     ensure_transactions_columns, sync_transactions, pull_transactions,
     update_transaction_review,
 )
@@ -71,7 +71,7 @@ ACCOUNT_META = {
     "OKX":         {"id": "okx",         "name": "OKX",                   "sub": "크립토 해외",                      "color": "#D4853A"},
 }
 MANUAL_ACCOUNT_META = {
-    "toss":      {"name": "토스증권 직투",  "sub": "NVDA 관련 · 양도세 22%",      "color": "#D4537E"},
+    "toss":      {"name": "토스증권 직투",  "sub": "위성 개별주 · 양도세 22%",    "color": "#D4537E"},
     "emergency": {"name": "비상금",         "sub": "파킹통장 · 장기 유동자금",    "color": "#1D9E75"},
     "biz":       {"name": "사업 운영자금",  "sub": "월 단기 유동성",              "color": "#5DCAA5"},
 }
@@ -302,29 +302,19 @@ def write_data_json(
             },
         }
 
-    # ── NVDA MDD ─────────────────────────────────────────────────────
-    nvda_avg_krw = extras.get("nvda_avg_krw", 0)
-    nvda_current_krw = extras.get("nvda_current_krw", 0)
-    nvda_mdd: dict = {}
-    if nvda_avg_krw > 0:
-        mdd_pct = (nvda_current_krw - nvda_avg_krw) / nvda_avg_krw * 100
-        nvda_mdd = {
-            "avg_price_krw": round(nvda_avg_krw),
-            "current_price_krw": round(nvda_current_krw),
-            "mdd_pct": round(mdd_pct, 1),
-            "threshold_15": -15,
-            "threshold_25": -25,
-        }
-
-    # ── 토스 NVDA 손익 ───────────────────────────────────────────────
-    toss_data = notion_manual.get("toss", {})
-    toss_nvda: dict = {}
+    # ── 토스 위성 MDD (계좌 전체 원금 대비 평가 낙폭) ─────────────────
+    toss_data = notion_manual.get("toss") or {}
+    toss_mdd: dict = {}
     if isinstance(toss_data, dict) and toss_data.get("principal", 0) > 0:
-        toss_nvda = {
-            "principal_krw": toss_data["principal"],
-            "current_krw":   toss_data.get("eval", 0),
-            "pnl_krw":       toss_data.get("pnl", 0),
-            "pnl_pct":       toss_data.get("pnl_pct", 0.0),
+        principal = toss_data["principal"]
+        current   = toss_data.get("eval", 0)
+        pnl_pct   = toss_data.get("pnl_pct", 0.0)
+        toss_mdd = {
+            "principal_krw": round(principal),
+            "current_krw":   round(current),
+            "mdd_pct":       round(pnl_pct, 1),
+            "threshold_15":  -15,
+            "threshold_25":  -25,
         }
 
     # ── 양도세 면세 한도 ─────────────────────────────────────────────
@@ -400,21 +390,36 @@ def write_data_json(
             "total_krw": round(acct_total), "items": items,
         })
 
-    # toss satellite — 노션 우선, 없으면 기존 보존
-    existing_sat = existing.get("satellite_holdings", [])
-    toss_sat = next((s for s in existing_sat if s.get("account_id") == "toss"), None)
-    if toss_sat:
-        toss_sat["total_krw"] = manual_krw.get("toss", toss_sat["total_krw"])
-        if nvda_mdd:
-            toss_sat["nvda_mdd"] = nvda_mdd
-        if toss_nvda:
-            toss_sat["toss_nvda"] = toss_nvda
-            # NVDA+ 아이템에 P&L 주입 (7-col 테이블에서 손익 컬럼 표시용)
-            for item in toss_sat.get("items", []):
-                item["principal_krw"] = toss_nvda.get("principal_krw", 0)
-                item["pnl_krw"]       = toss_nvda.get("pnl_krw", 0)
-                item["pnl_pct"]       = toss_nvda.get("pnl_pct", 0)
-                item["krw"]           = toss_nvda.get("current_krw", item.get("krw", 0))
+    # toss satellite — 노션 Holdings DB의 수동 입력 항목을 그대로 사용 (위성 다종목)
+    toss_items_raw = (toss_data.get("items") or []) if isinstance(toss_data, dict) else []
+    if toss_items_raw:
+        toss_meta = MANUAL_ACCOUNT_META["toss"]
+        toss_items = []
+        for it in toss_items_raw:
+            cls = it.get("asset_class") or "us_stock"
+            principal = it.get("principal_krw", 0)
+            toss_items.append({
+                "ticker":        it.get("ticker") or it.get("name", ""),
+                "name":          it.get("name", ""),
+                "cls":           cls,
+                "cat":           cls.replace("_", " "),
+                "krw":           it.get("eval_krw", 0),
+                "principal_krw": principal,
+                "pnl_krw":       it.get("pnl_krw", 0),
+                "pnl_pct":       round(it.get("pnl_pct", 0.0), 2),
+                "color":         _holding_color(it.get("ticker", ""), cls),
+            })
+        toss_items.sort(key=lambda x: (SORT_ORDER.get(x["cls"], 99), -x["krw"]))
+        toss_sat = {
+            "account_id":    "toss",
+            "account_name":  toss_meta["name"],
+            "account_sub":   toss_meta["sub"],
+            "account_color": toss_meta["color"],
+            "total_krw":     round(toss_data.get("eval", 0)),
+            "items":         toss_items,
+        }
+        if toss_mdd:
+            toss_sat["toss_mdd"] = toss_mdd
         satellite_holdings.append(toss_sat)
 
     # bank satellite card (비상금 + 사업자금)
@@ -536,8 +541,7 @@ def write_data_json(
         ),
         "rebalancing": rebalancing,
         "sparkline_history": extras.get("sparkline_history", []),
-        "nvda_mdd": nvda_mdd,
-        "toss_nvda": toss_nvda,
+        "toss_mdd": toss_mdd,
         "transactions": extras.get("transactions", []),
         "journal_summary": extras.get("journal_summary", {}),
         "reviews": extras.get("reviews", []),
@@ -613,7 +617,7 @@ def run_pipeline() -> None:
     all_holdings = []
 
     # ── 0. 노션 수동 잔고 (양방향 동기화) ───────────────────────────
-    notion_manual: dict = {"toss": {"eval": 0}, "emergency": {"eval": 0}, "biz": {"eval": 0}}
+    notion_manual: dict = {acc: {"eval": 0, "items": []} for acc in ("toss", "emergency", "biz")}
     print("\n[0/9] 노션 수동 잔고 조회 (토스/비상금/사업자금)...")
     try:
         notion_manual = pull_manual_holdings()
@@ -788,7 +792,7 @@ def run_pipeline() -> None:
         cls = h["asset_class"]
         class_totals[cls] = class_totals.get(cls, 0) + h["eval_krw"]
 
-    # 위험/안전 = 거래소 holdings 자산군 + 수동 분류 (toss=NVDA→위험, 비상금/사업→안전)
+    # 위험/안전 = 거래소 holdings 자산군 + 수동 분류 (toss=위성 주식→위험, 비상금/사업→안전)
     exch_risky_krw = sum(v for cls, v in class_totals.items() if is_risky(cls))
     risky_krw      = exch_risky_krw + toss_krw
     safe_krw       = total_krw - risky_krw
@@ -933,15 +937,6 @@ def run_pipeline() -> None:
         errors.append(f"스파크라인: {e}")
         print(f"  [오류] {e}")
 
-    # NVDA 평단 (토스, USD → KRW 변환)
-    nvda_avg_krw = 0.0
-    try:
-        nvda_avg_usd = get_nvda_avg_price()
-        nvda_avg_krw = nvda_avg_usd * usdkrw if nvda_avg_usd else 0
-    except Exception:
-        pass
-    nvda_current_krw = (prices.get("NVDA") or 0) * usdkrw
-
     # ── 거래내역 fetch + 노션 동기화 ─────────────────────────────────
     print("\n[txn] 거래내역 fetch (업비트/OKX/한투)...")
     transactions = []
@@ -1033,8 +1028,6 @@ def run_pipeline() -> None:
         "capital_gains": capital_gains,
         "sparkline_history": sparkline_history,
         "market_data": market_data,
-        "nvda_avg_krw": nvda_avg_krw,
-        "nvda_current_krw": nvda_current_krw,
         "risky_pct": risky_pct,
         "safe_pct": safe_pct,
         "kis_cash": kis_cash,

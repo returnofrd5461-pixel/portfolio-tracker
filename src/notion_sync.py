@@ -200,20 +200,37 @@ _ACCOUNT_NOTION_LABEL = {
 
 
 def pull_manual_holdings() -> dict:
-    """Holdings DB에서 수동 입력 계좌 평가금액 + 원금 읽어 반환.
+    """Holdings DB에서 수동 입력 계좌(토스/비상금/사업)의 종목 리스트 + 합계 반환.
+
+    평가금액(KRW) > 0 행만 포함하여 좀비(0평가) 행을 제외한다.
 
     반환 구조:
       {
-        "toss":      {"eval": 22000000, "principal": 20000000, "pnl": 2000000, "pnl_pct": 10.0},
-        "emergency": {"eval": 20000000},
-        "biz":       {"eval": 10000000},
+        "toss": {
+          "eval": 22000000, "principal": 20000000, "pnl": 2000000, "pnl_pct": 10.0,
+          "items": [
+            {"name": "NVDA", "ticker": "NVDA",
+             "eval_krw": ..., "principal_krw": ...,
+             "pnl_krw": ..., "pnl_pct": ..., "asset_class": "us_stock"},
+            ...
+          ],
+        },
+        "emergency": {"eval": ..., "items": [...]},
+        "biz":       {"eval": ..., "items": [...]},
       }
-    원금(KRW) 컬럼이 없거나 0이면 pnl 필드 미포함.
+    원금(KRW) 컬럼이 없거나 0이면 해당 항목/계좌의 pnl 필드는 생략.
     """
-    result: dict = {"toss": {"eval": 0}, "emergency": {"eval": 0}, "biz": {"eval": 0}}
+    result: dict = {acc: {"eval": 0, "items": []} for acc in ("toss", "emergency", "biz")}
     # 원금 컬럼 후보 (사용자가 어떤 명칭으로 입력했을 수 있음)
     PRINCIPAL_KEYS = ("원금(KRW)", "원금", "원금 (KRW)", "원금(₩)", "Principal", "원금KRW")
     EVAL_KEYS = ("평가금액(KRW)", "평가금액", "평가금액 (KRW)", "Eval")
+
+    def _first_num(props: dict, candidates: tuple) -> float:
+        for col in candidates:
+            v = props.get(col, {}).get("number")
+            if v is not None:
+                return float(v)
+        return 0.0
 
     for account_id in result:
         label = _ACCOUNT_NOTION_LABEL.get(account_id, account_id)
@@ -222,46 +239,49 @@ def pull_manual_holdings() -> dict:
                 database_id=HOLDINGS_DB,
                 filter={"property": "계좌", "select": {"equals": label}},
             )
-
-            # toss: 디버그 출력 (NVDA 원금 인식 확인)
-            if account_id == "toss" and rows["results"]:
-                print(f"  [DEBUG toss 행 {len(rows['results'])}개]")
-                for row in rows["results"]:
-                    props = row["properties"]
-                    name_p = props.get("종목", {}).get("title", [])
-                    nm = name_p[0]["plain_text"] if name_p else "?"
-                    nums = []
-                    for k, v in props.items():
-                        if v.get("type") == "number" and v.get("number") is not None:
-                            nums.append(f"{k}={v['number']}")
-                    print(f"    [{nm}] {' | '.join(nums) if nums else '(number 컬럼 없음)'}")
-
-            def _sum_col(rows_list, candidates):
-                for col in candidates:
-                    s = sum(
-                        (row["properties"].get(col, {}).get("number") or 0)
-                        for row in rows_list
-                    )
-                    if s > 0:
-                        return s, col
-                return 0, None
-
-            total_eval, eval_col = _sum_col(rows["results"], EVAL_KEYS)
-            total_principal, princ_col = _sum_col(rows["results"], PRINCIPAL_KEYS)
-
-            if account_id == "toss":
-                print(f"  [DEBUG toss] 평가합계={total_eval:,.0f} (col={eval_col}) | 원금합계={total_principal:,.0f} (col={princ_col})")
-
-            if total_eval > 0:
-                result[account_id]["eval"] = round(total_eval)
-            if total_principal > 0:
-                pnl = total_eval - total_principal
-                result[account_id]["principal"] = round(total_principal)
-                result[account_id]["pnl"] = round(pnl)
-                result[account_id]["pnl_pct"] = round(pnl / total_principal * 100, 2) if total_principal else 0.0
         except Exception as e:
-            if account_id == "toss":
-                print(f"  [경고] toss 조회 실패: {e}")
+            print(f"  [경고] {label}({account_id}) 조회 실패: {e}")
+            continue
+
+        items: list[dict] = []
+        total_eval = 0.0
+        total_principal = 0.0
+        for row in rows.get("results", []):
+            props = row["properties"]
+            eval_v = _first_num(props, EVAL_KEYS)
+            if eval_v <= 0:
+                continue  # 좀비(평가금=0) 행 제외
+            principal_v = _first_num(props, PRINCIPAL_KEYS)
+
+            name_arr = props.get("종목", {}).get("title", []) or []
+            name = name_arr[0]["plain_text"] if name_arr else "?"
+            ticker_arr = props.get("티커", {}).get("rich_text", []) or []
+            ticker = ticker_arr[0]["plain_text"] if ticker_arr else ""
+            cls = (props.get("자산군", {}).get("select") or {}).get("name", "") or ""
+
+            item = {
+                "name": name,
+                "ticker": ticker,
+                "eval_krw": round(eval_v),
+                "principal_krw": round(principal_v),
+                "asset_class": cls,
+            }
+            if principal_v > 0:
+                pnl = eval_v - principal_v
+                item["pnl_krw"] = round(pnl)
+                item["pnl_pct"] = round(pnl / principal_v * 100, 2)
+            items.append(item)
+            total_eval += eval_v
+            total_principal += principal_v
+
+        items.sort(key=lambda x: -x["eval_krw"])
+        result[account_id]["eval"] = round(total_eval)
+        result[account_id]["items"] = items
+        if total_principal > 0:
+            pnl = total_eval - total_principal
+            result[account_id]["principal"] = round(total_principal)
+            result[account_id]["pnl"] = round(pnl)
+            result[account_id]["pnl_pct"] = round(pnl / total_principal * 100, 2)
     return result
 
 
@@ -362,25 +382,6 @@ def get_sparkline_history(days: int = 30) -> list[dict]:
     except Exception as e:
         print(f"  [경고] 스파크라인 히스토리 조회 실패: {e}")
         return []
-
-
-def get_nvda_avg_price() -> float:
-    """Holdings DB에서 토스 계좌 NVDA 평균단가(USD) 반환."""
-    try:
-        rows = notion.databases.query(
-            database_id=HOLDINGS_DB,
-            filter={
-                "and": [
-                    {"property": "티커", "rich_text": {"contains": "NVDA"}},
-                    {"property": "계좌", "select": {"equals": "토스"}},
-                ]
-            },
-        )
-        if rows["results"]:
-            return rows["results"][0]["properties"].get("평균단가", {}).get("number") or 0.0
-    except Exception as e:
-        print(f"  [경고] NVDA 평단 조회 실패: {e}")
-    return 0.0
 
 
 # ── Transactions DB ──────────────────────────────────────────────────────────
