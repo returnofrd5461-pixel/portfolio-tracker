@@ -437,11 +437,12 @@ def write_data_json(
             toss_sat["toss_mdd"] = toss_mdd
         satellite_holdings.append(toss_sat)
 
-    # bank satellite card (비상금 + 사업자금)
+    # bank satellite card (비상금 + 사업자금) — 노션 실값만 사용, data.json 폴백 없음
     bank_items = []
     for acc_id in ("emergency", "biz"):
         meta_b = MANUAL_ACCOUNT_META[acc_id]
-        krw_b = manual_krw.get(acc_id, 0)
+        acc_data = notion_manual.get(acc_id) or {}
+        krw_b = acc_data.get("eval", 0) if isinstance(acc_data, dict) else 0
         if krw_b > 0:
             bank_items.append({
                 "ticker": acc_id, "name": meta_b["name"],

@@ -195,7 +195,7 @@ def sync_holdings(holdings: list[dict]) -> None:
 _ACCOUNT_NOTION_LABEL = {
     "toss": "토스",
     "emergency": "비상금",
-    "biz": "사업",
+    "biz": "사업자금",
 }
 
 # 자산군 한글 표기 → 파이프라인 영문 키 정규화
