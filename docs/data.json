@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-05-31T14:08:52+09:00",
+  "updated_at": "2026-05-31T19:35:01+09:00",
   "usdkrw": 1507,
-  "total_krw": 135337421,
+  "total_krw": 135316590,
   "accounts": [
     {
       "id": "kis_jonghap",
@@ -56,30 +56,30 @@
       "id": "upbit",
       "name": "업비트",
       "subtitle": "크립토 (BTC + ETH)",
-      "krw": 998839,
+      "krw": 748627,
       "color": "#EF9F27",
-      "principal_krw": 999506,
-      "pnl_krw": -667,
-      "pnl_pct": -0.07,
+      "principal_krw": 749631,
+      "pnl_krw": -1004,
+      "pnl_pct": -0.13,
       "daily_change": {
-        "today": 998839,
+        "today": 748627,
         "yesterday": 998839,
-        "diff": 0,
-        "pct": 0.0
+        "diff": -250212,
+        "pct": -25.05
       }
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 280855,
+      "krw": 510236,
       "color": "#D4853A",
-      "usd_amount": 186,
+      "usd_amount": 339,
       "daily_change": {
-        "today": 280855,
+        "today": 510236,
         "yesterday": 182797,
-        "diff": 98058,
-        "pct": 53.64
+        "diff": 327439,
+        "pct": 179.13
       }
     },
     {
@@ -121,7 +121,7 @@
   ],
   "asset_class_totals": {
     "us_stock": 98518428,
-    "crypto": 1279694,
+    "crypto": 1258863,
     "bond": 12128503,
     "gold": 12084929,
     "oil": 1174700,
@@ -330,17 +330,17 @@
       "account_name": "업비트",
       "account_sub": "크립토 (BTC + ETH)",
       "account_color": "#EF9F27",
-      "total_krw": 998839,
+      "total_krw": 748627,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 998826,
-          "principal_krw": 999500,
-          "pnl_krw": -674,
-          "pnl_pct": -0.07,
+          "krw": 748614,
+          "principal_krw": 749625,
+          "pnl_krw": -1011,
+          "pnl_pct": -0.13,
           "color": "#EF9F27"
         }
       ]
@@ -350,14 +350,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 280855,
+      "total_krw": 510236,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 280855,
+          "krw": 510236,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -547,7 +547,7 @@
     "liquidity": {
       "instant": 10000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 95403011,
+      "week": 95382180,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 22877431,
       "mid_note": "ISA 만기 권장",
@@ -563,10 +563,10 @@
   },
   "daily_change": {
     "total": {
-      "today": 135337421,
+      "today": 135316590,
       "yesterday": 135239364,
-      "diff": 98057,
-      "pct": 0.07
+      "diff": 77226,
+      "pct": 0.06
     },
     "risky_pct": {
       "today": 74.6,
@@ -586,10 +586,10 @@
         "pct": 111.99
       },
       "crypto": {
-        "today": 1279694,
+        "today": 1258863,
         "yesterday": 1181636,
-        "diff": 98058,
-        "pct": 8.3
+        "diff": 77227,
+        "pct": 6.54
       },
       "bond": {
         "today": 12128503,
@@ -673,8 +673,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 74087.0,
-        "change_pct": 0.0
+        "price": 73720.0,
+        "change_pct": -0.05
       },
       "NDX": {
         "name": "나스닥",
@@ -706,20 +706,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 57.27,
-      "change_pct": -0.4
+      "value": 57.28,
+      "change_pct": -0.38
     },
     "usdt_dominance": {
-      "value": 7.26,
-      "change_pct": -0.82
+      "value": 7.3,
+      "change_pct": -0.27
     },
     "eth_btc_ratio": {
-      "value": 0.0274,
-      "change_pct": 0.11
+      "value": 0.02735,
+      "change_pct": -0.07
     },
     "total3_market_cap": {
-      "value": 862232073673,
-      "change_pct": 1.46
+      "value": 858360086683,
+      "change_pct": 1.01
     }
   },
   "rebalancing": {
@@ -1175,8 +1175,8 @@
     },
     {
       "date": "2026-05-31",
-      "total": 135337548.503523,
-      "crypto": 1279821.237248,
+      "total": 135337421.406241,
+      "crypto": 1279694.139966,
       "stock": 46474229.190083,
       "gold": 12084929.014694,
       "oil": 1174700,
@@ -1661,9 +1661,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 1279681,
-        "pct": 0.95,
-        "direct": 1279681,
+        "krw": 1258850,
+        "pct": 0.93,
+        "direct": 1258850,
         "indirect": 0
       },
       {
@@ -1728,7 +1728,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 1279681,
+        "krw": 1258850,
         "pct": 0.9
       },
       {
@@ -1751,16 +1751,16 @@
       {
         "region": "미국",
         "krw": 51088328,
-        "pct": 37.7
+        "pct": 37.8
       },
       {
         "region": "한국",
         "krw": 20774048,
-        "pct": 15.3
+        "pct": 15.4
       },
       {
         "region": "크립토",
-        "krw": 1279681,
+        "krw": 1258850,
         "pct": 0.9
       }
     ]
