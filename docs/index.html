@@ -587,6 +587,28 @@ body{
   .tabs .tab{font-size:10px}
   .tabs .tab .tab-ic{font-size:18px}
 }
+
+/* ── 매매법 탭 (마스터 페이지 0~6 정적 표시, 토글 없음) ── */
+.mp-intro{background:var(--bg2);border:0.5px solid var(--bdr);border-left:3px solid #7F77DD;
+  border-radius:var(--r-md);padding:12px 14px;font-size:12.5px;color:var(--txt2);line-height:1.6;margin-bottom:14px}
+.mp-sec{border:0.5px solid var(--bdr);border-radius:var(--r-lg);background:var(--bg);
+  padding:14px 15px;margin-bottom:12px}
+.mp-sec-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;color:var(--txt);
+  margin-bottom:10px;line-height:1.3}
+.mp-num{flex-shrink:0;width:24px;height:24px;border-radius:7px;background:#7F77DD;color:#fff;
+  font-size:13px;font-weight:700;font-family:var(--mono);display:flex;align-items:center;justify-content:center}
+.mp-h{font-size:13.5px;font-weight:700;color:var(--txt);margin:13px 0 6px;letter-spacing:.01em}
+.mp-h:first-child{margin-top:2px}
+.mp-p{font-size:13px;color:var(--txt2);line-height:1.65;margin:5px 0}
+.mp-li{font-size:13px;color:var(--txt2);line-height:1.62;padding-left:15px;position:relative;margin:4px 0}
+.mp-li::before{content:"–";position:absolute;left:3px;color:var(--txt3)}
+.mp-li.sub{padding-left:30px}
+.mp-li.sub::before{content:"·";left:18px}
+.mp-callout{background:rgba(216,90,48,0.09);border:0.5px solid rgba(216,90,48,0.25);border-radius:var(--r-md);
+  padding:10px 12px;font-size:12.5px;color:var(--txt);line-height:1.6;margin:10px 0 2px;font-weight:500}
+.mp-todo{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--txt2);line-height:1.55;margin:6px 0;padding-left:2px}
+.mp-todo .mp-box{flex-shrink:0;width:15px;height:15px;border:1.5px solid var(--bdr2);border-radius:4px;margin-top:2px}
+.mp-foot{font-size:11px;color:var(--txt3);text-align:center;margin-top:6px;padding:10px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -1574,6 +1596,93 @@ function v4Aux(d){
     ${usdCard}`;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 매매법 탭 — Notion 매매법 마스터 페이지 0~6 (정적/펼침). 모듈화: 데이터+렌더 분리.
+// 향후 파이프라인이 data.json에 trading_principles를 채우면 그걸 우선 사용 (상시 연동 훅).
+// 아래 MASTER_PRINCIPLES는 미연동 시 폴백. 항목 타입: p(문단)/h(소제목)/li(불릿)/
+// li2(중첩불릿)/callout(강조)/todo(체크리스트).
+// 출처: Notion "매매법, 매매법칙" (36257701-1755-80f9-b92c-f942ca082e0e)
+// ═══════════════════════════════════════════════════════════════════════════
+const MASTER_PRINCIPLES = {
+  intro: "학습·트레이닝이 1순위 목표. 이 문서는 채팅으로 던지는 매매법·원칙을 누적·갱신하는 살아있는 문서다. (반자동화: 채팅 → Claude가 해당 섹션 자동 갱신)",
+  sections: [
+    { n: "0", title: "운용 3-트랙", items: [
+      ["li", "코어 — 자산배분 포트폴리오 (한투). 장기. 분할·기다림."],
+      ["li", "개별주 — 위성, 스윙/중기 (토스). 기업분석 + 차트분석. 분할매수·기다림."],
+      ["li", "선물 — 단타/스캘핑. 짧은 트레이딩, 한 추세 익절. ⚠️ 별도 룰셋 + $1,000 한도 (실력 맞춤 연습 자본)."],
+    ]},
+    { n: "1", title: "핵심 철학", items: [
+      ["h", "차트가 뉴스를 부른다"],
+      ["li", "이미 오른 차트(NVDA처럼)는 실적 잘 나와도 안 간다 = 재료 선반영."],
+      ["li", "차트가 좋다 = 가격이 눌린(낮은) 상태."],
+      ["li", "미반영 재료가 트리거가 되면, 반영된 차트의 모습으로 바뀐다."],
+      ["li", "⚠️ 단, 트리거 안 오면 무조건 패스. 좋아 보이는 자리에 미리 들어가지 않는다 (포모 차단)."],
+      ["h", "익절 생활화"],
+      ["li", "고수 트레이더 + AI 알고리즘은 익절을 생활화한다. 나도 맞춘다."],
+      ["li", "한 추세 먹고 나오는 익절이 가장 중요 (특히 선물/단타)."],
+    ]},
+    { n: "2", title: "개별주 매매법 (스윙/중기)", items: [
+      ["p", "진입 2종: ① 추세추종 ② 추세발산 전 매집"],
+      ["p", "좋은 자리: 저점 다지고 역헤숄 / 추세선+지지선 돌파 자리 / 상따 위치 → 트리거만 발생하면 차트대로 움직인다 (단, 안 오면 패스)"],
+      ["h", "하따 — 추세발산 전 저가 매집 → 불타기 피라미딩"],
+      ["li", "자리 조건: 주요 지지·저항 + 추세선 2개 겹침 + 펀더멘털 상 + 밸류 중간 이하 (예: 26.5 MSFT·PLTR)"],
+      ["li", "1차 진입: 분석 후 임박 종목 지정가 분할 진입"],
+      ["li", "2차 진입: 추세·흐름 따라 물량 덜어 평단 개선, or 추세 확인 시 피라미딩"],
+      ["h", "상따 — 명확한 추세 시 진입"],
+      ["li", "피라미딩은 추세 초입에만"],
+      ["li", "익절 타이밍 훨씬 빠르게 분할"],
+      ["li", "반익반본 + 트레일링 스탑 + 본절 필수"],
+      ["callout", "⚠️ 개별주 의무 룰: 진입 전 기술적 분석 작성 + 차트 스크린샷 첨부 (예외 없음). 전부 기록한다."],
+    ]},
+    { n: "3", title: "선물 매매법 (단타/스캘핑) — $1,000 한도", items: [
+      ["li", "무조건 스캘핑 or 단타. 오버나잇 절대 금물 (펀딩비 + 짧은 손절)."],
+      ["li", "추세 터질 때: 분단위 스캘핑 / 한 추세만 먹고 75%+ 익절 후 트레일링."],
+      ["li", "첫 추세 첫 저항에서 완익 → 재진입 고려"],
+      ["li2", "첫 저항 숏 스위칭 → 단기 익절 → 눌림 롱 재진입 식 스캘핑 (스승님도 스캘퍼)"],
+      ["li", "선물 스윙 원하면: 여러 번 재진입. 익절 생활화 + 추세 확신 강하면 눌림 재진입."],
+      ["li", "추세 터진 후 주말 등: 박스권 매매 (룰 정립 필요 — TODO)"],
+    ]},
+    { n: "4", title: "공통 매매원칙", items: [
+      ["p", "→ 기존 매매원칙(25, 26) 참조 (8단계 SOP: 필생즉사 필사즉생). 손절 칼같이·익절 욕심배제, 무포지션도 포지션, 양방향 전략 사전수립, 손익비·승률에 집착."],
+    ]},
+    { n: "5", title: "⚠️ 진입 전 이성 체크리스트 (필수)", items: [
+      ["p", "하나라도 NO면 진입 보류. 예외 없음."],
+      ["todo", "피로도·컨디션 괜찮은가"],
+      ["todo", "잠은 충분히 잤는가"],
+      ["todo", "탐욕 배제한 확률적 사고인가"],
+    ]},
+    { n: "6", title: "반자동화 운영", items: [
+      ["li", "채팅으로 매매법·원칙 던지면 → Claude가 이 문서 해당 섹션에 자동 추가·갱신."],
+      ["li", "깃헙 대시보드 상시 연동 (추후 클로드코드 작업 — 이 페이지의 매매원칙/법칙을 대시보드에 반영)."],
+    ]},
+  ],
+};
+
+function _mpItem([type, text]) {
+  switch (type) {
+    case "h":       return `<div class="mp-h">${text}</div>`;
+    case "p":       return `<div class="mp-p">${text}</div>`;
+    case "li":      return `<div class="mp-li">${text}</div>`;
+    case "li2":     return `<div class="mp-li sub">${text}</div>`;
+    case "callout": return `<div class="mp-callout">${text}</div>`;
+    case "todo":    return `<div class="mp-todo"><span class="mp-box"></span><span>${text}</span></div>`;
+    default:        return `<div class="mp-p">${text}</div>`;
+  }
+}
+
+function renderPrinciplesTab(d) {
+  // 상시 연동 훅: 파이프라인이 채우면 우선 사용, 없으면 폴백 상수.
+  const data = (d && d.trading_principles) || MASTER_PRINCIPLES;
+  const intro = data.intro ? `<div class="mp-intro">💬 ${data.intro}</div>` : "";
+  const secs = (data.sections || []).map(s => `
+    <div class="mp-sec">
+      <div class="mp-sec-title"><span class="mp-num">${s.n}</span><span>${s.title}</span></div>
+      ${(s.items || []).map(_mpItem).join("")}
+    </div>`).join("");
+  return `${intro}${secs}
+    <div class="mp-foot">📜 출처: Notion「매매법, 매매법칙」· 토글 없이 전부 펼침 (정적)</div>`;
+}
+
 // ── main render ───────────────────────────────────────────────────────────────
 // 누적 표시(기존): 미국식 pos/neg 색상. 헤더 D-1(신규): 한국식 up/down 색상.
 function _headerDeltaHtml(diff, diffPct) {
@@ -1621,6 +1730,7 @@ function render(d) {
       <button class="tab" data-tab="review"><span class="tab-ic">📈</span><span>회고</span></button>
       <button class="tab" data-tab="calendar"><span class="tab-ic">📅</span><span>캘린더</span></button>
       <button class="tab" data-tab="xray"><span class="tab-ic">🔍</span><span>X-Ray</span></button>
+      <button class="tab" data-tab="principles"><span class="tab-ic">📜</span><span>매매법</span></button>
     </div>
     <div id="tab-journal" class="tab-content">
       ${renderJournalTab(d)}
@@ -1633,6 +1743,9 @@ function render(d) {
     </div>
     <div id="tab-xray" class="tab-content">
       ${renderXrayTab(d)}
+    </div>
+    <div id="tab-principles" class="tab-content">
+      ${renderPrinciplesTab(d)}
     </div>`;
 
   document.getElementById('app').innerHTML = html;
