@@ -106,19 +106,6 @@ ACCOUNT_REBAL_TARGETS = {
 }
 
 
-# 분할매수 기본값 (data.json에 없을 경우 초기화)
-DEFAULT_SPLIT_BUYING = {
-    "target_total": 30000000,
-    "completed": 10300000,
-    "next_date": "2026-06-01",
-    "schedule": [
-        {"round": 1, "date": "2026-04-27", "amount": 10300000, "status": "done"},
-        {"round": 2, "date": "2026-06-01", "amount": 9850000,  "status": "pending"},
-        {"round": 3, "date": "2026-08-01", "amount": 9850000,  "status": "pending"},
-    ],
-}
-
-
 def _holding_color(ticker: str, asset_class: str) -> str:
     return HOLDING_COLOR.get(ticker, CLS_COLORS.get(asset_class, "#888888"))
 
@@ -468,9 +455,6 @@ def write_data_json(
     existing_metrics = existing.get("metrics", {})
     existing_tax = existing_metrics.get("tax", {})
 
-    # ── Split buying — 기존 data.json 보존, 없으면 기본값 ─────────────
-    split_buying = existing.get("split_buying", DEFAULT_SPLIT_BUYING)
-
     # ── Markets ──────────────────────────────────────────────────────
     market_data = extras.get("market_data", {})
     markets: dict = {}
@@ -551,7 +535,6 @@ def write_data_json(
             },
         },
         "daily_change": daily_change,
-        "split_buying": split_buying,
         "capital_gains": capital_gains,
         "markets": markets,
         "crypto_indicators": _build_crypto_indicators(

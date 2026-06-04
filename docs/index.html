@@ -525,13 +525,6 @@ body{
 .hrow-bd-note{font-size:11px;color:var(--txt3);margin-top:10px;padding-top:8px;border-top:0.5px dashed var(--bdr);
   display:flex;justify-content:space-between;font-family:var(--mono)}
 
-/* 분할매수 진행바 (종합 카드 내) */
-.v4sb{margin-top:12px;padding-top:11px;border-top:0.5px dashed var(--bdr)}
-.v4sb-t{font-size:11px;font-weight:600;color:var(--txt2);display:flex;justify-content:space-between;margin-bottom:6px}
-.v4sb-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:5px}
-.v4sb-fill{height:100%;border-radius:3px;background:#534AB7;transition:width .4s}
-.v4sb-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);font-family:var(--mono)}
-
 /* MDD (토스 카드 내) */
 .v4mdd{margin-top:12px;padding-top:11px;border-top:0.5px dashed var(--bdr)}
 .v4mdd-t{font-size:11px;font-weight:600;color:var(--txt2);display:flex;justify-content:space-between;margin-bottom:6px}
@@ -1463,8 +1456,6 @@ function v4CoreCards(d){
     const cash = total - itemsSum;
     if(cash > 100) rows += _coreRow(isJonghap?'CASH':'예수금', aclassBadge('cash'), total>0?cash/total*100:0, Math.round(cash));
 
-    const sb = isJonghap ? _v4SplitBuying(d.split_buying) : '';
-
     return `
       <div class="tg">
         <div class="tg-hd">
@@ -1486,28 +1477,9 @@ function v4CoreCards(d){
         </div>
         <div class="tg-bd">
           ${rows}
-          ${sb}
         </div>
       </div>`;
   }).join('');
-}
-
-function _v4SplitBuying(sb){
-  if(!sb || !sb.target_total) return '';
-  const done = sb.target_total>0 ? sb.completed/sb.target_total*100 : 0;
-  const rem = sb.target_total - sb.completed;
-  let dday = '';
-  if(sb.next_date){
-    const next = new Date(sb.next_date), today = new Date(); today.setHours(0,0,0,0);
-    const diff = Math.round((next-today)/864e5);
-    dday = diff===0?'D-day':diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;
-  }
-  return `
-    <div class="v4sb">
-      <div class="v4sb-t"><span>분할매수 진행</span><span>${dday?'다음 '+dday:''}</span></div>
-      <div class="v4sb-track"><div class="v4sb-fill" style="width:${clamp(done,0,100)}%"></div></div>
-      <div class="v4sb-meta"><span>${fmtM(sb.completed)} / ${fmtM(sb.target_total)}</span><span>${done.toFixed(0)}% · 잔여 ${fmtM(rem)}</span></div>
-    </div>`;
 }
 
 // ── 현금 카드 (비상금 + 사업자금) ───────────────────────────────────────────────
