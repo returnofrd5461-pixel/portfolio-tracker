@@ -252,13 +252,22 @@ def write_data_json(
 
     # Asset class totals
     kis_cash_total = sum(kis_cash.values())
+    # 토스 위성: 실제 보유 자산군별 분배 (전량 청산 후 현금이면 현금으로 반영).
+    # 종목 정보 없는 폴백 경로면 전체를 us_stock로 간주(기존 동작 유지).
+    toss_items = (notion_manual.get("toss") or {}).get("items") or []
+    toss_by_cls: dict[str, float] = {}
+    for it in toss_items:
+        c = it.get("asset_class") or "us_stock"
+        toss_by_cls[c] = toss_by_cls.get(c, 0) + (it.get("eval_krw") or 0)
+    if not toss_by_cls and manual_krw.get("toss", 0):
+        toss_by_cls["us_stock"] = manual_krw.get("toss", 0)
     cls_raw = {
-        "us_stock": round(class_totals.get("us_stock", 0) + manual_krw.get("toss", 0)),
-        "crypto":   round(class_totals.get("crypto", 0)),
-        "bond":     round(class_totals.get("bond", 0)),
-        "gold":     round(class_totals.get("gold", 0)),
-        "oil":      round(class_totals.get("oil", 0)),
-        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0) + upbit_cash_krw + kis_cash_total),
+        "us_stock": round(class_totals.get("us_stock", 0) + toss_by_cls.get("us_stock", 0)),
+        "crypto":   round(class_totals.get("crypto", 0) + toss_by_cls.get("crypto", 0)),
+        "bond":     round(class_totals.get("bond", 0) + toss_by_cls.get("bond", 0)),
+        "gold":     round(class_totals.get("gold", 0) + toss_by_cls.get("gold", 0)),
+        "oil":      round(class_totals.get("oil", 0) + toss_by_cls.get("oil", 0)),
+        "cash":     round(manual_krw.get("emergency", 0) + manual_krw.get("biz", 0) + upbit_cash_krw + kis_cash_total + toss_by_cls.get("cash", 0)),
     }
 
     # ── 일일 변동 계산 ────────────────────────────────────────────────
@@ -794,9 +803,16 @@ def run_pipeline() -> None:
         cls = h["asset_class"]
         class_totals[cls] = class_totals.get(cls, 0) + h["eval_krw"]
 
-    # 위험/안전 = 거래소 holdings 자산군 + 수동 분류 (toss=위성 주식→위험, 비상금/사업→안전)
+    # 위험/안전 = 거래소 holdings 자산군 + 토스 위성(실제 보유 자산군 기준), 비상금/사업=안전.
+    # 토스 전량 청산 시 현금=안전으로 잡힘. 종목 정보 없으면 전체 위험(기존 동작) 폴백.
+    _toss_items = (notion_manual.get("toss") or {}).get("items") or []
+    if _toss_items:
+        toss_risky_krw = sum((it.get("eval_krw") or 0) for it in _toss_items
+                             if is_risky(it.get("asset_class") or "us_stock"))
+    else:
+        toss_risky_krw = toss_krw
     exch_risky_krw = sum(v for cls, v in class_totals.items() if is_risky(cls))
-    risky_krw      = exch_risky_krw + toss_krw
+    risky_krw      = exch_risky_krw + toss_risky_krw
     safe_krw       = total_krw - risky_krw
     risky_pct      = risky_krw / total_krw * 100 if total_krw else 0
     safe_pct       = 100 - risky_pct
