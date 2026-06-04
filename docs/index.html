@@ -432,21 +432,6 @@ body{
 .tg-hd{display:flex;align-items:center;gap:10px;padding:13px 14px}
 .tg-bd{display:block;padding:12px 14px 14px;border-top:0.5px solid var(--bdr)}
 
-/* 투자·매매원칙 토글 */
-.principles{padding:13px 14px;cursor:pointer;border:0.5px solid var(--bdr);border-radius:var(--r-lg);
-  background:var(--bg2);margin-bottom:16px;display:flex;align-items:center;gap:8px;user-select:none}
-.principles .p-title{font-size:14px;font-weight:600}
-.principles .tg-chev{margin-left:auto;flex-shrink:0;color:var(--txt3);font-size:13px;transition:transform .2s;line-height:1}
-.principles-body{display:none;padding:6px 16px 16px;border:0.5px solid var(--bdr);border-top:none;
-  border-radius:0 0 var(--r-lg) var(--r-lg);background:var(--bg2);margin-bottom:16px}
-.principles.open + .principles-body{display:block}
-.principles.open{border-radius:var(--r-lg) var(--r-lg) 0 0;margin-bottom:0}
-.principles.open .tg-chev{transform:rotate(90deg)}
-.pr-quote{font-size:14px;font-weight:700;color:var(--txt);margin:12px 0 4px;line-height:1.5}
-.pr-h{font-size:13px;font-weight:700;color:var(--txt);margin:14px 0 5px;letter-spacing:.02em}
-.pr-p{font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:4px}
-.pr-li{font-size:13px;color:var(--txt2);line-height:1.6;padding-left:14px;position:relative;margin-bottom:3px}
-.pr-li::before{content:"–";position:absolute;left:2px;color:var(--txt3)}
 
 /* ── 위험/안전 2칼럼 요약 ── */
 .rs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
@@ -1184,8 +1169,6 @@ function aclassBadge(cls){ const m=ACLASS_META[cls]; if(!m) return ''; return `<
 // 코어 주식비중 신호등 밴드: ≤50/≥80 빨강(즉시 리밸런싱), 50~55/75~80 주황(주의), 55~75 초록(정상)
 function ratioBandClass(rp){ if(rp<50||rp>=80) return 'red'; if(rp<55||rp>=75) return 'orange'; return 'green'; }
 
-function togglePrinciples(el){ el.classList.toggle('open'); }
-
 // ── 헤더 ──────────────────────────────────────────────────────────────────────
 function v4Header(d){
   const hist = d.sparkline_history || [];
@@ -1223,39 +1206,6 @@ function v4Header(d){
       ${d1Html}
       ${usdHtml}
       <div class="v4hdr-updated">갱신 ${fmtUpdatedAt(d.updated_at)}</div>
-    </div>`;
-}
-
-// ── 투자·매매원칙 토글 (기본 접힘) ───────────────────────────────────────────────
-function v4Principles(){
-  return `
-    <div class="principles" onclick="togglePrinciples(this)">
-      <span style="font-size:15px">📜</span>
-      <span class="p-title">투자 · 매매원칙</span>
-      <span class="tg-chev">▶</span>
-    </div>
-    <div class="principles-body">
-      <div class="pr-quote">대전제 — 필사즉생(必死則生)</div>
-      <div class="pr-p">욕심 배제, 확률·객관. 목표는 단기 고수익이 아닌 꾸준한 복리. 확신 없으면 무조건 관망 — 무포지션도 포지션이다.</div>
-
-      <div class="pr-h">진입 프로세스</div>
-      <div class="pr-p">작도·분석 → 매크로(+지표 캘린더) → 시나리오("가장 빨리 죽는 법" 먼저) → 손익비·승률 최고 전략 채택 → 컨디션·감정 체크 후 분할진입·손절선 사전설정 → 진입 후 희망 아닌 확률로 기계적 대응 → 저항서 분할매도·본절스탑·강추세 트레일링 → 기록·복기</div>
-
-      <div class="pr-h">포지션 · 사이징</div>
-      <div class="pr-li">단일 종목 ≤ 금융자산 30% (검증된 대장주 한정 상한, 기본은 분할·분산)</div>
-      <div class="pr-li">레버리지 ETF 한도 없음 (감쇠·갭다운 인지, 손절로 관리)</div>
-      <div class="pr-li">30%+ 급등 직후 풀진입 금지 → 3분할</div>
-      <div class="pr-li">시그널 강할수록 비중 축소 + 분할 강화</div>
-      <div class="pr-li">진입은 눌림목 정석. 즉시매수 = 포모 → 조건부·지정가 우선</div>
-
-      <div class="pr-h">손절 · 리스크 (메인 안전벨트)</div>
-      <div class="pr-li">손절 칼같이 (단기 -3% 하드스탑)</div>
-      <div class="pr-li">추세 포지션 정리 = 조합 시그널(종목+섹터+선행지표)</div>
-      <div class="pr-li">리스크오프 후 24h 내 동일 종목·카테고리 재진입 금지</div>
-      <div class="pr-li">롱·숏·관망 3방향 — 엣지 없으면 관망</div>
-
-      <div class="pr-h">심리</div>
-      <div class="pr-p">환희엔 욕심·기대 버리고, 공포엔 불안요소 선제거 후 차분히 기회 포착. 어떤 순간에도 욕심 배제, 비판적·객관적.</div>
     </div>`;
 }
 
@@ -1604,6 +1554,13 @@ const MASTER_PRINCIPLES = {
       ["li", "피라미딩은 추세 초입에만"],
       ["li", "익절 타이밍 훨씬 빠르게 분할"],
       ["li", "반익반본 + 트레일링 스탑 + 본절 필수"],
+      ["h", "정량 매매 룰 (포지션 사이징·청산·쿨다운)"],
+      ["li", "단일 종목 ≤ 금융자산 30% (검증된 대장주 한정 상한, 기본은 분할·분산). 추세 꺾이면 비중 큰 만큼 칼손절."],
+      ["li", "레버리지 ETF 한도 없음 (변동성 감쇠·갭다운 가속 인지하되 한도 X, 손절로 관리). 메인 무방하나 손절 칼같이."],
+      ["li", "30%+ 급등 직후 풀진입 금지 → 무조건 3분할."],
+      ["li", "시그널 강할수록 비중 축소 + 분할 강화 (강세 = 변동성 폭증 구간)."],
+      ["li", "청산(손절) 트리거 = 조합 시그널 (종목 + 섹터 + 선행지표). 단일 가격 X."],
+      ["li", "리스크오프(손절·익절) 후 24h 내 동일 종목·카테고리 재진입 금지 (포모 방지)."],
       ["callout", "⚠️ 개별주 의무 룰: 진입 전 기술적 분석 작성 + 차트 스크린샷 첨부 (예외 없음). 전부 기록한다."],
     ]},
     { n: "3", title: "선물 매매법 (단타/스캘핑) — $1,000 한도", items: [
@@ -1683,7 +1640,6 @@ function render(d) {
     <div id="capture-root">
     ${v4Header(d)}
     <div id="tab-dashboard" class="tab-content active">
-      ${v4Principles()}
       ${v4RiskSafe(d)}
       <div class="v4chap risk">위험 · 공격 포지션</div>
       ${v4SectorWidget(d)}
