@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-06T23:19:49+09:00",
+  "updated_at": "2026-06-07T00:55:38+09:00",
   "usdkrw": 1559,
   "total_krw": 112830763,
   "accounts": [
@@ -15,9 +15,9 @@
       "pnl_pct": -0.0,
       "daily_change": {
         "today": 41548262,
-        "yesterday": 42735263,
-        "diff": -1187001,
-        "pct": -2.78
+        "yesterday": 41548262,
+        "diff": 0,
+        "pct": 0.0
       }
     },
     {
@@ -63,9 +63,9 @@
       "pnl_pct": 66.67,
       "daily_change": {
         "today": 1000011,
-        "yesterday": 10000011,
-        "diff": -9000000,
-        "pct": -90.0
+        "yesterday": 1000011,
+        "diff": 0,
+        "pct": -0.0
       }
     },
     {
@@ -73,13 +73,7 @@
       "name": "OKX",
       "subtitle": "크립토 해외",
       "krw": 0,
-      "color": "#D4853A",
-      "daily_change": {
-        "today": 0,
-        "yesterday": 423181,
-        "diff": -423181,
-        "pct": -100.0
-      }
+      "color": "#D4853A"
     },
     {
       "id": "toss",
@@ -378,44 +372,44 @@
   "daily_change": {
     "total": {
       "today": 112830763,
-      "yesterday": 123440945,
-      "diff": -10610182,
-      "pct": -8.6
+      "yesterday": 112830763,
+      "diff": 0,
+      "pct": -0.0
     },
     "risky_pct": {
       "today": 17.5,
-      "yesterday": 39.0,
-      "diff": -21.5
+      "yesterday": 17.5,
+      "diff": 0.0
     },
     "safe_pct": {
       "today": 82.5,
-      "yesterday": 61.0,
-      "diff": 21.5
+      "yesterday": 82.5,
+      "diff": -0.0
     },
     "classes": {
       "us_stock": {
         "today": 18532870,
-        "yesterday": 46467537,
-        "diff": -27934667,
-        "pct": -60.12
+        "yesterday": 18532870,
+        "diff": 0,
+        "pct": 0.0
       },
       "crypto": {
         "today": 10,
-        "yesterday": 423191,
-        "diff": -423181,
-        "pct": -100.0
+        "yesterday": 10,
+        "diff": 0,
+        "pct": -2.19
       },
       "bond": {
         "today": 46393820,
-        "yesterday": 12613505,
-        "diff": 33780315,
-        "pct": 267.81
+        "yesterday": 46393820,
+        "diff": 0,
+        "pct": 0.0
       },
       "gold": {
         "today": 5278875,
-        "yesterday": 12656958,
-        "diff": -7378083,
-        "pct": -58.29
+        "yesterday": 5278875,
+        "diff": 0,
+        "pct": 0.0
       },
       "oil": {
         "today": 1251200,
@@ -425,9 +419,9 @@
       },
       "cash": {
         "today": 41373988,
-        "yesterday": 10000001,
-        "diff": 31373987,
-        "pct": 313.74
+        "yesterday": 1000001,
+        "diff": 40373987,
+        "pct": 4037.4
       }
     }
   },
@@ -462,8 +456,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 60914.0,
-        "change_pct": -0.01
+        "price": 60704.0,
+        "change_pct": -0.36
       },
       "NDX": {
         "name": "나스닥",
@@ -495,20 +489,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.14,
-      "change_pct": 0.2
+      "value": 56.11,
+      "change_pct": -0.05
     },
     "usdt_dominance": {
-      "value": 8.6,
-      "change_pct": 2.26
+      "value": 8.61,
+      "change_pct": 0.12
     },
     "eth_btc_ratio": {
-      "value": 0.02565,
-      "change_pct": -4.43
+      "value": 0.02568,
+      "change_pct": 0.12
     },
     "total3_market_cap": {
-      "value": 765400683970,
-      "change_pct": -1.44
+      "value": 764537685113,
+      "change_pct": -0.11
     }
   },
   "rebalancing": {
@@ -662,16 +656,6 @@
     ]
   },
   "sparkline_history": [
-    {
-      "date": "2026-05-07",
-      "total": 141705025.947714,
-      "crypto": 26619824.727329,
-      "stock": 25497473.93187,
-      "gold": 9908001.137178,
-      "oil": 1218900,
-      "bond": 9862376.238867,
-      "cash": 16242369.362397
-    },
     {
       "date": "2026-05-08",
       "total": 141637457.283579,
@@ -964,8 +948,8 @@
     },
     {
       "date": "2026-06-06",
-      "total": 112830762.888325,
-      "crypto": 9.913429,
+      "total": 112830763.199263,
+      "crypto": 10.224367,
       "stock": 18532870,
       "gold": 5278875,
       "oil": 1251200,
@@ -1243,7 +1227,7 @@
       "type": "fomc",
       "title": "FOMC 6월 (SEP)",
       "importance": "high",
-      "d_day": 11
+      "d_day": 10
     },
     {
       "date": "2026-07-09",
@@ -1251,7 +1235,7 @@
       "type": "kbok",
       "title": "금통위 7월",
       "importance": "mid",
-      "d_day": 33
+      "d_day": 32
     },
     {
       "date": "2026-07-23",
@@ -1260,7 +1244,7 @@
       "title": "TSLA 실적 발표",
       "ticker": "TSLA",
       "importance": "mid",
-      "d_day": 47
+      "d_day": 46
     },
     {
       "date": "2026-07-24",
@@ -1269,7 +1253,7 @@
       "title": "GOOGL 실적 발표",
       "ticker": "GOOGL",
       "importance": "high",
-      "d_day": 48
+      "d_day": 47
     },
     {
       "date": "2026-07-29",
@@ -1277,7 +1261,7 @@
       "type": "fomc",
       "title": "FOMC 7월",
       "importance": "high",
-      "d_day": 53
+      "d_day": 52
     },
     {
       "date": "2026-07-30",
@@ -1286,7 +1270,7 @@
       "title": "MSFT 실적 발표",
       "ticker": "MSFT",
       "importance": "high",
-      "d_day": 54
+      "d_day": 53
     },
     {
       "date": "2026-07-30",
@@ -1295,7 +1279,7 @@
       "title": "META 실적 발표",
       "ticker": "META",
       "importance": "mid",
-      "d_day": 54
+      "d_day": 53
     },
     {
       "date": "2026-07-31",
@@ -1304,7 +1288,7 @@
       "title": "AAPL 실적 발표",
       "ticker": "AAPL",
       "importance": "mid",
-      "d_day": 55
+      "d_day": 54
     },
     {
       "date": "2026-07-31",
@@ -1313,7 +1297,7 @@
       "title": "AMZN 실적 발표",
       "ticker": "AMZN",
       "importance": "mid",
-      "d_day": 55
+      "d_day": 54
     },
     {
       "date": "2026-08-27",
@@ -1321,7 +1305,7 @@
       "type": "kbok",
       "title": "금통위 8월",
       "importance": "mid",
-      "d_day": 82
+      "d_day": 81
     },
     {
       "date": "2026-08-27",
@@ -1330,7 +1314,7 @@
       "title": "NVDA 실적 발표",
       "ticker": "NVDA",
       "importance": "high",
-      "d_day": 82
+      "d_day": 81
     }
   ],
   "xray": {
