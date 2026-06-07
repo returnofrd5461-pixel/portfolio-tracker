@@ -1,55 +1,55 @@
 {
-  "updated_at": "2026-06-08T02:51:33+09:00",
+  "updated_at": "2026-06-08T06:49:30+09:00",
   "usdkrw": 1559,
-  "total_krw": 112834991,
+  "total_krw": 112853520,
   "accounts": [
     {
       "id": "kis_jonghap",
       "name": "한투 종합 (직투ETF)",
       "subtitle": "미국 직투 · 양도세 22%",
-      "krw": 41552490,
+      "krw": 41568719,
       "color": "#534AB7",
-      "usd_amount": 26658,
-      "principal_krw": 41188258,
-      "pnl_krw": -2050,
+      "usd_amount": 26661,
+      "principal_krw": 41199620,
+      "pnl_krw": -2051,
       "pnl_pct": -0.0,
       "daily_change": {
-        "today": 41552490,
+        "today": 41568719,
         "yesterday": 41548262,
-        "diff": 4228,
-        "pct": 0.01
+        "diff": 20457,
+        "pct": 0.05
       }
     },
     {
       "id": "kis_isa",
       "name": "ISA 중개형 (한투)",
       "subtitle": "비과세 200만 · 초과 9.9%",
-      "krw": 23133692,
+      "krw": 23135298,
       "color": "#7F77DD",
       "principal_krw": 20011475,
       "pnl_krw": 3121570,
       "pnl_pct": 15.6,
       "daily_change": {
-        "today": 23133692,
+        "today": 23135298,
         "yesterday": 23133692,
-        "diff": 0,
-        "pct": 0.0
+        "diff": 1606,
+        "pct": 0.01
       }
     },
     {
       "id": "kis_yeon",
       "name": "연금저축펀드 (한투)",
       "subtitle": "세액공제 16.5% · 과세이연",
-      "krw": 7148798,
+      "krw": 7149492,
       "color": "#AFA9EC",
       "principal_krw": 6172628,
       "pnl_krw": 969112,
       "pnl_pct": 15.7,
       "daily_change": {
-        "today": 7148798,
+        "today": 7149492,
         "yesterday": 7148798,
-        "diff": 0,
-        "pct": 0.0
+        "diff": 694,
+        "pct": 0.01
       }
     },
     {
@@ -115,10 +115,10 @@
   "asset_class_totals": {
     "us_stock": 18532870,
     "crypto": 10,
-    "bond": 46398048,
+    "bond": 46409409,
     "gold": 5278875,
     "oil": 1251200,
-    "cash": 41373988
+    "cash": 41381156
   },
   "core_holdings": [
     {
@@ -126,7 +126,7 @@
       "account_name": "한투 종합 (직투ETF)",
       "account_sub": "미국 직투 · 양도세 22%",
       "account_color": "#534AB7",
-      "total_krw": 41552490,
+      "total_krw": 41568719,
       "items": [
         {
           "ticker": "SGOV",
@@ -134,9 +134,9 @@
           "cls": "bond",
           "cat": "bond",
           "pct": 99.1,
-          "krw": 41186208,
-          "principal_krw": 41188258,
-          "pnl_krw": -2050,
+          "krw": 41197569,
+          "principal_krw": 41199620,
+          "pnl_krw": -2051,
           "pnl_pct": -0.0,
           "color": "#378ADD"
         }
@@ -147,7 +147,7 @@
       "account_name": "ISA 중개형 (한투)",
       "account_sub": "비과세 200만 · 초과 9.9%",
       "account_color": "#7F77DD",
-      "total_krw": 23133692,
+      "total_krw": 23135298,
       "items": [
         {
           "ticker": "426030",
@@ -216,7 +216,7 @@
       "account_name": "연금저축펀드 (한투)",
       "account_sub": "세액공제 16.5% · 과세이연",
       "account_color": "#AFA9EC",
-      "total_krw": 7148798,
+      "total_krw": 7149492,
       "items": [
         {
           "ticker": "426030",
@@ -350,20 +350,20 @@
     }
   ],
   "metrics": {
-    "usd_exposure_krw": 76552490,
+    "usd_exposure_krw": 76568719,
     "usd_exposure_note": "한투 종합 직투 + 토스",
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 77552501,
+      "week": 77568730,
       "week_note": "업비트 + OKX + 종합 + 토스",
-      "mid": 23133692,
+      "mid": 23135298,
       "mid_note": "ISA 만기 권장",
-      "long": 7148798,
+      "long": 7149492,
       "long_note": "연금저축 (55세 락업)"
     },
     "tax": {
-      "yeon_used": 7148798,
+      "yeon_used": 7149492,
       "yeon_limit": 6000000,
       "isa_remaining": 0,
       "isa_limit": 20000000
@@ -371,10 +371,10 @@
   },
   "daily_change": {
     "total": {
-      "today": 112834991,
+      "today": 112853520,
       "yesterday": 112830763,
-      "diff": 4228,
-      "pct": 0.0
+      "diff": 22757,
+      "pct": 0.02
     },
     "risky_pct": {
       "today": 17.5,
@@ -400,10 +400,10 @@
         "pct": -4.36
       },
       "bond": {
-        "today": 46398048,
+        "today": 46409409,
         "yesterday": 46393820,
-        "diff": 4228,
-        "pct": 0.01
+        "diff": 15589,
+        "pct": 0.03
       },
       "gold": {
         "today": 5278875,
@@ -418,10 +418,10 @@
         "pct": 0.0
       },
       "cash": {
-        "today": 41373988,
+        "today": 41381156,
         "yesterday": 1000001,
-        "diff": 40373987,
-        "pct": 4037.4
+        "diff": 40381155,
+        "pct": 4038.11
       }
     }
   },
@@ -456,8 +456,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 62184.0,
-        "change_pct": 2.16
+        "price": 61715.0,
+        "change_pct": 1.39
       },
       "NDX": {
         "name": "나스닥",
@@ -485,24 +485,24 @@
         "label": "fear"
       }
     },
-    "usdkrw_change_pct": 1.69
+    "usdkrw_change_pct": 1.72
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 55.99,
-      "change_pct": -0.23
-    },
-    "usdt_dominance": {
-      "value": 8.38,
-      "change_pct": 0.0
-    },
-    "eth_btc_ratio": {
-      "value": 0.02624,
+      "value": 55.95,
       "change_pct": -0.3
     },
+    "usdt_dominance": {
+      "value": 8.45,
+      "change_pct": 0.84
+    },
+    "eth_btc_ratio": {
+      "value": 0.02639,
+      "change_pct": 0.27
+    },
     "total3_market_cap": {
-      "value": 783683753696,
-      "change_pct": 0.29
+      "value": 777336080547,
+      "change_pct": -0.53
     }
   },
   "rebalancing": {
@@ -958,12 +958,12 @@
     },
     {
       "date": "2026-06-08",
-      "total": 112830763.302909,
-      "crypto": 10.328013,
+      "total": 112834991.221138,
+      "crypto": 10.407272,
       "stock": 18532870,
       "gold": 5278875,
       "oil": 1251200,
-      "bond": 46393819.811029,
+      "bond": 46398047.65,
       "cash": 1000000.793109
     }
   ],
@@ -1331,9 +1331,9 @@
     "look_through": [
       {
         "symbol": "SGOV",
-        "krw": 41186208,
-        "pct": 36.5,
-        "direct": 41186208,
+        "krw": 41197569,
+        "pct": 36.51,
+        "direct": 41197569,
         "indirect": 0
       },
       {
@@ -1473,7 +1473,7 @@
     "sectors": [
       {
         "sector": "채권",
-        "krw": 46398048,
+        "krw": 46409409,
         "pct": 41.1
       },
       {
@@ -1520,7 +1520,7 @@
     "regions": [
       {
         "region": "미국",
-        "krw": 49978473,
+        "krw": 49989834,
         "pct": 44.3
       },
       {
