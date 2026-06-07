@@ -1,23 +1,23 @@
 {
-  "updated_at": "2026-06-08T00:57:23+09:00",
+  "updated_at": "2026-06-08T02:51:33+09:00",
   "usdkrw": 1559,
-  "total_krw": 112830763,
+  "total_krw": 112834991,
   "accounts": [
     {
       "id": "kis_jonghap",
       "name": "한투 종합 (직투ETF)",
       "subtitle": "미국 직투 · 양도세 22%",
-      "krw": 41548262,
+      "krw": 41552490,
       "color": "#534AB7",
       "usd_amount": 26658,
-      "principal_krw": 41184030,
+      "principal_krw": 41188258,
       "pnl_krw": -2050,
       "pnl_pct": -0.0,
       "daily_change": {
-        "today": 41548262,
+        "today": 41552490,
         "yesterday": 41548262,
-        "diff": 0,
-        "pct": 0.0
+        "diff": 4228,
+        "pct": 0.01
       }
     },
     {
@@ -115,7 +115,7 @@
   "asset_class_totals": {
     "us_stock": 18532870,
     "crypto": 10,
-    "bond": 46393820,
+    "bond": 46398048,
     "gold": 5278875,
     "oil": 1251200,
     "cash": 41373988
@@ -126,7 +126,7 @@
       "account_name": "한투 종합 (직투ETF)",
       "account_sub": "미국 직투 · 양도세 22%",
       "account_color": "#534AB7",
-      "total_krw": 41548262,
+      "total_krw": 41552490,
       "items": [
         {
           "ticker": "SGOV",
@@ -134,8 +134,8 @@
           "cls": "bond",
           "cat": "bond",
           "pct": 99.1,
-          "krw": 41181980,
-          "principal_krw": 41184030,
+          "krw": 41186208,
+          "principal_krw": 41188258,
           "pnl_krw": -2050,
           "pnl_pct": -0.0,
           "color": "#378ADD"
@@ -350,12 +350,12 @@
     }
   ],
   "metrics": {
-    "usd_exposure_krw": 76548262,
+    "usd_exposure_krw": 76552490,
     "usd_exposure_note": "한투 종합 직투 + 토스",
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 77548273,
+      "week": 77552501,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 23133692,
       "mid_note": "ISA 만기 권장",
@@ -371,20 +371,20 @@
   },
   "daily_change": {
     "total": {
-      "today": 112830763,
+      "today": 112834991,
       "yesterday": 112830763,
-      "diff": 0,
-      "pct": -0.0
+      "diff": 4228,
+      "pct": 0.0
     },
     "risky_pct": {
       "today": 17.5,
       "yesterday": 17.5,
-      "diff": 0.0
+      "diff": -0.0
     },
     "safe_pct": {
       "today": 82.5,
       "yesterday": 82.5,
-      "diff": -0.0
+      "diff": 0.0
     },
     "classes": {
       "us_stock": {
@@ -400,10 +400,10 @@
         "pct": -4.36
       },
       "bond": {
-        "today": 46393820,
+        "today": 46398048,
         "yesterday": 46393820,
-        "diff": 0,
-        "pct": 0.0
+        "diff": 4228,
+        "pct": 0.01
       },
       "gold": {
         "today": 5278875,
@@ -456,8 +456,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 62008.0,
-        "change_pct": 1.87
+        "price": 62184.0,
+        "change_pct": 2.16
       },
       "NDX": {
         "name": "나스닥",
@@ -485,24 +485,24 @@
         "label": "fear"
       }
     },
-    "usdkrw_change_pct": 1.68
+    "usdkrw_change_pct": 1.69
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.12,
-      "change_pct": 0.0
+      "value": 55.99,
+      "change_pct": -0.23
     },
     "usdt_dominance": {
       "value": 8.38,
       "change_pct": 0.0
     },
     "eth_btc_ratio": {
-      "value": 0.02626,
-      "change_pct": -0.23
+      "value": 0.02624,
+      "change_pct": -0.3
     },
     "total3_market_cap": {
-      "value": 781449634921,
-      "change_pct": 0.0
+      "value": 783683753696,
+      "change_pct": 0.29
     }
   },
   "rebalancing": {
@@ -955,6 +955,16 @@
       "oil": 1251200,
       "bond": 46393819.811029,
       "cash": 1000000.793109
+    },
+    {
+      "date": "2026-06-08",
+      "total": 112830763.302909,
+      "crypto": 10.328013,
+      "stock": 18532870,
+      "gold": 5278875,
+      "oil": 1251200,
+      "bond": 46393819.811029,
+      "cash": 1000000.793109
     }
   ],
   "toss_mdd": {
@@ -1321,9 +1331,9 @@
     "look_through": [
       {
         "symbol": "SGOV",
-        "krw": 41181980,
+        "krw": 41186208,
         "pct": 36.5,
-        "direct": 41181980,
+        "direct": 41186208,
         "indirect": 0
       },
       {
@@ -1463,7 +1473,7 @@
     "sectors": [
       {
         "sector": "채권",
-        "krw": 46393820,
+        "krw": 46398048,
         "pct": 41.1
       },
       {
@@ -1510,7 +1520,7 @@
     "regions": [
       {
         "region": "미국",
-        "krw": 49974245,
+        "krw": 49978473,
         "pct": 44.3
       },
       {
