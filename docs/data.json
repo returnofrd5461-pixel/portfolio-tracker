@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-07T23:32:11+09:00",
+  "updated_at": "2026-06-08T00:57:23+09:00",
   "usdkrw": 1559,
   "total_krw": 112830763,
   "accounts": [
@@ -65,7 +65,7 @@
         "today": 1000011,
         "yesterday": 1000011,
         "diff": 0,
-        "pct": 0.0
+        "pct": -0.0
       }
     },
     {
@@ -397,7 +397,7 @@
         "today": 10,
         "yesterday": 10,
         "diff": 0,
-        "pct": -2.19
+        "pct": -4.36
       },
       "bond": {
         "today": 46393820,
@@ -456,8 +456,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 62200.0,
-        "change_pct": 2.19
+        "price": 62008.0,
+        "change_pct": 1.87
       },
       "NDX": {
         "name": "나스닥",
@@ -490,19 +490,19 @@
   "crypto_indicators": {
     "btc_dominance": {
       "value": 56.12,
-      "change_pct": -0.04
+      "change_pct": 0.0
     },
     "usdt_dominance": {
       "value": 8.38,
-      "change_pct": -2.56
+      "change_pct": 0.0
     },
     "eth_btc_ratio": {
-      "value": 0.02632,
-      "change_pct": 2.61
+      "value": 0.02626,
+      "change_pct": -0.23
     },
     "total3_market_cap": {
       "value": 781449634921,
-      "change_pct": 2.1
+      "change_pct": 0.0
     }
   },
   "rebalancing": {
@@ -656,16 +656,6 @@
     ]
   },
   "sparkline_history": [
-    {
-      "date": "2026-05-08",
-      "total": 141637457.283579,
-      "crypto": 25434797.023535,
-      "stock": 25470028.564316,
-      "gold": 9992062.110906,
-      "oil": 1214650,
-      "bond": 9881213.197002,
-      "cash": 17288692.96766
-    },
     {
       "date": "2026-05-09",
       "total": 141633228.523011,
@@ -958,8 +948,8 @@
     },
     {
       "date": "2026-06-07",
-      "total": 112830763.406555,
-      "crypto": 10.431659,
+      "total": 112830763.430942,
+      "crypto": 10.456046,
       "stock": 18532870,
       "gold": 5278875,
       "oil": 1251200,
@@ -1237,7 +1227,7 @@
       "type": "fomc",
       "title": "FOMC 6월 (SEP)",
       "importance": "high",
-      "d_day": 10
+      "d_day": 9
     },
     {
       "date": "2026-07-09",
@@ -1245,7 +1235,7 @@
       "type": "kbok",
       "title": "금통위 7월",
       "importance": "mid",
-      "d_day": 32
+      "d_day": 31
     },
     {
       "date": "2026-07-23",
@@ -1254,7 +1244,7 @@
       "title": "TSLA 실적 발표",
       "ticker": "TSLA",
       "importance": "mid",
-      "d_day": 46
+      "d_day": 45
     },
     {
       "date": "2026-07-24",
@@ -1263,7 +1253,7 @@
       "title": "GOOGL 실적 발표",
       "ticker": "GOOGL",
       "importance": "high",
-      "d_day": 47
+      "d_day": 46
     },
     {
       "date": "2026-07-29",
@@ -1271,7 +1261,7 @@
       "type": "fomc",
       "title": "FOMC 7월",
       "importance": "high",
-      "d_day": 52
+      "d_day": 51
     },
     {
       "date": "2026-07-30",
@@ -1280,7 +1270,7 @@
       "title": "MSFT 실적 발표",
       "ticker": "MSFT",
       "importance": "high",
-      "d_day": 53
+      "d_day": 52
     },
     {
       "date": "2026-07-30",
@@ -1289,7 +1279,7 @@
       "title": "META 실적 발표",
       "ticker": "META",
       "importance": "mid",
-      "d_day": 53
+      "d_day": 52
     },
     {
       "date": "2026-07-31",
@@ -1298,7 +1288,7 @@
       "title": "AAPL 실적 발표",
       "ticker": "AAPL",
       "importance": "mid",
-      "d_day": 54
+      "d_day": 53
     },
     {
       "date": "2026-07-31",
@@ -1307,7 +1297,7 @@
       "title": "AMZN 실적 발표",
       "ticker": "AMZN",
       "importance": "mid",
-      "d_day": 54
+      "d_day": 53
     },
     {
       "date": "2026-08-27",
@@ -1315,7 +1305,7 @@
       "type": "kbok",
       "title": "금통위 8월",
       "importance": "mid",
-      "d_day": 81
+      "d_day": 80
     },
     {
       "date": "2026-08-27",
@@ -1324,7 +1314,7 @@
       "title": "NVDA 실적 발표",
       "ticker": "NVDA",
       "importance": "high",
-      "d_day": 81
+      "d_day": 80
     }
   ],
   "xray": {
