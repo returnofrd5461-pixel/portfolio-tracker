@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-07T14:11:58+09:00",
+  "updated_at": "2026-06-07T19:55:38+09:00",
   "usdkrw": 1559,
   "total_krw": 112830763,
   "accounts": [
@@ -456,8 +456,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 61769.0,
-        "change_pct": 0.0
+        "price": 62351.0,
+        "change_pct": 2.44
       },
       "NDX": {
         "name": "나스닥",
@@ -489,20 +489,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.05,
-      "change_pct": -0.16
+      "value": 56.12,
+      "change_pct": -0.04
     },
     "usdt_dominance": {
-      "value": 8.51,
-      "change_pct": -1.05
+      "value": 8.38,
+      "change_pct": -2.56
     },
     "eth_btc_ratio": {
-      "value": 0.02579,
-      "change_pct": 0.55
+      "value": 0.02607,
+      "change_pct": 1.64
     },
     "total3_market_cap": {
-      "value": 773658274801,
-      "change_pct": 1.08
+      "value": 781449634921,
+      "change_pct": 2.1
     }
   },
   "rebalancing": {
@@ -958,8 +958,8 @@
     },
     {
       "date": "2026-06-07",
-      "total": 112830763.156585,
-      "crypto": 10.181689,
+      "total": 112830763.35778,
+      "crypto": 10.382884,
       "stock": 18532870,
       "gold": 5278875,
       "oil": 1251200,
