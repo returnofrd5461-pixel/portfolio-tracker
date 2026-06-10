@@ -1,39 +1,39 @@
 {
-  "updated_at": "2026-06-10T20:57:53+09:00",
-  "usdkrw": 1524,
-  "total_krw": 109824418,
+  "updated_at": "2026-06-11T01:25:35+09:00",
+  "usdkrw": 1519,
+  "total_krw": 109695755,
   "accounts": [
     {
       "id": "kis_jonghap",
       "name": "한투 종합 (직투ETF)",
       "subtitle": "미국 직투 · 양도세 22%",
-      "krw": 40276576,
+      "krw": 40147701,
       "color": "#534AB7",
       "usd_amount": 26425,
-      "principal_krw": 40267798,
-      "pnl_krw": 8778,
+      "principal_krw": 40140188,
+      "pnl_krw": 7513,
       "pnl_pct": 0.02,
       "daily_change": {
-        "today": 40276576,
-        "yesterday": 40651284,
-        "diff": -374708,
-        "pct": -0.92
+        "today": 40147701,
+        "yesterday": 40276576,
+        "diff": -128876,
+        "pct": -0.32
       }
     },
     {
       "id": "kis_isa",
       "name": "ISA 중개형 (한투)",
       "subtitle": "비과세 200만 · 초과 9.9%",
-      "krw": 21825211,
+      "krw": 21851558,
       "color": "#7F77DD",
       "principal_krw": 17232305,
       "pnl_krw": 1154455,
       "pnl_pct": 6.7,
       "daily_change": {
-        "today": 21825211,
-        "yesterday": 22416566,
-        "diff": -591355,
-        "pct": -2.64
+        "today": 21851558,
+        "yesterday": 21825211,
+        "diff": 26347,
+        "pct": 0.12
       }
     },
     {
@@ -47,9 +47,9 @@
       "pnl_pct": 7.04,
       "daily_change": {
         "today": 6754107,
-        "yesterday": 6938192,
-        "diff": -184085,
-        "pct": -2.65
+        "yesterday": 6754107,
+        "diff": 0,
+        "pct": 0.0
       }
     },
     {
@@ -63,23 +63,23 @@
       "pnl_pct": 66.67,
       "daily_change": {
         "today": 10,
-        "yesterday": 499761,
-        "diff": -499751,
-        "pct": -100.0
+        "yesterday": 10,
+        "diff": 0,
+        "pct": 1.99
       }
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 968514,
+      "krw": 942379,
       "color": "#D4853A",
-      "usd_amount": 635,
+      "usd_amount": 620,
       "daily_change": {
-        "today": 968514,
-        "yesterday": 508079,
-        "diff": 460434,
-        "pct": 90.62
+        "today": 942379,
+        "yesterday": 968514,
+        "diff": -26134,
+        "pct": -2.7
       }
     },
     {
@@ -121,11 +121,11 @@
   ],
   "asset_class_totals": {
     "us_stock": 12805600,
-    "crypto": 968524,
-    "bond": 45472396,
+    "crypto": 942390,
+    "bond": 45343521,
     "gold": 4954250,
     "oil": 1201900,
-    "cash": 44421748
+    "cash": 44448095
   },
   "core_holdings": [
     {
@@ -133,7 +133,7 @@
       "account_name": "한투 종합 (직투ETF)",
       "account_sub": "미국 직투 · 양도세 22%",
       "account_color": "#534AB7",
-      "total_krw": 40276576,
+      "total_krw": 40147701,
       "items": [
         {
           "ticker": "SGOV",
@@ -141,9 +141,9 @@
           "cls": "bond",
           "cat": "bond",
           "pct": 100.0,
-          "krw": 40276576,
-          "principal_krw": 40267798,
-          "pnl_krw": 8778,
+          "krw": 40147701,
+          "principal_krw": 40140188,
+          "pnl_krw": 7513,
           "pnl_pct": 0.02,
           "color": "#378ADD"
         }
@@ -154,7 +154,7 @@
       "account_name": "ISA 중개형 (한투)",
       "account_sub": "비과세 200만 · 초과 9.9%",
       "account_color": "#7F77DD",
-      "total_krw": 21825211,
+      "total_krw": 21851558,
       "items": [
         {
           "ticker": "426030",
@@ -185,7 +185,7 @@
           "name": "KODEX 미국10년국채액티브(H)",
           "cls": "bond",
           "cat": "bond",
-          "pct": 18.1,
+          "pct": 18.0,
           "krw": 3940650,
           "principal_krw": 3999375,
           "pnl_krw": -58725,
@@ -197,7 +197,7 @@
           "name": "ACE KRX금현물",
           "cls": "gold",
           "cat": "gold",
-          "pct": 17.3,
+          "pct": 17.2,
           "krw": 3765230,
           "principal_krw": 4126170,
           "pnl_krw": -360940,
@@ -302,14 +302,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 968514,
+      "total_krw": 942379,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 968514,
+          "krw": 942379,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -369,14 +369,14 @@
     }
   ],
   "metrics": {
-    "usd_exposure_krw": 75276576,
+    "usd_exposure_krw": 75147701,
     "usd_exposure_note": "한투 종합 직투 + 토스",
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 76245100,
+      "week": 76090090,
       "week_note": "업비트 + OKX + 종합 + 토스",
-      "mid": 21825211,
+      "mid": 21851558,
       "mid_note": "ISA 만기 권장",
       "long": 6754107,
       "long_note": "연금저축 (55세 락업)"
@@ -390,10 +390,10 @@
   },
   "daily_change": {
     "total": {
-      "today": 109824418,
-      "yesterday": 111013882,
-      "diff": -1189464,
-      "pct": -1.07
+      "today": 109695755,
+      "yesterday": 109824418,
+      "diff": -128663,
+      "pct": -0.12
     },
     "risky_pct": {
       "today": 13.6,
@@ -408,39 +408,39 @@
     "classes": {
       "us_stock": {
         "today": 12805600,
-        "yesterday": 13407700,
-        "diff": -602100,
-        "pct": -4.49
+        "yesterday": 12805600,
+        "diff": 0,
+        "pct": 0.0
       },
       "crypto": {
-        "today": 968524,
-        "yesterday": 508089,
-        "diff": 460435,
-        "pct": 90.62
+        "today": 942390,
+        "yesterday": 968524,
+        "diff": -26134,
+        "pct": -2.7
       },
       "bond": {
-        "today": 45472396,
-        "yesterday": 45463889,
-        "diff": 8507,
-        "pct": 0.02
+        "today": 45343521,
+        "yesterday": 45472396,
+        "diff": -128875,
+        "pct": -0.28
       },
       "gold": {
         "today": 4954250,
-        "yesterday": 5113500,
-        "diff": -159250,
-        "pct": -3.11
+        "yesterday": 4954250,
+        "diff": 0,
+        "pct": 0.0
       },
       "oil": {
         "today": 1201900,
-        "yesterday": 1224000,
-        "diff": -22100,
-        "pct": -1.81
+        "yesterday": 1201900,
+        "diff": 0,
+        "pct": 0.0
       },
       "cash": {
-        "today": 44421748,
-        "yesterday": 499751,
-        "diff": 43921997,
-        "pct": 8788.78
+        "today": 44448095,
+        "yesterday": 0,
+        "diff": 44448095,
+        "pct": 104281948613.14
       }
     }
   },
@@ -453,44 +453,44 @@
     "macro": {
       "DXY": {
         "name": "달러 인덱스",
-        "price": 100.0,
-        "change_pct": 0.0
+        "price": 99.88,
+        "change_pct": -0.03
       },
       "US10Y": {
         "name": "미국채 10년",
-        "price": 4.552,
-        "change_pct": 0.0
+        "price": 4.53,
+        "change_pct": 0.04
       },
       "VIX": {
         "name": "VIX",
-        "price": 22.23,
-        "change_pct": 0.0
+        "price": 22.07,
+        "change_pct": 11.07
       },
       "CL1": {
         "name": "WTI 원유",
-        "price": 89.88,
-        "change_pct": 1.9
+        "price": 91.04,
+        "change_pct": 3.22
       }
     },
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 61000.0,
-        "change_pct": -1.04
+        "price": 62136.0,
+        "change_pct": 0.8
       },
       "NDX": {
         "name": "나스닥",
-        "price": 25930.0,
-        "change_pct": 0.0
+        "price": 25336.0,
+        "change_pct": -1.34
       },
       "GOLD": {
         "name": "금",
-        "price": 4176.0,
-        "change_pct": -1.97
+        "price": 4152.0,
+        "change_pct": -2.53
       },
       "KOSPI": {
         "name": "KOSPI",
-        "price": 7731.0,
+        "price": 8097.0,
         "change_pct": 0.0
       }
     },
@@ -500,28 +500,28 @@
         "label": "Extreme Fear"
       },
       "sp500": {
-        "value": 33.7,
+        "value": 29.2,
         "label": "fear"
       }
     },
-    "usdkrw_change_pct": -0.27
+    "usdkrw_change_pct": -0.62
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 55.96,
-      "change_pct": -0.09
+      "value": 56.13,
+      "change_pct": 0.3
     },
     "usdt_dominance": {
-      "value": 8.49,
-      "change_pct": 1.68
+      "value": 8.4,
+      "change_pct": -1.06
     },
     "eth_btc_ratio": {
-      "value": 0.02654,
-      "change_pct": -0.52
+      "value": 0.02646,
+      "change_pct": -0.3
     },
     "total3_market_cap": {
-      "value": 772127746530,
-      "change_pct": -1.42
+      "value": 776253771739,
+      "change_pct": 0.53
     }
   },
   "rebalancing": {
@@ -544,8 +544,8 @@
         "cls": "bond",
         "name": "채권",
         "target": 15.0,
-        "actual": 41.4,
-        "diff": 26.4
+        "actual": 41.3,
+        "diff": 26.3
       },
       {
         "cls": "gold",
@@ -565,8 +565,8 @@
         "cls": "cash",
         "name": "현금",
         "target": 5.0,
-        "actual": 40.4,
-        "diff": 35.4
+        "actual": 40.5,
+        "diff": 35.5
       }
     ],
     "per_account": [
@@ -612,22 +612,22 @@
             "cls": "us_stock",
             "name": "주식",
             "target": 55.0,
-            "actual": 44.8,
-            "diff": -10.2
+            "actual": 44.7,
+            "diff": -10.3
           },
           {
             "cls": "bond",
             "name": "채권",
             "target": 20.0,
-            "actual": 18.1,
-            "diff": -1.9
+            "actual": 18.0,
+            "diff": -2.0
           },
           {
             "cls": "gold",
             "name": "금",
             "target": 20.0,
-            "actual": 17.3,
-            "diff": -2.7
+            "actual": 17.2,
+            "diff": -2.8
           },
           {
             "cls": "oil",
@@ -675,16 +675,6 @@
     ]
   },
   "sparkline_history": [
-    {
-      "date": "2026-05-11",
-      "total": 142690993.024476,
-      "crypto": 25817719.18569,
-      "stock": 26139223.04313,
-      "gold": 9900243.315831,
-      "oil": 1285200,
-      "bond": 9903731.032261,
-      "cash": 17288692.96766
-    },
     {
       "date": "2026-05-12",
       "total": 133406293.591428,
@@ -977,12 +967,12 @@
     },
     {
       "date": "2026-06-10",
-      "total": 87997642.342581,
-      "crypto": 969304.851636,
-      "stock": 3011850,
-      "gold": 1179990,
-      "oil": 299880,
-      "bond": 41553320.448322,
+      "total": 109824417.848083,
+      "crypto": 968523.591496,
+      "stock": 12805600,
+      "gold": 4954250,
+      "oil": 1201900,
+      "bond": 45472396.213965,
       "cash": 0.042623
     }
   ],
@@ -1256,7 +1246,7 @@
       "type": "fomc",
       "title": "FOMC 6월 (SEP)",
       "importance": "high",
-      "d_day": 7
+      "d_day": 6
     },
     {
       "date": "2026-07-09",
@@ -1264,7 +1254,7 @@
       "type": "kbok",
       "title": "금통위 7월",
       "importance": "mid",
-      "d_day": 29
+      "d_day": 28
     },
     {
       "date": "2026-07-23",
@@ -1273,7 +1263,7 @@
       "title": "TSLA 실적 발표",
       "ticker": "TSLA",
       "importance": "mid",
-      "d_day": 43
+      "d_day": 42
     },
     {
       "date": "2026-07-24",
@@ -1282,7 +1272,7 @@
       "title": "GOOGL 실적 발표",
       "ticker": "GOOGL",
       "importance": "high",
-      "d_day": 44
+      "d_day": 43
     },
     {
       "date": "2026-07-29",
@@ -1290,7 +1280,7 @@
       "type": "fomc",
       "title": "FOMC 7월",
       "importance": "high",
-      "d_day": 49
+      "d_day": 48
     },
     {
       "date": "2026-07-30",
@@ -1299,7 +1289,7 @@
       "title": "MSFT 실적 발표",
       "ticker": "MSFT",
       "importance": "high",
-      "d_day": 50
+      "d_day": 49
     },
     {
       "date": "2026-07-30",
@@ -1308,7 +1298,7 @@
       "title": "META 실적 발표",
       "ticker": "META",
       "importance": "mid",
-      "d_day": 50
+      "d_day": 49
     },
     {
       "date": "2026-07-31",
@@ -1317,7 +1307,7 @@
       "title": "AAPL 실적 발표",
       "ticker": "AAPL",
       "importance": "mid",
-      "d_day": 51
+      "d_day": 50
     },
     {
       "date": "2026-07-31",
@@ -1326,7 +1316,7 @@
       "title": "AMZN 실적 발표",
       "ticker": "AMZN",
       "importance": "mid",
-      "d_day": 51
+      "d_day": 50
     },
     {
       "date": "2026-08-27",
@@ -1334,7 +1324,7 @@
       "type": "kbok",
       "title": "금통위 8월",
       "importance": "mid",
-      "d_day": 78
+      "d_day": 77
     },
     {
       "date": "2026-08-27",
@@ -1343,29 +1333,29 @@
       "title": "NVDA 실적 발표",
       "ticker": "NVDA",
       "importance": "high",
-      "d_day": 78
+      "d_day": 77
     }
   ],
   "xray": {
     "look_through": [
       {
         "symbol": "SGOV",
-        "krw": 40276576,
-        "pct": 36.67,
-        "direct": 40276576,
+        "krw": 40147701,
+        "pct": 36.6,
+        "direct": 40147701,
         "indirect": 0
       },
       {
         "symbol": "0091C0",
         "krw": 5195820,
-        "pct": 4.73,
+        "pct": 4.74,
         "direct": 5195820,
         "indirect": 0
       },
       {
         "symbol": "411060",
         "krw": 4954250,
-        "pct": 4.51,
+        "pct": 4.52,
         "direct": 4954250,
         "indirect": 0
       },
@@ -1386,7 +1376,7 @@
       {
         "symbol": "130680",
         "krw": 1201900,
-        "pct": 1.09,
+        "pct": 1.1,
         "direct": 1201900,
         "indirect": 0
       },
@@ -1406,9 +1396,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 968514,
-        "pct": 0.88,
-        "direct": 968514,
+        "krw": 942379,
+        "pct": 0.86,
+        "direct": 942379,
         "indirect": 0
       },
       {
@@ -1492,8 +1482,8 @@
     "sectors": [
       {
         "sector": "채권",
-        "krw": 45472396,
-        "pct": 41.4
+        "krw": 45343521,
+        "pct": 41.3
       },
       {
         "sector": "기타",
@@ -1517,7 +1507,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 968514,
+        "krw": 942379,
         "pct": 0.9
       },
       {
@@ -1544,8 +1534,8 @@
     "regions": [
       {
         "region": "미국",
-        "krw": 46352492,
-        "pct": 42.2
+        "krw": 46223617,
+        "pct": 42.1
       },
       {
         "region": "한국",
@@ -1554,7 +1544,7 @@
       },
       {
         "region": "크립토",
-        "krw": 968514,
+        "krw": 942379,
         "pct": 0.9
       }
     ]
