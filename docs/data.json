@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-06-14T20:16:46+09:00",
+  "updated_at": "2026-06-14T23:58:30+09:00",
   "usdkrw": 1518,
-  "total_krw": 110070170,
+  "total_krw": 110070134,
   "accounts": [
     {
       "id": "kis_jonghap",
@@ -65,21 +65,21 @@
         "today": 10,
         "yesterday": 10,
         "diff": 0,
-        "pct": 0.53
+        "pct": -1.29
       }
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 890143,
+      "krw": 890107,
       "color": "#D4853A",
       "usd_amount": 586,
       "daily_change": {
-        "today": 890143,
+        "today": 890107,
         "yesterday": 890125,
-        "diff": 18,
-        "pct": 0.0
+        "diff": -18,
+        "pct": -0.0
       }
     },
     {
@@ -121,7 +121,7 @@
   ],
   "asset_class_totals": {
     "us_stock": 13295820,
-    "crypto": 890153,
+    "crypto": 890118,
     "bond": 45330602,
     "gold": 4936750,
     "oil": 1168750,
@@ -302,14 +302,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 890143,
+      "total_krw": 890107,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 890143,
+          "krw": 890107,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -374,7 +374,7 @@
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 76014255,
+      "week": 76014220,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 22195828,
       "mid_note": "ISA 만기 권장",
@@ -390,20 +390,20 @@
   },
   "daily_change": {
     "total": {
-      "today": 110070170,
+      "today": 110070134,
       "yesterday": 110070153,
-      "diff": 17,
-      "pct": 0.0
+      "diff": -19,
+      "pct": -0.0
     },
     "risky_pct": {
       "today": 13.9,
       "yesterday": 13.9,
-      "diff": 0.0
+      "diff": -0.0
     },
     "safe_pct": {
       "today": 86.1,
       "yesterday": 86.1,
-      "diff": -0.0
+      "diff": 0.0
     },
     "classes": {
       "us_stock": {
@@ -413,10 +413,10 @@
         "pct": 0.0
       },
       "crypto": {
-        "today": 890153,
+        "today": 890118,
         "yesterday": 890136,
-        "diff": 17,
-        "pct": 0.0
+        "diff": -18,
+        "pct": -0.0
       },
       "bond": {
         "today": 45330602,
@@ -475,8 +475,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 64514.0,
-        "change_pct": 0.14
+        "price": 63918.0,
+        "change_pct": -0.78
       },
       "NDX": {
         "name": "나스닥",
@@ -508,20 +508,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.63,
-      "change_pct": 0.25
+      "value": 56.59,
+      "change_pct": 0.18
     },
     "usdt_dominance": {
-      "value": 8.17,
-      "change_pct": -0.24
+      "value": 8.24,
+      "change_pct": 0.61
     },
     "eth_btc_ratio": {
-      "value": 0.02592,
-      "change_pct": -0.92
+      "value": 0.02593,
+      "change_pct": -0.88
     },
     "total3_market_cap": {
-      "value": 787600253444,
-      "change_pct": -0.01
+      "value": 782596975792,
+      "change_pct": -0.65
     }
   },
   "rebalancing": {
@@ -977,8 +977,8 @@
     },
     {
       "date": "2026-06-14",
-      "total": 110070312.834244,
-      "crypto": 890295.818702,
+      "total": 110070170.394351,
+      "crypto": 890153.37881,
       "stock": 13295820,
       "gold": 4936750,
       "oil": 1168750,
@@ -1406,9 +1406,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 890143,
+        "krw": 890107,
         "pct": 0.81,
-        "direct": 890143,
+        "direct": 890107,
         "indirect": 0
       },
       {
@@ -1517,7 +1517,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 890143,
+        "krw": 890107,
         "pct": 0.8
       },
       {
@@ -1554,7 +1554,7 @@
       },
       {
         "region": "크립토",
-        "krw": 890143,
+        "krw": 890107,
         "pct": 0.8
       }
     ]
