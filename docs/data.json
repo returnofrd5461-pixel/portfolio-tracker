@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-20T13:59:26+09:00",
+  "updated_at": "2026-06-20T20:02:02+09:00",
   "usdkrw": 1530,
   "total_krw": 112216871,
   "accounts": [
@@ -65,7 +65,7 @@
         "today": 10,
         "yesterday": 10,
         "diff": 0,
-        "pct": 2.32
+        "pct": 2.87
       }
     },
     {
@@ -463,8 +463,8 @@
       },
       "VIX": {
         "name": "VIX",
-        "price": 16.78,
-        "change_pct": 2.32
+        "price": 16.4,
+        "change_pct": 0.0
       },
       "CL1": {
         "name": "WTI 원유",
@@ -475,8 +475,8 @@
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 63502.0,
-        "change_pct": 0.0
+        "price": 63627.0,
+        "change_pct": 0.14
       },
       "NDX": {
         "name": "나스닥",
@@ -508,20 +508,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.18,
-      "change_pct": 0.36
+      "value": 56.1,
+      "change_pct": 0.21
     },
     "usdt_dominance": {
-      "value": 8.22,
-      "change_pct": -1.44
+      "value": 8.2,
+      "change_pct": -1.68
     },
     "eth_btc_ratio": {
-      "value": 0.02695,
-      "change_pct": -0.15
+      "value": 0.02714,
+      "change_pct": 0.56
     },
     "total3_market_cap": {
-      "value": 786586403774,
-      "change_pct": 0.8
+      "value": 789570980868,
+      "change_pct": 1.18
     }
   },
   "rebalancing": {
@@ -977,8 +977,8 @@
     },
     {
       "date": "2026-06-20",
-      "total": 112192860.138296,
-      "crypto": 1296168.676847,
+      "total": 112216871.87449,
+      "crypto": 1320180.41304,
       "stock": 14774760,
       "gold": 4919250,
       "oil": 1059100,
