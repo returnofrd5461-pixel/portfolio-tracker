@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-07-11T00:18:56+09:00",
+  "updated_at": "2026-07-11T03:11:01+09:00",
   "usdkrw": 1501,
-  "total_krw": 69807486,
+  "total_krw": 69806937,
   "accounts": [
     {
       "id": "kis_jonghap",
@@ -46,30 +46,30 @@
       "id": "upbit",
       "name": "업비트",
       "subtitle": "크립토 (BTC + ETH)",
-      "krw": 1060748,
+      "krw": 1060037,
       "color": "#EF9F27",
       "principal_krw": 1079076,
-      "pnl_krw": -18965,
-      "pnl_pct": -1.76,
+      "pnl_krw": -19676,
+      "pnl_pct": -1.82,
       "daily_change": {
-        "today": 1060748,
+        "today": 1060037,
         "yesterday": 1060037,
-        "diff": 711,
-        "pct": 0.07
+        "diff": 0,
+        "pct": 0.0
       }
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 402072,
+      "krw": 402234,
       "color": "#D4853A",
       "usd_amount": 268,
       "daily_change": {
-        "today": 402072,
+        "today": 402234,
         "yesterday": 403291,
-        "diff": -1219,
-        "pct": -0.3
+        "diff": -1057,
+        "pct": -0.26
       }
     },
     {
@@ -102,7 +102,7 @@
   ],
   "asset_class_totals": {
     "us_stock": 53235645,
-    "crypto": 1462182,
+    "crypto": 1461633,
     "bond": 5198490,
     "gold": 4846625,
     "oil": 0,
@@ -262,17 +262,17 @@
       "account_name": "업비트",
       "account_sub": "크립토 (BTC + ETH)",
       "account_color": "#EF9F27",
-      "total_krw": 1060748,
+      "total_krw": 1060037,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 1060101,
+          "krw": 1059390,
           "principal_krw": 1079070,
-          "pnl_krw": -18969,
-          "pnl_pct": -1.76,
+          "pnl_krw": -19680,
+          "pnl_pct": -1.82,
           "color": "#EF9F27"
         }
       ]
@@ -282,14 +282,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 402072,
+      "total_krw": 402234,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 402072,
+          "krw": 402234,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -320,7 +320,7 @@
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 36462819,
+      "week": 36462270,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 21653422,
       "mid_note": "ISA 만기 권장",
@@ -336,9 +336,9 @@
   },
   "daily_change": {
     "total": {
-      "today": 69807486,
+      "today": 69806937,
       "yesterday": 69807993,
-      "diff": -507,
+      "diff": -1056,
       "pct": -0.0
     },
     "risky_pct": {
@@ -359,10 +359,10 @@
         "pct": 191.93
       },
       "crypto": {
-        "today": 1462182,
+        "today": 1461633,
         "yesterday": 1462690,
-        "diff": -508,
-        "pct": -0.03
+        "diff": -1057,
+        "pct": -0.07
       },
       "bond": {
         "today": 5198490,
@@ -399,40 +399,40 @@
     "macro": {
       "DXY": {
         "name": "달러 인덱스",
-        "price": 100.89,
-        "change_pct": -0.05
+        "price": 100.93,
+        "change_pct": -0.01
       },
       "US10Y": {
         "name": "미국채 10년",
-        "price": 4.557,
-        "change_pct": 0.4
+        "price": 4.567,
+        "change_pct": 0.62
       },
       "VIX": {
         "name": "VIX",
-        "price": 15.81,
-        "change_pct": -0.19
+        "price": 15.33,
+        "change_pct": -3.22
       },
       "CL1": {
         "name": "WTI 원유",
-        "price": 71.54,
-        "change_pct": -0.75
+        "price": 71.22,
+        "change_pct": -1.19
       }
     },
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 64076.0,
-        "change_pct": 1.4
+        "price": 63900.0,
+        "change_pct": 1.12
       },
       "NDX": {
         "name": "나스닥",
-        "price": 26179.0,
-        "change_pct": -0.11
+        "price": 26282.0,
+        "change_pct": 0.29
       },
       "GOLD": {
         "name": "금",
-        "price": 4107.0,
-        "change_pct": -0.57
+        "price": 4110.0,
+        "change_pct": -0.51
       },
       "KOSPI": {
         "name": "KOSPI",
@@ -446,7 +446,7 @@
         "label": "Extreme Fear"
       },
       "sp500": {
-        "value": 47.0,
+        "value": 48.6,
         "label": "neutral"
       }
     },
@@ -454,20 +454,20 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.36,
-      "change_pct": -0.05
+      "value": 56.29,
+      "change_pct": -0.18
     },
     "usdt_dominance": {
-      "value": 8.08,
-      "change_pct": 0.5
+      "value": 8.09,
+      "change_pct": 0.62
     },
     "eth_btc_ratio": {
-      "value": 0.02795,
-      "change_pct": -0.04
+      "value": 0.02801,
+      "change_pct": 0.18
     },
     "total3_market_cap": {
-      "value": 779036570458,
-      "change_pct": -0.29
+      "value": 778905351133,
+      "change_pct": -0.31
     }
   },
   "rebalancing": {
@@ -915,6 +915,16 @@
       "date": "2026-07-10",
       "total": 69807993.475344,
       "crypto": 1462690.432721,
+      "stock": 18235645,
+      "gold": 4846625,
+      "oil": 0,
+      "bond": 5198490,
+      "cash": 637.042623
+    },
+    {
+      "date": "2026-07-11",
+      "total": 69807485.330406,
+      "crypto": 1462182.287783,
       "stock": 18235645,
       "gold": 4846625,
       "oil": 0,
@@ -1774,9 +1784,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 1462173,
+        "krw": 1461624,
         "pct": 2.09,
-        "direct": 1462173,
+        "direct": 1461624,
         "indirect": 0
       },
       {
@@ -1906,7 +1916,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 1462173,
+        "krw": 1461624,
         "pct": 2.1
       },
       {
@@ -1943,7 +1953,7 @@
       },
       {
         "region": "크립토",
-        "krw": 1462173,
+        "krw": 1461624,
         "pct": 2.1
       }
     ]
