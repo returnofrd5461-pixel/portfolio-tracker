@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-07-18T12:44:28+09:00",
+  "updated_at": "2026-07-18T15:32:30+09:00",
   "usdkrw": 1487,
-  "total_krw": 35543999,
+  "total_krw": 35543988,
   "accounts": [
     {
       "id": "kis_jonghap",
@@ -55,20 +55,20 @@
         "today": 10,
         "yesterday": 10,
         "diff": 0,
-        "pct": -0.31
+        "pct": 0.49
       }
     },
     {
       "id": "okx",
       "name": "OKX",
       "subtitle": "크립토 해외",
-      "krw": 351958,
+      "krw": 351947,
       "color": "#D4853A",
       "usd_amount": 237,
       "daily_change": {
-        "today": 351958,
+        "today": 351947,
         "yesterday": 397696,
-        "diff": -45738,
+        "diff": -45749,
         "pct": -11.5
       }
     },
@@ -111,7 +111,7 @@
   ],
   "asset_class_totals": {
     "us_stock": 20322245,
-    "crypto": 351967,
+    "crypto": 351956,
     "bond": 5177130,
     "gold": 4628750,
     "oil": 0,
@@ -279,14 +279,14 @@
       "account_name": "OKX",
       "account_sub": "크립토 해외",
       "account_color": "#D4853A",
-      "total_krw": 351958,
+      "total_krw": 351947,
       "items": [
         {
           "ticker": "USDT",
           "name": "USDT",
           "cls": "crypto",
           "cat": "crypto",
-          "krw": 351958,
+          "krw": 351947,
           "principal_krw": 0,
           "pnl_krw": 0,
           "pnl_pct": 0.0,
@@ -351,7 +351,7 @@
     "liquidity": {
       "instant": 5000000,
       "instant_note": "비상금 + 사업자금",
-      "week": 3351967,
+      "week": 3351957,
       "week_note": "업비트 + OKX + 종합 + 토스",
       "mid": 20771412,
       "mid_note": "ISA 만기 권장",
@@ -367,9 +367,9 @@
   },
   "daily_change": {
     "total": {
-      "today": 35543999,
+      "today": 35543988,
       "yesterday": 35589737,
-      "diff": -45738,
+      "diff": -45749,
       "pct": -0.13
     },
     "risky_pct": {
@@ -390,9 +390,9 @@
         "pct": 17.32
       },
       "crypto": {
-        "today": 351967,
+        "today": 351956,
         "yesterday": 397705,
-        "diff": -45738,
+        "diff": -45749,
         "pct": -11.5
       },
       "bond": {
@@ -445,14 +445,14 @@
       },
       "CL1": {
         "name": "WTI 원유",
-        "price": 81.77,
-        "change_pct": 3.57
+        "price": 82.49,
+        "change_pct": 4.48
       }
     },
     "assets": {
       "BTC": {
         "name": "BTC",
-        "price": 63896.0,
+        "price": 63911.0,
         "change_pct": 0.0
       },
       "NDX": {
@@ -462,8 +462,8 @@
       },
       "GOLD": {
         "name": "금",
-        "price": 4023.0,
-        "change_pct": 0.94
+        "price": 4013.0,
+        "change_pct": 0.68
       },
       "KOSPI": {
         "name": "KOSPI",
@@ -485,8 +485,8 @@
   },
   "crypto_indicators": {
     "btc_dominance": {
-      "value": 56.38,
-      "change_pct": 0.25
+      "value": 56.41,
+      "change_pct": 0.3
     },
     "usdt_dominance": {
       "value": 8.1,
@@ -497,8 +497,8 @@
       "change_pct": -0.14
     },
     "total3_market_cap": {
-      "value": 769276076633,
-      "change_pct": 0.38
+      "value": 768529313035,
+      "change_pct": 0.29
     }
   },
   "rebalancing": {
@@ -954,8 +954,8 @@
     },
     {
       "date": "2026-07-18",
-      "total": 35552073.803221,
-      "crypto": 360042.188372,
+      "total": 35543998.389177,
+      "crypto": 351966.774328,
       "stock": 17322245,
       "gold": 4628750,
       "oil": 0,
@@ -1815,7 +1815,7 @@
       {
         "symbol": "456600 (잔여)",
         "krw": 2461422,
-        "pct": 6.92,
+        "pct": 6.93,
         "direct": 2461422,
         "indirect": 0
       },
@@ -1870,9 +1870,9 @@
       },
       {
         "symbol": "USDT",
-        "krw": 351958,
+        "krw": 351947,
         "pct": 0.99,
-        "direct": 351958,
+        "direct": 351947,
         "indirect": 0
       },
       {
@@ -1958,7 +1958,7 @@
       },
       {
         "sector": "크립토",
-        "krw": 351958,
+        "krw": 351947,
         "pct": 1.0
       },
       {
@@ -1990,7 +1990,7 @@
       },
       {
         "region": "크립토",
-        "krw": 351958,
+        "krw": 351947,
         "pct": 1.0
       }
     ]
